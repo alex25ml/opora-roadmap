@@ -210,8 +210,8 @@ svg .leaf:focus{outline:none}
 .addrow.two{grid-template-columns:minmax(0,1fr) auto}
 
 .notes{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
-.note{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:start}
-.note.is-done{border-color:var(--ok);background:linear-gradient(0deg,var(--ok-soft),var(--ok-soft)) padding-box}
+.notes .note{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:start}
+.notes .note.is-done{border-color:var(--ok);background:linear-gradient(0deg,var(--ok-soft),var(--ok-soft)) padding-box}
 .note .nt{white-space:pre-wrap;font-size:14.5px;overflow-wrap:anywhere}
 .note .nm{font-size:12px;color:var(--muted);margin-top:4px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .done-tag{font-size:11px;font-weight:700;color:var(--ok);letter-spacing:.04em;text-transform:uppercase}
@@ -269,6 +269,31 @@ svg .leaf:focus{outline:none}
 .lock-card .who-pick input{accent-color:var(--accent);width:18px;height:18px;margin:0;flex:none}
 .lock-card .who-pick label{font-size:15px;color:var(--fg)}
 .lock-err{color:var(--crit)!important}
+.due{font-size:12px;font-family:var(--f-mono);color:var(--muted);white-space:nowrap}
+.due.soon{color:var(--warn);font-weight:500}
+.due.over{color:var(--crit);font-weight:600}
+.launch{margin-top:18px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);display:flex;flex-direction:column;gap:8px}
+.launch:empty{display:none}
+.launch-row{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:baseline}
+.launch-date{font-family:var(--f-display);font-weight:500;font-size:17px}
+.launch-left{font-family:var(--f-mono);font-size:13px;color:var(--accent);font-weight:500}
+.launch-left.soon{color:var(--crit)}
+.launch-sub{font-size:12.5px;color:var(--muted)}
+.tab-n{display:inline-block;min-width:20px;padding:0 6px;border-radius:99px;background:var(--crit-soft);color:var(--crit);font-size:12px;font-family:var(--f-mono);margin-left:4px}
+.tab-n:empty{display:none}
+.hot-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.hot-sum{margin:0;font-size:15px}
+.over-t{color:var(--crit)}
+.seg{display:inline-flex;border:1px solid var(--line-2);border-radius:9px;overflow:hidden}
+.seg-b{background:var(--surface);border:0;border-right:1px solid var(--line-2);padding:7px 12px;cursor:pointer;font-weight:600;font-size:13px;color:var(--muted)}
+.seg-b:last-child{border-right:0}
+.seg-b[aria-pressed="true"]{background:var(--accent);color:var(--on-accent)}
+.hot-day{border-top:1px solid var(--line);padding-top:12px;margin-top:6px}
+.hot-day h3{font-size:14px;font-weight:700;margin:0 0 4px;text-transform:none}
+.hot-day h3::first-letter{text-transform:uppercase}
+.hot-day.over h3{color:var(--crit)}
+.hot-day .items{padding-left:0}
+.phase-strip{grid-template-columns:repeat(auto-fit,minmax(96px,1fr))!important}
 .syncbar{display:flex;gap:10px;align-items:center;justify-content:flex-end;flex-wrap:wrap;font-size:12.5px;color:var(--muted);margin-bottom:14px}
 .syncbar .dotst{width:8px;height:8px;border-radius:50%;background:var(--ok);display:inline-block;margin-right:6px}
 .syncbar .dotst.busy{background:var(--warn)}
@@ -293,8 +318,9 @@ svg .leaf:focus{outline:none}
   <header class="top">
     <div>
       <div class="eyebrow">Консалтинг «Опора» · Татьяна Кочерова и Александр Оленович</div>
-      <h1>Дорожная карта: к первому платному аудиту</h1>
+      <h1>Дорожная карта: запуск продаж 15 октября</h1>
       <p class="lede">Все ветки проекта в одном месте. Кружок меняет статус задачи: не начато → в работе → готово. Нажмите на название, чтобы открыть задачу с документами и общими заметками.</p>
+      <div class="launch" id="launch"></div>
       <div class="overall">
         <div class="overall-row">
           <span><span class="overall-num mono" id="ov-pct">—</span> <span class="muted" id="ov-txt">загружаю задачи…</span></span>
@@ -305,14 +331,15 @@ svg .leaf:focus{outline:none}
       </div>
     </div>
     <aside class="next" aria-labelledby="next-h">
-      <h2 id="next-h"><span>Следующие шаги</span><span class="muted mono" style="font-weight:500;font-size:12px">критично · ближайший этап</span></h2>
+      <h2 id="next-h"><span>Следующие шаги</span><span class="muted mono" style="font-weight:500;font-size:12px">по срокам</span></h2>
       <ol id="next-list"><li><span></span><span class="muted">Список появится, когда загрузятся задачи.</span></li></ol>
       <div class="feed"><h2>Свежие заметки</h2><ul id="feed"><li class="muted" style="cursor:default">Пока нет заметок.</li></ul></div>
     </aside>
   </header>
 
   <nav class="tabs" role="tablist">
-    <button class="tab" role="tab" id="tab-plan" data-tab="plan" aria-selected="true">План по этапам</button>
+    <button class="tab" role="tab" id="tab-hot" data-tab="hot" aria-selected="true">Горит на неделе <span class="tab-n" id="hot-n"></span></button>
+    <button class="tab" role="tab" id="tab-plan" data-tab="plan" aria-selected="false">План по этапам</button>
     <button class="tab" role="tab" id="tab-backlog" data-tab="backlog" aria-selected="false">Бэклог</button>
     <button class="tab" role="tab" id="tab-map" data-tab="map" aria-selected="false">Mind-карта</button>
     <button class="tab" role="tab" id="tab-docs" data-tab="docs" aria-selected="false">Документы</button>
@@ -320,9 +347,11 @@ svg .leaf:focus{outline:none}
 
   <div id="notice" class="notice" hidden></div>
 
-  <section id="view-plan" role="tabpanel" aria-labelledby="tab-plan">
+  <section id="view-hot" role="tabpanel" aria-labelledby="tab-hot"><div id="hot"></div></section>
+
+  <section id="view-plan" role="tabpanel" aria-labelledby="tab-plan" hidden>
     <div class="callout">
-      <b>Критический путь.</b> Первые клиенты придут из личной сети, поэтому сайт и бот идут параллельно и не блокируют аудит.
+      <b>Критический путь к 15 октября.</b> Первые клиенты придут из личной сети, поэтому сайт и бот перенесены на вторую половину октября и не блокируют запуск.
       <div class="path"><span>Цены и линейка</span><em>→</em><span>Договор и NDA</span><em>→</em><span>Прогон выгрузки на реальном кабинете</span><em>→</em><span>Витрины, флаги, шаблон отчёта</span><em>→</em><span>Диагностики в тёплой сети</span><em>→</em><span>Первый аудит</span></div>
     </div>
     <div id="plan"></div>
@@ -383,14 +412,16 @@ const AREAS=[
  {k:'data',name:'Данные и инструменты',side:'L',nodes:[['export','Выгрузка WB/Ozon'],['marts','Витрины и флаги'],['calc','Калькулятор ЮЭ'],['dash','Дашборд «Пульс»']]},
  {k:'support',name:'Сопровождение',side:'L',nodes:[['format','Формат и регламент'],['infra','Инфраструктура'],['ym','Яндекс Маркет']]},
 ];
-const PHASES=[
+let PHASES=[
  {k:'p0',n:'0',name:'Основа',goal:'Материалы, методология и прототипы, собранные в сентябре',when:'сентябрь 2026'},
- {k:'p1',n:'1',name:'Решения партнёров',goal:'Линейка, цены, форма партнёрства и правила работы. Без них нечего подписывать',when:'до 6 октября'},
- {k:'p2',n:'2',name:'Движок аудита',goal:'Выгрузка → витрины → флаги → отчёт работают на реальном кабинете',when:'6–26 октября'},
- {k:'p3',n:'3',name:'Продажи и витрина',goal:'Первые 5 диагностик через личную сеть; сайт и бот параллельно',when:'13 октября – 9 ноября'},
- {k:'p4',n:'4',name:'Первый платный аудит',goal:'Продать, провести за 10 рабочих дней, защитить и получить кейс',when:'ноябрь'},
+ {k:'p1',n:'1',name:'Решения партнёров',goal:'Линейка, цены, форма партнёрства и правила работы. Без них нечего подписывать',when:'30 сентября – 2 октября',launch:true},
+ {k:'p2',n:'2',name:'Движок аудита',goal:'Выгрузка → витрины → флаги → отчёт работают на реальном кабинете',when:'1–14 октября',launch:true},
+ {k:'p3',n:'3',name:'Продажи через личную сеть',goal:'Тёплый список, шаблоны писем и КП, первые диагностики. К 15 октября готовы продавать',when:'1–15 октября',launch:true},
+ {k:'p4',n:'4',name:'Первый платный аудит',goal:'Продать, провести за 10 рабочих дней, защитить и получить кейс',when:'15 октября – 6 ноября'},
+ {k:'p5',n:'5',name:'Витрина: сайт и бот',goal:'Сайт, Telegram-бот и лид-магниты с брендом — после запуска продаж',when:'16–31 октября'},
  {k:'bl',n:'…',name:'Бэклог',goal:'После первого аудита: сопровождение, дашборд, Яндекс Маркет, второе направление',when:'без срока'},
 ];
+let META={launch:'2026-10-15',launchName:'Готовы продавать'};
 // Библиотека документов: читаемая версия (read) и оригинал для скачивания (file)
 const DOCS=[
  {id:'site',g:'work',t:'Структура и контент сайта v2',d:'Позиционирование, два направления, карта сайта, тексты по экранам, что нужно от партнёров.',read:'docs/site.html',file:'files/site.docx',name:'Структура и контент сайта v2.docx'},
@@ -415,7 +446,17 @@ const OWNERS=['Александр','Татьяна','Оба'];
 const AUTHORS=['Александр','Татьяна'];
 const AREA=Object.fromEntries(AREAS.map(a=>[a.k,a]));
 const NODE={};AREAS.forEach(a=>a.nodes.forEach(([k,n])=>NODE[a.k+'/'+k]=n));
-const PH=Object.fromEntries(PHASES.map(p=>[p.k,p]));
+let PH=Object.fromEntries(PHASES.map(p=>[p.k,p]));
+const iso=t=>t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');
+const todayISO=()=>iso(new Date());
+const pd=s=>{const [y,m,d]=String(s).split('-').map(Number);return new Date(y,m-1,d)};
+const addDays=(s,n)=>{const t=pd(s);t.setDate(t.getDate()+n);return iso(t)};
+const daysBetween=(a,b)=>Math.round((Date.UTC(...String(b).split('-').map((v,i)=>i===1?v-1:+v))-Date.UTC(...String(a).split('-').map((v,i)=>i===1?v-1:+v)))/864e5);
+const fmtDay=s=>pd(s).toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long'});
+const shortDate=s=>{const [y,m,d]=String(s).split('-');return d+'.'+m};
+function dueChip(it){if(!it.due)return'';if(it.status==='done')return `<span class="due">до ${shortDate(it.due)}</span>`;const dd=daysBetween(todayISO(),it.due);const cls=dd<0?'over':dd<=2?'soon':'';return `<span class="due ${cls}" title="Срок">${dd<0?'просрочено · ':dd===0?'сегодня · ':''}до ${shortDate(it.due)}</span>`}
+const plural=(n,a,b,c)=>{const m=Math.abs(n)%100,k=m%10;return m>10&&m<20?c:k===1?a:k>=2&&k<=4?b:c};
+const byDue=(a,b)=>(a.due||'9999').localeCompare(b.due||'9999');
 
 let items=[],notes=[];let loaded=false;let readOnly=false;
 let openTask=null;
@@ -426,7 +467,7 @@ function store(k,v){try{if(v===undefined)return JSON.parse(localStorage.getItem(
 const fmtDate=iso=>{try{const d=new Date(iso);return d.toLocaleString('ru-RU',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}catch(e){return''}};
 const newId=p=>p+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 
-const openPhases=new Set(store('opora.open')||['p1','p2','p3','p4']);
+const openPhases=new Set(store('opora.open')||['p1','p2','p3','p4','p5']);
 const filt=Object.assign({q:'',area:'',phase:'',status:'',owner:''},store('opora.filt')||{});
 function stats(list){const t=list.length,d=list.filter(i=>i.status==='done').length,g=list.filter(i=>i.status==='doing').length;return{t,d,g,pct:t?Math.round(d/t*100):0}}
 function bar(s){if(!s.t)return'';return `<i class="b-done" style="width:${s.d/s.t*100}%"></i><i class="b-doing" style="width:${s.g/s.t*100}%"></i>`}
@@ -448,13 +489,13 @@ function renderHeader(){
   $('ov-txt').textContent=loaded?`готово ${s.d} из ${s.t} задач плана (без бэклога)`:'загружаю задачи…';
   $('ov-doing').textContent=loaded&&s.g?`в работе: ${s.g}`:'';
   $('ov-bar').innerHTML=bar(s);
-  $('phase-strip').innerHTML=PHASES.filter(p=>/^p[1-4]$/.test(p.k)).map(p=>{const ps=stats(items.filter(i=>i.phase===p.k));return `<div class="ps" title="${esc(p.name)}"><span>Этап ${p.n} · <span class="mono">${ps.d}/${ps.t}</span></span><div class="bar">${bar(ps)}</div></div>`}).join('');
-  const open=sorted(items.filter(i=>i.phase!=='bl'&&i.status!=='done'&&i.prio==='P1'));
-  const firstPh=open.length?open[0].phase:null;
-  let next=open.filter(i=>i.status==='doing').concat(open.filter(i=>i.status!=='doing'&&i.phase===firstPh));
-  next=[...new Map(next.map(i=>[i.id,i])).values()].slice(0,5);
+  $('phase-strip').innerHTML=PHASES.filter(p=>p.k!=='p0'&&p.k!=='bl').map(p=>{const ps=stats(items.filter(i=>i.phase===p.k));return `<div class="ps" title="${esc(p.name)}"><span>Этап ${p.n} · <span class="mono">${ps.d}/${ps.t}</span></span><div class="bar">${bar(ps)}</div></div>`}).join('');
+  const lp=PHASES.filter(p=>p.launch).map(p=>p.k);const ls=stats(items.filter(i=>lp.includes(i.phase)));
+  const left=META.launch?daysBetween(todayISO(),META.launch):null;
+  $('launch').innerHTML=loaded&&META.launch?`<div class="launch-row"><span class="launch-date">${esc(META.launchName||'Запуск')} — ${esc(pd(META.launch).toLocaleDateString('ru-RU',{day:'numeric',month:'long'}))}</span><span class="launch-left ${left!==null&&left<=3?'soon':''}">${left>0?'осталось '+left+' '+plural(left,'день','дня','дней'):left===0?'сегодня':'срок прошёл'}</span></div><div class="bar">${bar(ls)}</div><div class="launch-sub">Задачи запуска (этапы ${lp.map(k=>PH[k].n).join(', ')}): готово ${ls.d} из ${ls.t}${ls.g?', в работе '+ls.g:''}</div>`:'';
+  const next=items.filter(i=>i.phase!=='bl'&&i.phase!=='p0'&&i.status!=='done').sort((a,b)=>byDue(a,b)||String(a.prio).localeCompare(String(b.prio))||(a.order||0)-(b.order||0)).slice(0,5);
   $('next-list').innerHTML=!loaded?'<li><span></span><span class="muted">Список появится, когда загрузятся задачи.</span></li>':
-   next.length?next.map(it=>`<li>${stBtn(it)}<div><div class="t" data-open="${esc(it.id)}">${esc(it.title)}</div><div class="meta">Этап ${esc(PH[it.phase]?.n)} · ${esc(it.owner||'—')}${it.status==='doing'?' · в работе':''}</div></div></li>`).join(''):
+   next.length?next.map(it=>`<li>${stBtn(it)}<div><div class="t" data-open="${esc(it.id)}">${esc(it.title)}</div><div class="meta">${dueChip(it)} · ${esc(it.owner||'—')}${it.status==='doing'?' · в работе':''}</div></div></li>`).join(''):
    '<li><span></span><span class="muted">Все критичные задачи плана закрыты.</span></li>';
   const recent=notes.slice().sort((a,b)=>String(b.at).localeCompare(String(a.at))).slice(0,4);
   $('feed').innerHTML=recent.length?recent.map(n=>{const it=items.find(i=>i.id===n.task);return `<li data-open="${esc(n.task)}"><div class="ft">${n.done?'<span class="done-tag">сделано</span> ':''}${esc(n.text)}</div><div class="fm">${esc(n.author||'')} · ${esc(fmtDate(n.at))} · ${esc(it?it.title:'задача удалена')}</div></li>`}).join(''):'<li class="muted" style="cursor:default">Пока нет заметок. Откройте задачу, чтобы оставить первую.</li>';
@@ -465,11 +506,11 @@ function renderPlan(){
   if(!loaded){$('plan').innerHTML='<p class="muted">Загружаю задачи…</p>';return}
   if(!items.length){$('plan').innerHTML='<p class="muted">Задач пока нет. Добавьте первую на вкладке «Бэклог».</p>';return}
   $('plan').innerHTML=PHASES.map(p=>{
-    const list=sorted(items.filter(i=>i.phase===p.k));const s=stats(list);
+    const list=items.filter(i=>i.phase===p.k).sort((a,b)=>byDue(a,b)||(a.order??0)-(b.order??0));const s=stats(list);
     return `<details class="phase" data-phase="${p.k}" ${openPhases.has(p.k)?'open':''}>
       <summary><div class="pn">${esc(p.n)}</div><div><div class="ph-name">${esc(p.name)}<span class="chev">›</span></div><div class="ph-goal">${esc(p.goal)}</div></div>
       <div class="ph-side"><span class="mono" style="font-size:13px">${s.d}/${s.t}</span><div class="bar">${bar(s)}</div><span class="ph-when">${esc(p.when)}</span></div></summary>
-      <ul class="items">${list.map(it=>`<li class="item ${it.status==='done'?'is-done':''}">${stBtn(it)}<div><div class="title" data-open="${esc(it.id)}">${esc(it.title)}${badges(it)}</div>${it.note?`<div class="note">${esc(it.note)}</div>`:''}</div><div class="tags">${areaChip(it)}<span class="pr ${esc(it.prio)}">${esc(it.prio)}</span><span class="who">${esc(it.owner||'')}</span></div></li>`).join('')||'<li class="muted" style="padding:8px 0">Задач нет</li>'}</ul></details>`}).join('');
+      <ul class="items">${list.map(it=>`<li class="item ${it.status==='done'?'is-done':''}">${stBtn(it)}<div><div class="title" data-open="${esc(it.id)}">${esc(it.title)}${badges(it)}</div>${it.note?`<div class="note">${esc(it.note)}</div>`:''}</div><div class="tags">${dueChip(it)}${areaChip(it)}<span class="pr ${esc(it.prio)}">${esc(it.prio)}</span><span class="who">${esc(it.owner||'')}</span></div></li>`).join('')||'<li class="muted" style="padding:8px 0">Задач нет</li>'}</ul></details>`}).join('');
 }
 
 // ---------- backlog
@@ -484,6 +525,7 @@ function initFilters(){
   ['f-q','f-area','f-phase','f-status','f-owner'].forEach(id=>$(id).addEventListener(id==='f-q'?'input':'change',()=>{filt[id.slice(2)]=$(id).value;store('opora.filt',filt);renderBacklog()}));
   $('bl-reset').onclick=()=>{Object.assign(filt,{q:'',area:'',phase:'',status:'',owner:''});['f-q','f-area','f-phase','f-status','f-owner'].forEach(id=>$(id).value='');store('opora.filt',filt);renderBacklog()};
 }
+function refreshPhaseFilter(){const sel=$('f-phase');if(!sel)return;const v=sel.value;opts(sel,PHASES.map(p=>[p.k,p.n+'. '+p.name]),'Все этапы');sel.value=v}
 function renderBacklog(){
   if(!loaded)return;
   const q=filt.q.trim().toLowerCase();
@@ -497,7 +539,7 @@ function renderBacklog(){
     if(q){const hay=[it.title,it.note,...taskNotes(it.id).map(n=>n.text),...(it.docs||[]).map(d=>DOC[d]?.t),...(it.links||[]).map(l=>l.t)].join(' ').toLowerCase();if(!hay.includes(q))return false}
     return true});
   $('bl-count').textContent=`Показано ${list.length} из ${items.length}`;
-  $('bl-body').innerHTML=list.length?list.map(it=>`<tr><td>${stBtn(it)}</td><td class="t" data-open="${esc(it.id)}"><div>${esc(it.title)}${badges(it)}</div>${it.note?`<div class="note">${esc(it.note)}</div>`:''}</td><td>${areaChip(it)}<div class="muted" style="font-size:12px;margin-top:3px">${esc(AREA[it.area]?.name||'')}</div></td><td class="mono" style="font-size:13px">${esc(PH[it.phase]?.n)}. ${esc(PH[it.phase]?.name||'')}</td><td><span class="pr ${esc(it.prio)}">${esc(it.prio)}</span></td><td class="who">${esc(it.owner||'')}</td></tr>`).join(''):
+  $('bl-body').innerHTML=list.length?list.map(it=>`<tr><td>${stBtn(it)}</td><td class="t" data-open="${esc(it.id)}"><div>${esc(it.title)}${badges(it)}</div>${it.note?`<div class="note">${esc(it.note)}</div>`:''}</td><td>${areaChip(it)}<div class="muted" style="font-size:12px;margin-top:3px">${esc(AREA[it.area]?.name||'')}</div></td><td class="mono" style="font-size:13px">${esc(PH[it.phase]?.n)}. ${esc(PH[it.phase]?.name||'')}<div>${dueChip(it)}</div></td><td><span class="pr ${esc(it.prio)}">${esc(it.prio)}</span></td><td class="who">${esc(it.owner||'')}</td></tr>`).join(''):
    `<tr><td colspan="6" class="muted">${items.length?'Под фильтры ничего не попало.':'Задач пока нет. Нажмите «Добавить задачу».'}</td></tr>`;
   $('bl-add').hidden=readOnly;
 }
@@ -549,11 +591,34 @@ function renderDocs(){
    <h2 class="sec-h">Файлы</h2><div class="docs-grid">${DOCS.filter(d=>d.g==='file').map(card).join('')}</div>`;
 }
 
-function renderAll(){renderHeader();renderPlan();renderBacklog();renderMap();renderDocs();if(openTask)renderDrawer()}
+let hotOwner=store('opora.hotOwner')||'';
+function hotRow(it){return `<li class="item ${it.status==='done'?'is-done':''}">${stBtn(it)}<div><div class="title" data-open="${esc(it.id)}">${esc(it.title)}${badges(it)}</div>${it.note?`<div class="note">${esc(it.note)}</div>`:''}</div><div class="tags">${dueChip(it)}<span class="chip">Этап ${esc(PH[it.phase]?.n)}</span><span class="pr ${esc(it.prio)}">${esc(it.prio)}</span><span class="who">${esc(it.owner||'')}</span></div></li>`}
+function renderHot(){
+  const el=$('hot');if(!el)return;
+  if(!loaded){el.innerHTML='<p class="muted">Загружаю задачи…</p>';return}
+  const t=todayISO(),end=addDays(t,6);
+  const mine=it=>!hotOwner||it.owner===hotOwner||it.owner==='Оба';
+  const all=items.filter(i=>i.status!=='done'&&i.due&&i.due<=end&&i.phase!=='bl');
+  const list=all.filter(mine);
+  const over=list.filter(i=>i.due<t).sort((a,b)=>byDue(a,b)||(a.order||0)-(b.order||0));
+  const doneWeek=items.filter(i=>i.status==='done'&&i.due&&i.due>=t&&i.due<=end&&mine(i));
+  $('hot-n').textContent=all.length?String(all.length):'';
+  const cnt=o=>all.filter(i=>!o||i.owner===o||i.owner==='Оба').length;
+  let h=`<div class="hot-head"><p class="hot-sum">С ${esc(fmtDay(t))} по ${esc(fmtDay(end))}: <b>${list.length}</b> ${plural(list.length,'задача','задачи','задач')}${over.length?`, из них <b class="over-t">${over.length} ${plural(over.length,'просрочена','просрочены','просрочено')}</b>`:''}.</p>
+    <div class="seg" role="group" aria-label="Чьи задачи">${[['','Все',cnt('')],['Александр','Александр',cnt('Александр')],['Татьяна','Татьяна',cnt('Татьяна')]].map(([v,l,c])=>`<button type="button" class="seg-b" data-hotowner="${v}" aria-pressed="${hotOwner===v}">${l} <span class="mono">${c}</span></button>`).join('')}</div></div>`;
+  if(hotOwner)h+=`<p class="muted" style="margin:-4px 0 12px;font-size:13px">Показаны задачи, где ведёт ${esc(hotOwner)}, и общие задачи «Оба».</p>`;
+  if(over.length)h+=`<section class="hot-day over"><h3>Просрочено</h3><ul class="items">${over.map(hotRow).join('')}</ul></section>`;
+  for(let d=0;d<7;d++){const day=addDays(t,d);const l=list.filter(i=>i.due===day).sort((a,b)=>String(a.prio).localeCompare(String(b.prio))||(a.order||0)-(b.order||0));if(!l.length)continue;
+    h+=`<section class="hot-day"><h3>${d===0?'Сегодня':d===1?'Завтра':''}${d<2?', ':''}${esc(fmtDay(day))}</h3><ul class="items">${l.map(hotRow).join('')}</ul></section>`}
+  if(!list.length)h+=`<div class="empty">На ближайшую неделю горящих задач нет${hotOwner?' у '+esc(hotOwner==='Татьяна'?'Татьяны':'Александра'):''}.</div>`;
+  if(doneWeek.length)h+=`<p class="muted" style="font-size:13px;margin-top:18px">Уже сделано из задач этой недели: ${doneWeek.length}.</p>`;
+  el.innerHTML=h;
+}
+function renderAll(){renderHot();renderHeader();renderPlan();renderBacklog();renderMap();renderDocs();if(openTask)renderDrawer()}
 
 // ---------- tabs
-const TABS=['plan','backlog','map','docs'];
-function setTab(t){if(!TABS.includes(t))t='plan';document.querySelectorAll('.tab').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===t));TABS.forEach(k=>$('view-'+k).hidden=k!==t);store('opora.tab',t)}
+const TABS=['hot','plan','backlog','map','docs'];
+function setTab(t){if(!TABS.includes(t))t='hot';document.querySelectorAll('.tab').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===t));TABS.forEach(k=>$('view-'+k).hidden=k!==t);store('opora.tab2',t)}
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>setTab(b.dataset.tab));
 
 // ---------- toast / notice
@@ -584,6 +649,8 @@ async function loadRemote(useEtag){
   return{db,sha:j.sha,etag:et};
 }
 function applyDB(){
+  if(Array.isArray(DB.phases)&&DB.phases.length){const same=JSON.stringify(DB.phases)===JSON.stringify(PHASES);PHASES=DB.phases;PH=Object.fromEntries(PHASES.map(p=>[p.k,p]));if(!same)refreshPhaseFilter()}
+  if(DB.meta)META=Object.assign({},META,DB.meta);
   items=Object.entries(DB.items||{}).map(([id,v])=>Object.assign({id},v));
   notes=Object.entries(DB.notes||{}).map(([id,v])=>Object.assign({id},v));
   loaded=true;renderAll();
@@ -679,7 +746,7 @@ function openDrawer(id){const it=items.find(i=>i.id===id);if(!it)return;openTask
         <div class="field"><label for="d-node">Направление и узел mind-карты</label><select id="d-node">${nodeOpts}</select></div>
         <div class="row"><div class="field"><label for="d-phase">Этап</label>${sel('d-phase',PHASES.map(p=>[p.k,p.n+'. '+p.name]),it.phase)}</div>
           <div class="field"><label for="d-owner">Кто ведёт</label>${sel('d-owner',OWNERS.map(o=>[o,o]),it.owner)}</div></div>
-        <div class="row"><div class="field"><label for="d-prio">Приоритет</label>${sel('d-prio',Object.entries(PRIO),it.prio)}</div><div></div></div>
+        <div class="row"><div class="field"><label for="d-prio">Приоритет</label>${sel('d-prio',Object.entries(PRIO),it.prio)}</div><div class="field"><label for="d-due">Срок</label><input id="d-due" type="date" value="${esc(it.due||'')}"></div></div>
         <div class="dlg-actions" style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary" id="d-save" type="button">Сохранить</button><span class="spacer"></span><button class="btn danger" id="d-del" type="button">Удалить задачу</button></div>
       </div></details>
     </div></aside></div>`;
@@ -701,7 +768,7 @@ function openDrawer(id){const it=items.find(i=>i.id===id);if(!it)return;openTask
     const links=Array.isArray(cur.links)?cur.links.slice():[];links.push({t:t||u.replace(/^https?:\/\//,'').slice(0,60),u});
     if(await updItem(cur.id,{links},'Ссылка добавлена')){$('lnk-t').value='';$('lnk-u').value=''}};
   $('d-save').onclick=async()=>{const title=$('d-title').value.trim();if(!title){$('d-title').focus();return}const [area,node]=$('d-node').value.split('/');
-    await updItem(openTask,{title,note:$('d-note').value.trim(),area,node,phase:$('d-phase').value,owner:$('d-owner').value,prio:$('d-prio').value},'Сохранено')};
+    await updItem(openTask,{title,note:$('d-note').value.trim(),area,node,phase:$('d-phase').value,owner:$('d-owner').value,prio:$('d-prio').value,due:$('d-due').value||null},'Сохранено')};
   $('d-del').onclick=()=>{const b=$('d-del');if(b.dataset.armed){const id=openTask;const t0=(items.find(i=>i.id===id)||{}).title||id;closeDrawer();commit(`${author()}: удалена задача «${t0}»`,d=>{delete d.items[id];Object.keys(d.notes||{}).forEach(k=>{if(d.notes[k].task===id)delete d.notes[k]})},'Задача удалена');return}
     b.dataset.armed='1';b.textContent='Точно удалить задачу?';setTimeout(()=>{if(b.isConnected){delete b.dataset.armed;b.textContent='Удалить задачу'}},4000)};
 }
@@ -709,7 +776,7 @@ function closeDrawer(){openTask=null;$('drawer-root').innerHTML=''}
 function renderDrawer(){
   const it=items.find(i=>i.id===openTask);
   if(!it){closeDrawer();return}
-  $('dr-top').innerHTML=`${stBtn(it)}<div><h3 id="dr-title">${esc(it.title)}</h3><div class="dr-meta"><span class="chip">Этап ${esc(PH[it.phase]?.n)} · ${esc(PH[it.phase]?.name||'')}</span>${areaChip(it)}<span class="pr ${esc(it.prio)}">${esc(PRIO[it.prio]||it.prio)}</span><span class="who">ведёт: ${esc(it.owner||'—')}</span><span class="who">· ${esc(STATUS[it.status]||'')}</span></div></div><button class="x" id="dr-x" type="button" aria-label="Закрыть">×</button>`;
+  $('dr-top').innerHTML=`${stBtn(it)}<div><h3 id="dr-title">${esc(it.title)}</h3><div class="dr-meta"><span class="chip">Этап ${esc(PH[it.phase]?.n)} · ${esc(PH[it.phase]?.name||'')}</span>${areaChip(it)}${dueChip(it)}<span class="pr ${esc(it.prio)}">${esc(PRIO[it.prio]||it.prio)}</span><span class="who">ведёт: ${esc(it.owner||'—')}</span><span class="who">· ${esc(STATUS[it.status]||'')}</span></div></div><button class="x" id="dr-x" type="button" aria-label="Закрыть">×</button>`;
   $('dr-x').onclick=closeDrawer;
   $('dr-desc').innerHTML=it.note?`<p class="desc">${esc(it.note)}</p>`:'';
   const docs=(Array.isArray(it.docs)?it.docs:[]).filter(d=>DOC[d]).map(id=>DOC[id]);
@@ -732,7 +799,7 @@ function openCreate(){
     <div class="field"><label for="c-node">Направление и узел mind-карты</label><select id="c-node">${nodeOpts}</select></div>
     <div class="row"><div class="field"><label for="c-phase">Этап</label>${sel('c-phase',PHASES.map(p=>[p.k,p.n+'. '+p.name]),'bl')}</div>
       <div class="field"><label for="c-owner">Кто ведёт</label>${sel('c-owner',OWNERS.map(o=>[o,o]),'Оба')}</div></div>
-    <div class="row"><div class="field"><label for="c-prio">Приоритет</label>${sel('c-prio',Object.entries(PRIO),'P2')}</div><div></div></div>
+    <div class="row"><div class="field"><label for="c-prio">Приоритет</label>${sel('c-prio',Object.entries(PRIO),'P2')}</div><div class="field"><label for="c-due">Срок</label><input id="c-due" type="date"></div></div>
     <p id="c-err" style="margin:0;color:var(--crit)" hidden>Напишите, что сделать.</p>
     <div class="actions"><button class="btn primary" id="c-save" type="button">Добавить</button><button class="btn" id="c-cancel" type="button">Отмена</button></div>
   </div></div>`;
@@ -740,13 +807,14 @@ function openCreate(){
   $('ov').addEventListener('click',e=>{if(e.target.id==='ov')close()});$('c-cancel').onclick=close;
   $('ov').addEventListener('keydown',e=>{if(e.key==='Escape')close()});$('c-title').focus();
   $('c-save').onclick=async()=>{const title=$('c-title').value.trim();if(!title){$('c-err').hidden=false;return}const [area,node]=$('c-node').value.split('/');
-    const body={title,note:$('c-note').value.trim(),phase:$('c-phase').value,status:'todo',prio:$('c-prio').value,owner:$('c-owner').value,area,node,docs:[],links:[],order:Math.max(0,...items.map(i=>i.order||0))+10,updatedAt:new Date().toISOString()};
+    const body={title,note:$('c-note').value.trim(),phase:$('c-phase').value,status:'todo',prio:$('c-prio').value,due:$('c-due').value||null,owner:$('c-owner').value,area,node,docs:[],links:[],order:Math.max(0,...items.map(i=>i.order||0))+10,updatedAt:new Date().toISOString()};
     $('c-save').disabled=true;const id=newId('u');const ok=await commit(`${author()}: новая задача «${title}»`,d=>{d.items[id]=body},'Задача добавлена');if(ok){close();}else $('c-save').disabled=false};
 }
 
 // ---------- events (delegated)
 document.addEventListener('click',e=>{
   const c=e.target.closest('[data-cycle]');if(c){e.preventDefault();e.stopPropagation();cycle(c.dataset.cycle);return}
+  const ho=e.target.closest('[data-hotowner]');if(ho){hotOwner=ho.dataset.hotowner;store('opora.hotOwner',hotOwner);renderHot();return}
   const rd=e.target.closest('[data-read]');if(rd){openReader(rd.dataset.read);return}
   const dl=e.target.closest('[data-dl]');if(dl){download(dl.dataset.dl);return}
   const op=e.target.closest('[data-open]');if(op){e.preventDefault();$('reader-root').innerHTML='';openDrawer(op.dataset.open);return}
@@ -764,7 +832,7 @@ $('bl-add').onclick=()=>openCreate();
 
 // ---------- boot
 initFilters();
-const h=(location.hash||'').slice(1);setTab(h||store('opora.tab')||'plan');
+const h=(location.hash||'').slice(1);setTab(h||store('opora.tab2')||'hot');
 renderAll();
 // ---------- small API for Claude (used through the browser built into the Claude app)
 window.opora={
@@ -775,6 +843,8 @@ window.opora={
   addNote:(task,text,author,done)=>{const now=new Date().toISOString();const nid=newId('n');const a=author||'Claude';return commit(`${a}: заметка к ${task}`,d=>{if(!d.items[task])return;d.notes=d.notes||{};d.notes[nid]={task,text,author:a,at:now,done:!!done,doneAt:done?now:null}})},
   updateItem:(id,data)=>{const now=new Date().toISOString();return commit(`Claude: изменена задача ${id}`,d=>{if(d.items[id])Object.assign(d.items[id],data,{updatedAt:now})})},
   addItem:(body)=>{const id=newId('u');const now=new Date().toISOString();const b=Object.assign({status:'todo',prio:'P2',owner:'Оба',phase:'bl',area:'strat',node:'offer',note:'',docs:[],links:[],order:Math.max(0,...items.map(i=>i.order||0))+10,updatedAt:now},body);return commit(`Claude: новая задача «${b.title}»`,d=>{d.items[id]=b}).then(ok=>ok?id:null)},
+  applyPlan:(p,msg)=>commit(msg||'Claude: обновлён план',d=>{if(p.phases)d.phases=p.phases;if(p.meta)d.meta=Object.assign({},d.meta||{},p.meta);Object.entries(p.items||{}).forEach(([id,v])=>{if(d.items[id])Object.assign(d.items[id],v)})}),
+  setDue:(id,due)=>{const it=(DB.items||{})[id];return commit(`Claude: срок «${it?it.title:id}» → ${due}`,d=>{if(d.items[id])d.items[id].due=due})},
   toggleNote:(nid,done)=>{const now=new Date().toISOString();return commit(`Claude: заметка ${done?'сделано':'открыта'}`,d=>{if(d.notes&&d.notes[nid]){d.notes[nid].done=!!done;d.notes[nid].doneAt=done?now:null}})},
 };
 // ---------- sign-in with access key

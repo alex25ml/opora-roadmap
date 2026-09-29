@@ -625,18 +625,10 @@ const TABS=['hot','plan','backlog','map','docs'];
 function setTab(t){if(!TABS.includes(t))t='hot';document.querySelectorAll('.tab[data-tab]').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===t));TABS.forEach(k=>$('view-'+k).hidden=k!==t);store('opora.tab2',t)}
 document.querySelectorAll('.tab[data-tab]').forEach(b=>b.onclick=()=>setTab(b.dataset.tab));
 // «Сайт проекта»: актуальный прототип из хранилища открывается в новом окне
-const SITE_ICON="<link rel=\"icon\" type=\"image/svg+xml\" href=\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%236D5DF6'/%3E%3Cstop offset='.6' stop-color='%23A855F7'/%3E%3Cstop offset='1' stop-color='%234FA9F5'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='7' fill='url%28%23g%29'/%3E%3Ccircle cx='16' cy='16' r='7.5' fill='none' stroke='%23fff' stroke-width='3.2'/%3E%3C/svg%3E\">";
-$('tab-site').onclick=async()=>{
-  if(!token||!DB){toast('Сначала войдите по ключу');return}
-  const file=(META&&META.siteFile)||'files/proto.html';
-  const w=window.open('','_blank');
-  if(!w){toast('Браузер заблокировал новое окно. Разрешите всплывающие окна для этого сайта и нажмите ещё раз.');return}
-  try{w.document.write('<!doctype html><meta charset="utf-8">'+SITE_ICON+'<title>Сайт «Опора»</title><p style="font:16px system-ui,sans-serif;padding:24px;color:#555">Открываю актуальную версию сайта…</p>')}catch(e){}
-  try{let html=await ghRaw(file,'text');
-    if(!/<link[^>]+rel=["']?(shortcut )?icon/i.test(html))html=/<head[^>]*>/i.test(html)?html.replace(/<head[^>]*>/i,m=>m+SITE_ICON):SITE_ICON+html;
-    const url=URL.createObjectURL(new Blob([html],{type:'text/html;charset=utf-8'}));
-    w.location.href=url;setTimeout(()=>URL.revokeObjectURL(url),120000)}
-  catch(e){try{w.document.body.innerHTML='<p style="font:16px system-ui,sans-serif;padding:24px">Не удалось загрузить сайт. Проверьте интернет и попробуйте ещё раз.</p>'}catch(_){}}
+$('tab-site').onclick=()=>{
+  if(!token){toast('Сначала войдите по ключу');return}
+  const w=window.open('site.html','_blank');
+  if(!w)toast('Браузер заблокировал новое окно. Разрешите всплывающие окна для этого сайта и нажмите ещё раз.');
 };
 
 // ---------- toast / notice

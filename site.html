@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Сайт «Опора»</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%236D5DF6'/%3E%3Cstop offset='.6' stop-color='%23A855F7'/%3E%3Cstop offset='1' stop-color='%234FA9F5'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='7' fill='url%28%23g%29'/%3E%3Ccircle cx='16' cy='16' r='7.5' fill='none' stroke='%23fff' stroke-width='3.2'/%3E%3C/svg%3E">
+<style>
+html,body{margin:0;height:100%;background:#0A0A11;color:#9A9CB6}
+iframe{border:0;width:100%;height:100%;display:block}
+.msg{font:16px system-ui,-apple-system,"Segoe UI",sans-serif;padding:24px}
+.msg a{color:#8E82FA}
+</style>
+</head>
+<body>
+<div class="msg" id="msg">Открываю актуальную версию сайта…</div>
+<script>
+(async()=>{
+  const msg=document.getElementById('msg');
+  const API='https://api.github.com/repos/alex25ml/opora-data/contents/';
+  let key=null;try{key=JSON.parse(localStorage.getItem('opora.key'))}catch(e){}
+  if(!key){msg.innerHTML='Сначала войдите в <a href="./">дорожную карту</a> по ключу доступа, затем откройте «Сайт проекта» ещё раз.';return}
+  const H={'Accept':'application/vnd.github.raw+json','Authorization':'Bearer '+key,'X-GitHub-Api-Version':'2022-11-28'};
+  let file='files/proto.html';
+  try{const r=await fetch(API+'data/db.json?ref=main',{headers:H,cache:'no-store'});if(r.ok){const db=await r.json();if(db.meta&&db.meta.siteFile)file=db.meta.siteFile}}catch(e){}
+  try{
+    const r=await fetch(API+file.split('/').map(encodeURIComponent).join('/')+'?ref=main',{headers:H,cache:'no-store'});
+    if(r.status===401){msg.innerHTML='Ключ больше не действует. Войдите в <a href="./">дорожную карту</a> заново.';return}
+    if(!r.ok)throw new Error(r.status);
+    const html=await r.text();
+    const t=(html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)||[])[1];if(t)document.title=t.trim();
+    const f=document.createElement('iframe');f.title=document.title;f.srcdoc=html;document.body.appendChild(f);msg.remove();
+  }catch(e){msg.textContent='Не удалось загрузить сайт. Проверьте интернет и обновите страницу.'}
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,827 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Дорожная карта Опоры</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+img{max-width:100%}
+[hidden]{display:none!important}
+
+/* Layout: одна колонка ~1100px; шапка со сводкой и следующими шагами, четыре вкладки — План, Бэклог, Mind-карта, Документы; карточка задачи открывается боковой панелью с документами и заметками. Бренд сайта «Опора»: Unbounded / Manrope / JetBrains Mono, фиолетовый акцент. */
+:root{
+  --bg:#F5F5FA; --surface:#FFFFFF; --surface-2:#EEEEF6; --line:#DFDFEB; --line-2:#C9C9DA;
+  --fg:#15152B; --muted:#5C5E7C; --dim:#8A8CA6;
+  --accent:#5A4AE3; --accent-soft:#ECE9FE; --on-accent:#FFFFFF;
+  --ok:#1C8F5B; --ok-soft:#E0F3E9; --warn:#A8650A; --warn-soft:#FBEFD9; --crit:#C23538; --crit-soft:#FBE5E5;
+  --c-strat:#5A4AE3; --c-legal:#7A6A2E; --c-funnel:#C0417E; --c-sales:#1F7FC4; --c-audit:#1C8F7A; --c-data:#8A4FD8; --c-support:#6B7285;
+  --f-display:"Unbounded","Manrope",system-ui,sans-serif;
+  --f-body:"Manrope",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,"Cascadia Mono",Consolas,monospace;
+  --r:12px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0A0A11; --surface:#12121D; --surface-2:#1A1B2A; --line:#26273A; --line-2:#35364D;
+  --fg:#EDEEF7; --muted:#A0A2BC; --dim:#6E7090;
+  --accent:#8E82FA; --accent-soft:#232048; --on-accent:#0A0A11;
+  --ok:#3FD08A; --ok-soft:#10301F; --warn:#F0A63C; --warn-soft:#33260E; --crit:#F27575; --crit-soft:#3A1718;
+  --c-strat:#8E82FA; --c-legal:#D2BC6A; --c-funnel:#EE7BB0; --c-sales:#5DB2F0; --c-audit:#48CDB3; --c-data:#B78CF5; --c-support:#9AA1B6;
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#0A0A11; --surface:#12121D; --surface-2:#1A1B2A; --line:#26273A; --line-2:#35364D;
+  --fg:#EDEEF7; --muted:#A0A2BC; --dim:#6E7090;
+  --accent:#8E82FA; --accent-soft:#232048; --on-accent:#0A0A11;
+  --ok:#3FD08A; --ok-soft:#10301F; --warn:#F0A63C; --warn-soft:#33260E; --crit:#F27575; --crit-soft:#3A1718;
+  --c-strat:#8E82FA; --c-legal:#D2BC6A; --c-funnel:#EE7BB0; --c-sales:#5DB2F0; --c-audit:#48CDB3; --c-data:#B78CF5; --c-support:#9AA1B6;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.5;margin:0}
+.wrap{max-width:1120px;margin:0 auto;padding-inline:20px;padding-block:28px 64px}
+h1,h2,h3{text-wrap:balance;margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+
+/* header */
+.top{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:28px;align-items:start}
+@media (max-width:820px){.top{grid-template-columns:minmax(0,1fr)}}
+.top > *{min-width:0}
+.eyebrow{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(24px,4vw,34px);line-height:1.15;margin-top:6px}
+.lede{color:var(--muted);max-width:60ch;margin:10px 0 0}
+.overall{margin-top:20px;display:flex;flex-direction:column;gap:8px}
+.overall-row{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+.overall-num{font-family:var(--f-display);font-size:28px;font-weight:500}
+.bar{height:8px;border-radius:99px;background:var(--surface-2);overflow:hidden;display:flex}
+.bar i{display:block;height:100%}
+.bar .b-done{background:var(--ok)} .bar .b-doing{background:var(--warn)}
+.phase-strip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:6px}
+.ps{display:flex;flex-direction:column;gap:5px;min-width:0}
+.ps span{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ps .bar{height:5px}
+
+.next{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px}
+.next h2{font-size:14px;font-weight:700;display:flex;justify-content:space-between;gap:8px}
+.next ol{margin:10px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px}
+.next li{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:start;font-size:14px}
+.next li .t{cursor:pointer}
+.next li .t:hover{color:var(--accent)}
+.next .meta{font-size:12px;color:var(--muted)}
+
+/* tabs */
+.tabs{display:flex;gap:4px;margin:30px 0 18px;border-bottom:1px solid var(--line);overflow-x:auto}
+.tab{background:none;border:0;padding:10px 14px;cursor:pointer;color:var(--muted);font-weight:600;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap}
+.tab[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--accent)}
+.tab:hover{color:var(--fg)}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.btn{border:1px solid var(--line-2);background:var(--surface);padding:8px 14px;border-radius:9px;cursor:pointer;font-weight:600;font-size:14px}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.btn.danger{color:var(--crit);border-color:var(--crit)}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+.spacer{flex:1}
+.notice{padding:12px 14px;border-radius:10px;background:var(--surface-2);color:var(--muted);font-size:14px;margin-bottom:14px}
+
+/* plan */
+.callout{border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;background:var(--surface);font-size:14px;margin-bottom:18px}
+.callout b{font-weight:700}
+.path{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:8px}
+.path span{background:var(--accent-soft);color:var(--fg);padding:3px 9px;border-radius:99px;font-size:13px}
+.path em{color:var(--dim);font-style:normal}
+.phase{border-top:1px solid var(--line);padding-block:4px}
+.phase > summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:48px minmax(0,1fr) auto;gap:14px;align-items:center;padding-block:16px}
+.phase > summary::-webkit-details-marker{display:none}
+.pn{font-family:var(--f-display);font-weight:500;font-size:22px;color:var(--accent);text-align:center}
+.ph-name{font-weight:700;font-size:17px}
+.ph-goal{color:var(--muted);font-size:14px}
+.ph-side{display:flex;flex-direction:column;align-items:flex-end;gap:6px;min-width:120px}
+.ph-side .bar{width:120px;height:6px}
+.ph-when{font-size:12px;color:var(--muted)}
+.chev{display:inline-block;transition:transform .15s;color:var(--dim);margin-left:6px}
+details[open] > summary .chev{transform:rotate(90deg)}
+.items{list-style:none;margin:0 0 16px;padding:0 0 0 62px;display:flex;flex-direction:column}
+@media (max-width:600px){.items{padding-left:0}.phase > summary{grid-template-columns:34px minmax(0,1fr)}.ph-side{grid-column:2;align-items:flex-start}}
+.item{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:10px;align-items:start;padding:9px 0;border-bottom:1px dashed var(--line)}
+.item:last-child{border-bottom:0}
+.item .title{font-size:15px;cursor:pointer}
+.item .title:hover{color:var(--accent)}
+.item.is-done .title{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--line-2)}
+.item .note{font-size:13px;color:var(--muted);margin-top:2px}
+.tags{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;align-items:center}
+@media (max-width:600px){.item{grid-template-columns:28px minmax(0,1fr)}.item .tags{grid-column:2;justify-content:flex-start}}
+
+.st{width:24px;height:24px;border-radius:50%;border:2px solid var(--line-2);background:var(--surface);cursor:pointer;display:grid;place-items:center;padding:0;margin-top:1px}
+.st svg{width:14px;height:14px}
+.st.doing{border-color:var(--warn);background:linear-gradient(90deg,var(--warn) 50%,var(--surface) 50%)}
+.st.done{border-color:var(--ok);background:var(--ok);color:var(--surface)}
+.st[disabled]{cursor:default}
+.chip{font-size:12px;padding:2px 8px;border-radius:99px;border:1px solid var(--line);white-space:nowrap;color:var(--muted);display:inline-flex;align-items:center;gap:6px}
+.chip .dot{width:7px;height:7px;border-radius:50%}
+.pr{font-size:11px;font-weight:700;padding:2px 7px;border-radius:6px;letter-spacing:.03em}
+.pr.P1{background:var(--crit-soft);color:var(--crit)} .pr.P2{background:var(--warn-soft);color:var(--warn)} .pr.P3{background:var(--surface-2);color:var(--muted)}
+.who{font-size:12px;color:var(--muted);white-space:nowrap}
+
+/* backlog */
+.filters{display:grid;grid-template-columns:minmax(0,2fr) repeat(4,minmax(0,1fr));gap:8px;margin-bottom:12px}
+@media (max-width:820px){.filters{grid-template-columns:1fr 1fr}.filters .search{grid-column:1/-1}}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0}
+.field label{font-size:12px;color:var(--muted);font-weight:600}
+.field input,.field select,.field textarea{background:var(--surface);border:1px solid var(--line-2);border-radius:8px;padding:8px 10px;width:100%;min-width:0}
+.field textarea{min-height:70px;resize:vertical}
+.table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:760px}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top;font-size:14px}
+th{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em;background:var(--surface-2);position:sticky;top:0}
+tr:last-child td{border-bottom:0}
+tbody tr:hover td{background:var(--surface-2)}
+td.t{cursor:pointer}
+td.t .note{font-size:13px;color:var(--muted)}
+.count{font-size:13px;color:var(--muted)}
+
+/* map */
+.map-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
+.map-wrap svg{display:block;min-width:980px;width:100%;height:auto}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--muted);margin-top:12px;align-items:center}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+svg .leaf{cursor:pointer}
+svg .leaf:hover rect.box,svg .leaf:focus rect.box{stroke:var(--accent)}
+svg .leaf:focus{outline:none}
+
+/* dialog */
+.overlay{position:fixed;inset:0;background:rgb(10 10 20 / .45);display:grid;place-items:center;padding:16px;z-index:50}
+.dlg{background:var(--surface);border:1px solid var(--line);border-radius:14px;width:min(560px,100%);max-height:calc(100% - 32px);overflow:auto;padding:20px;display:flex;flex-direction:column;gap:12px}
+.dlg h3{font-size:17px}
+.dlg .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:480px){.dlg .row{grid-template-columns:1fr}}
+.dlg .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--fg);color:var(--bg);padding:9px 16px;border-radius:9px;font-size:14px;z-index:60}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* v2: badges, drawer, notes, reader, documents */
+[hidden]{display:none!important}
+.badges{display:inline-flex;gap:6px;margin-left:8px;vertical-align:1px}
+.bdg{font-size:11.5px;color:var(--muted);border:1px solid var(--line);border-radius:6px;padding:0 6px;font-family:var(--f-mono);white-space:nowrap}
+.bdg.open{border-color:var(--warn);color:var(--warn)}
+.feed{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+.feed h2{font-size:14px;font-weight:700}
+.feed ul{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
+.next .feed li{display:block;font-size:13px;cursor:pointer;min-width:0}
+.feed li:hover .ft{color:var(--accent)}
+.feed .ft{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.feed .fm{font-size:12px;color:var(--muted)}
+
+.drawer-ov{position:fixed;inset:0;background:rgb(10 10 20 / .45);z-index:50;display:flex;justify-content:flex-end}
+.drawer{background:var(--bg);width:min(760px,100%);height:100%;overflow:auto;border-left:1px solid var(--line);display:flex;flex-direction:column}
+.dr-top{position:sticky;top:0;background:var(--surface);border-bottom:1px solid var(--line);padding:16px 20px;padding-top:calc(16px + env(safe-area-inset-top,0px));display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:12px;align-items:start;z-index:2}
+.dr-top h3{font-size:18px;line-height:1.3}
+.dr-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;align-items:center}
+.dr-body{padding:18px 20px 40px;display:flex;flex-direction:column;gap:22px}
+.dr-sec h4{margin:0 0 10px;font-size:13px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:700;display:flex;justify-content:space-between;gap:8px}
+.x{background:none;border:1px solid var(--line-2);border-radius:8px;width:34px;height:34px;cursor:pointer;font-size:18px;line-height:1;color:var(--muted)}
+.x:hover{color:var(--fg);border-color:var(--fg)}
+.desc{font-size:14.5px;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:0}
+.att{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.att li{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px 12px;border-bottom:1px solid var(--line)}
+.att li:last-child{border-bottom:0}
+.att .ic{font-family:var(--f-mono);font-size:10.5px;font-weight:500;letter-spacing:.04em;padding:3px 6px;border-radius:5px;background:var(--accent-soft);color:var(--accent);text-transform:uppercase;min-width:42px;text-align:center}
+.att .ic.lnk{background:var(--surface-2);color:var(--muted)}
+.att .an{font-size:14px;min-width:0}
+.att .an small{display:block;color:var(--muted);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.att a{color:var(--accent);text-decoration:none}
+.att a:hover{text-decoration:underline}
+.acts{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.mini{border:1px solid var(--line-2);background:var(--surface);padding:4px 10px;border-radius:7px;cursor:pointer;font-size:13px;font-weight:600;white-space:nowrap}
+.mini:hover{border-color:var(--accent);color:var(--accent)}
+.mini.ghost{border-color:transparent;color:var(--muted);font-weight:500}
+.mini.ghost:hover{color:var(--crit);border-color:transparent}
+.empty{color:var(--muted);font-size:14px;padding:10px 12px;border:1px dashed var(--line-2);border-radius:10px}
+.addrow{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr) auto;gap:8px;margin-top:10px;align-items:end}
+@media (max-width:600px){.addrow,.addrow.two{grid-template-columns:1fr}.att li{grid-template-columns:auto minmax(0,1fr)}.att li .acts{grid-column:1/-1;justify-content:flex-start}.dr-top{padding-inline:16px}.dr-body{padding-inline:16px}}
+.addrow.two{grid-template-columns:minmax(0,1fr) auto}
+
+.notes{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.note{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:start}
+.note.is-done{border-color:var(--ok);background:linear-gradient(0deg,var(--ok-soft),var(--ok-soft)) padding-box}
+.note .nt{white-space:pre-wrap;font-size:14.5px;overflow-wrap:anywhere}
+.note .nm{font-size:12px;color:var(--muted);margin-top:4px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.done-tag{font-size:11px;font-weight:700;color:var(--ok);letter-spacing:.04em;text-transform:uppercase}
+.chk{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);cursor:pointer;user-select:none}
+.chk input{width:18px;height:18px;accent-color:var(--ok);margin:0;cursor:pointer}
+.note-form{display:flex;flex-direction:column;gap:8px;margin-top:12px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px}
+.note-form .row3{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.note-form select{background:var(--surface);border:1px solid var(--line-2);border-radius:8px;padding:6px 8px}
+.edit-box{border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.edit-box > summary{cursor:pointer;padding:12px;font-weight:600;font-size:14px;list-style:none}
+.edit-box > summary::-webkit-details-marker{display:none}
+.edit-box[open] > summary{border-bottom:1px solid var(--line)}
+.edit-in{padding:12px;display:flex;flex-direction:column;gap:10px}
+.edit-in .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:480px){.edit-in .row{grid-template-columns:1fr}}
+
+.docs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.dcard{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.dcard h3{font-size:15px;line-height:1.35}
+.dcard p{margin:0;color:var(--muted);font-size:13.5px}
+.dcard .used{font-size:12.5px;color:var(--muted)}
+.dcard .acts{justify-content:flex-start;margin-top:auto}
+.sec-h{font-size:13px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:700;margin:22px 0 10px}
+.sec-h:first-child{margin-top:0}
+
+.reader-ov{position:fixed;inset:0;background:rgb(10 10 20 / .5);z-index:55;display:grid;place-items:center;padding:16px}
+.reader{background:var(--surface);border:1px solid var(--line);border-radius:14px;width:min(900px,100%);height:calc(100% - 8px);display:flex;flex-direction:column;overflow:hidden}
+.rd-top{display:flex;gap:10px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line)}
+.rd-top h3{font-size:15px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rd-body{overflow:auto;padding:20px 28px 48px;font-size:15px;line-height:1.6}
+@media (max-width:600px){.rd-body{padding:16px}}
+.rd-body > *{max-width:72ch}
+.rd-body h1{font-family:var(--f-display);font-weight:500;font-size:22px;line-height:1.25;margin:4px 0 12px}
+.rd-body h2{font-size:19px;margin:28px 0 8px}
+.rd-body h3{font-size:16px;margin:22px 0 6px}
+.rd-body table{display:block;max-width:100%;overflow-x:auto;border-collapse:collapse;font-size:13.5px;line-height:1.45;margin:12px 0}
+.rd-body th,.rd-body td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top;min-width:120px}
+.rd-body th{background:var(--surface-2);font-size:12.5px;text-transform:none;letter-spacing:0;color:var(--fg);position:static}
+.rd-body code{font-family:var(--f-mono);font-size:.88em;background:var(--surface-2);padding:1px 4px;border-radius:4px}
+.rd-body pre{background:var(--surface-2);padding:12px;border-radius:8px;overflow-x:auto;font-size:13px;max-width:100%}
+.rd-body pre code{background:none;padding:0}
+.rd-body pre.mermaid{background:var(--surface);border:1px solid var(--line);text-align:center}
+.rd-body .formula{font-family:var(--f-mono);font-size:14px;background:var(--accent-soft);padding:10px 12px;border-radius:8px}
+.rd-body a{color:var(--accent)}
+.share-note{margin-top:40px;padding-top:16px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
+
+/* standalone: lock screen and sync bar */
+.lock{position:fixed;inset:0;background:var(--bg);z-index:80;display:grid;place-items:center;padding:16px;overflow:auto}
+.lock-card{width:min(440px,100%);background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:28px 24px;display:flex;flex-direction:column;gap:14px}
+.lock-card .brand{font-family:var(--f-display);font-weight:700;font-size:22px;color:var(--accent);letter-spacing:.02em}
+.lock-card h1{font-size:22px;margin:0}
+.lock-card p{margin:0;color:var(--muted);font-size:14px}
+.lock-card .who-pick{display:flex;gap:8px;flex-wrap:wrap}
+.lock-card .who-pick label{flex:1;min-width:120px;border:1px solid var(--line-2);border-radius:10px;padding:10px 12px;display:flex;gap:8px;align-items:center;cursor:pointer;font-weight:600}
+.lock-card .who-pick input{accent-color:var(--accent);width:18px;height:18px;margin:0;flex:none}
+.lock-card .who-pick label{font-size:15px;color:var(--fg)}
+.lock-err{color:var(--crit)!important}
+.syncbar{display:flex;gap:10px;align-items:center;justify-content:flex-end;flex-wrap:wrap;font-size:12.5px;color:var(--muted);margin-bottom:14px}
+.syncbar .dotst{width:8px;height:8px;border-radius:50%;background:var(--ok);display:inline-block;margin-right:6px}
+.syncbar .dotst.busy{background:var(--warn)}
+.syncbar .dotst.err{background:var(--crit)}
+.linkbtn{background:none;border:0;padding:0;color:var(--accent);cursor:pointer;font:inherit;text-decoration:underline;text-underline-offset:2px}
+</style>
+</head>
+<body>
+<div class="lock" id="lock" hidden>
+  <form class="lock-card" id="lk-form" autocomplete="off">
+    <div class="brand">ОПОРА</div>
+    <h1>Дорожная карта проекта</h1>
+    <p>Задачи, документы и общие заметки партнёров. Для входа нужен ключ доступа — его выдаёт Александр. Вводится один раз, браузер его запомнит.</p>
+    <div class="field"><label>Кто вы</label><div class="who-pick"><label><input type="radio" name="lk-who" value="Татьяна"> Татьяна</label><label><input type="radio" name="lk-who" value="Александр"> Александр</label></div></div>
+    <div class="field"><label for="lk-key">Ключ доступа</label><input id="lk-key" type="password" placeholder="github_pat_…" spellcheck="false"></div>
+    <p id="lk-err" class="lock-err" hidden></p>
+    <button class="btn primary" id="lk-go" type="submit">Войти</button>
+  </form>
+</div>
+<div class="wrap">
+  <div class="syncbar"><span><span class="dotst" id="sync-dot"></span><span id="sync-txt">Подключаюсь…</span></span><span>· вы: <b id="sync-who"></b> <button class="linkbtn" id="sync-switch" type="button">сменить</button></span><span>· <button class="linkbtn" id="sync-refresh" type="button">Обновить</button></span><span>· <button class="linkbtn" id="sync-out" type="button">Выйти</button></span></div>
+  <header class="top">
+    <div>
+      <div class="eyebrow">Консалтинг «Опора» · Татьяна Кочерова и Александр Оленович</div>
+      <h1>Дорожная карта: к первому платному аудиту</h1>
+      <p class="lede">Все ветки проекта в одном месте. Кружок меняет статус задачи: не начато → в работе → готово. Нажмите на название, чтобы открыть задачу с документами и общими заметками.</p>
+      <div class="overall">
+        <div class="overall-row">
+          <span><span class="overall-num mono" id="ov-pct">—</span> <span class="muted" id="ov-txt">загружаю задачи…</span></span>
+          <span class="count" id="ov-doing"></span>
+        </div>
+        <div class="bar" id="ov-bar"></div>
+        <div class="phase-strip" id="phase-strip"></div>
+      </div>
+    </div>
+    <aside class="next" aria-labelledby="next-h">
+      <h2 id="next-h"><span>Следующие шаги</span><span class="muted mono" style="font-weight:500;font-size:12px">критично · ближайший этап</span></h2>
+      <ol id="next-list"><li><span></span><span class="muted">Список появится, когда загрузятся задачи.</span></li></ol>
+      <div class="feed"><h2>Свежие заметки</h2><ul id="feed"><li class="muted" style="cursor:default">Пока нет заметок.</li></ul></div>
+    </aside>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button class="tab" role="tab" id="tab-plan" data-tab="plan" aria-selected="true">План по этапам</button>
+    <button class="tab" role="tab" id="tab-backlog" data-tab="backlog" aria-selected="false">Бэклог</button>
+    <button class="tab" role="tab" id="tab-map" data-tab="map" aria-selected="false">Mind-карта</button>
+    <button class="tab" role="tab" id="tab-docs" data-tab="docs" aria-selected="false">Документы</button>
+  </nav>
+
+  <div id="notice" class="notice" hidden></div>
+
+  <section id="view-plan" role="tabpanel" aria-labelledby="tab-plan">
+    <div class="callout">
+      <b>Критический путь.</b> Первые клиенты придут из личной сети, поэтому сайт и бот идут параллельно и не блокируют аудит.
+      <div class="path"><span>Цены и линейка</span><em>→</em><span>Договор и NDA</span><em>→</em><span>Прогон выгрузки на реальном кабинете</span><em>→</em><span>Витрины, флаги, шаблон отчёта</span><em>→</em><span>Диагностики в тёплой сети</span><em>→</em><span>Первый аудит</span></div>
+    </div>
+    <div id="plan"></div>
+  </section>
+
+  <section id="view-backlog" role="tabpanel" aria-labelledby="tab-backlog" hidden>
+    <div class="filters">
+      <div class="field search"><label for="f-q">Поиск</label><input id="f-q" type="search" placeholder="Слово из задачи, заметки или документа"></div>
+      <div class="field"><label for="f-area">Направление</label><select id="f-area"></select></div>
+      <div class="field"><label for="f-phase">Этап</label><select id="f-phase"></select></div>
+      <div class="field"><label for="f-status">Статус</label><select id="f-status"></select></div>
+      <div class="field"><label for="f-owner">Кто ведёт</label><select id="f-owner"></select></div>
+    </div>
+    <div class="toolbar">
+      <span class="count" id="bl-count"></span>
+      <button class="btn" id="bl-reset" type="button">Сбросить фильтры</button>
+      <span class="spacer"></span>
+      <button class="btn primary" id="bl-add" type="button">Добавить задачу</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th style="width:44px">Статус</th><th>Задача</th><th>Направление</th><th>Этап</th><th>Приоритет</th><th>Кто</th></tr></thead>
+        <tbody id="bl-body"><tr><td colspan="6" class="muted">Загружаю задачи…</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="view-map" role="tabpanel" aria-labelledby="tab-map" hidden>
+    <div class="map-wrap"><svg id="map" viewBox="0 0 1240 760" role="img" aria-label="Mind-карта проекта: семь направлений и их составляющие с прогрессом"></svg></div>
+    <div class="legend">
+      <span><i style="background:var(--ok)"></i>всё готово</span>
+      <span><i style="background:var(--warn)"></i>в процессе</span>
+      <span><i style="background:var(--surface);border:2px solid var(--line-2)"></i>не начато</span>
+      <span>Цифры — готово / всего задач. Нажмите на узел, чтобы открыть его задачи в бэклоге.</span>
+    </div>
+  </section>
+
+  <section id="view-docs" role="tabpanel" aria-labelledby="tab-docs" hidden>
+    <div id="docs"></div>
+    <p class="share-note">Документы — копии файлов из папки проекта на 29 сентября. Их можно прочитать прямо здесь или скачать оригинал. Ссылки на другие материалы добавляются в карточке задачи. Ссылки на другие материалы (Яндекс Диск, Google Docs) добавляются в карточке задачи.</p>
+  </section>
+</div>
+
+<div id="dlg-root"></div>
+<div id="drawer-root"></div>
+<div id="reader-root"></div>
+<div id="toast" class="toast" hidden></div>
+
+<script>
+
+(function(){
+const AREAS=[
+ {k:'strat',name:'Стратегия и продукт',side:'R',nodes:[['pos','Позиционирование'],['seg','Сегменты'],['offer','Линейка услуг'],['price','Цены и гарантии']]},
+ {k:'legal',name:'Юридическое и деньги',side:'R',nodes:[['entity','Форма партнёрства'],['contract','Договор, NDA, ПДн'],['security','Данные клиентов']]},
+ {k:'funnel',name:'Маркетинг',side:'R',nodes:[['site','Сайт'],['lead','Лид-магниты'],['bot','Telegram-бот'],['content','Кейсы и контент']]},
+ {k:'sales',name:'Продажи',side:'R',nodes:[['warm','Тёплая сеть'],['diag','Диагностика 40 мин'],['kp','КП и follow-up'],['crm','Учёт лидов']]},
+ {k:'audit',name:'Аудит как продукт',side:'L',nodes:[['method','Методология'],['tmpl','Шаблоны вводных'],['report','Отчёт и защита']]},
+ {k:'data',name:'Данные и инструменты',side:'L',nodes:[['export','Выгрузка WB/Ozon'],['marts','Витрины и флаги'],['calc','Калькулятор ЮЭ'],['dash','Дашборд «Пульс»']]},
+ {k:'support',name:'Сопровождение',side:'L',nodes:[['format','Формат и регламент'],['infra','Инфраструктура'],['ym','Яндекс Маркет']]},
+];
+const PHASES=[
+ {k:'p0',n:'0',name:'Основа',goal:'Материалы, методология и прототипы, собранные в сентябре',when:'сентябрь 2026'},
+ {k:'p1',n:'1',name:'Решения партнёров',goal:'Линейка, цены, форма партнёрства и правила работы. Без них нечего подписывать',when:'до 6 октября'},
+ {k:'p2',n:'2',name:'Движок аудита',goal:'Выгрузка → витрины → флаги → отчёт работают на реальном кабинете',when:'6–26 октября'},
+ {k:'p3',n:'3',name:'Продажи и витрина',goal:'Первые 5 диагностик через личную сеть; сайт и бот параллельно',when:'13 октября – 9 ноября'},
+ {k:'p4',n:'4',name:'Первый платный аудит',goal:'Продать, провести за 10 рабочих дней, защитить и получить кейс',when:'ноябрь'},
+ {k:'bl',n:'…',name:'Бэклог',goal:'После первого аудита: сопровождение, дашборд, Яндекс Маркет, второе направление',when:'без срока'},
+];
+// Библиотека документов: читаемая версия (read) и оригинал для скачивания (file)
+const DOCS=[
+ {id:'site',g:'work',t:'Структура и контент сайта v2',d:'Позиционирование, два направления, карта сайта, тексты по экранам, что нужно от партнёров.',read:'docs/site.html',file:'files/site.docx',name:'Структура и контент сайта v2.docx'},
+ {id:'diag',g:'work',t:'Диагностика 40 минут: сценарий, вопросы, продажа',d:'План звонка, вопросы по блокам, карточка диагностики, квалификация, возражения, цепочка после звонка.',read:'docs/diag.html',file:'files/diag.docx',name:'Диагностика 40 минут — сценарий, вопросы, продажа.docx'},
+ {id:'method',g:'work',t:'Аудит магазина: методология и инструменты',d:'10 блоков проверки, график на 10 дней, данные и API, витрины, список настроек.',read:'docs/method.html',file:'files/method.docx',name:'Аудит магазина на маркетплейсе — методология и инструменты.docx'},
+ {id:'export',g:'work',t:'Выгрузка данных WB и Ozon: инструкция',d:'Установка, запуск для клиента, какие таблицы нужны каждому блоку аудита, ограничения площадок.',read:'docs/export.html',file:'files/export.md',name:'Выгрузка данных МП — инструкция.md'},
+ {id:'calcaudit',g:'work',t:'Аудит калькулятора юнит-экономики',d:'12 замечаний к первой версии калькулятора и порядок доработки. Закрыты в версии 2.',read:'docs/calcaudit.html',file:'files/calcaudit.docx',name:'Аудит калькулятора маркетплейсов.docx'},
+ {id:'protect',g:'work',t:'Калькулятор v2: как вернуть защиту листов',d:'Какие листы были защищены и что изменено в версии 2.',read:'docs/protect.html',file:'files/protect.md',name:'Калькулятор v2 — защита листов.md'},
+ {id:'dashaudit',g:'work',t:'Аудит дашборда «Пульс маркетплейсов»',d:'Ошибки расчётов, определения показателей, порядок доработки и критерии приёмки.',read:'docs/dashaudit.html',file:'files/dashaudit.docx',name:'Аудит дашборда — Пульс маркетплейсов.docx'},
+ {id:'calc',g:'file',t:'Калькулятор юнит-экономики v2',d:'Excel-файл, версия без защиты листов, с пояснениями к столбцам.',file:'files/calc.xlsx',name:'Калькулятор юнит-экономики маркетплейсов v2.xlsx'},
+ {id:'lm-calc',g:'file',t:'Лид-магнит: инструкция к калькулятору',d:'PDF для клиентов, 8 страниц: как заполнить и прочитать калькулятор.',file:'files/lm-calc.pdf',name:'Инструкция к калькулятору юнит-экономики.pdf'},
+ {id:'lm-leaks',g:'file',t:'Лид-магнит: чек-лист «Где течёт маржа»',d:'PDF для клиентов: 30 проверок в 7 зонах и перевод утечек в рубли.',file:'files/lm-leaks.pdf',name:'Чек-лист утечек маржи.pdf'},
+ {id:'lm-hire',g:'file',t:'Лид-магнит: ТЗ на найм менеджера маркетплейсов',d:'PDF для клиентов: уровни роли, KPI, тестовое задание, вопросы для собеседования.',file:'files/lm-hire.pdf',name:'ТЗ на найм менеджера маркетплейсов.pdf'},
+ {id:'proto',g:'file',t:'Прототип сайта «Опора» v2',d:'HTML-файл: скачайте и откройте двойным щелчком в браузере.',file:'files/proto.html',name:'Прототип сайта Опора v2.html'},
+];
+const DOC=Object.fromEntries(DOCS.map(d=>[d.id,d]));
+const ext=d=>d.file?d.file.split('.').pop():'doc';
+const STATUS={todo:'Не начато',doing:'В работе',done:'Готово'};
+const NEXT_ST={todo:'doing',doing:'done',done:'todo'};
+const PRIO={P1:'P1 · критично',P2:'P2 · важно',P3:'P3 · потом'};
+const OWNERS=['Александр','Татьяна','Оба'];
+const AUTHORS=['Александр','Татьяна'];
+const AREA=Object.fromEntries(AREAS.map(a=>[a.k,a]));
+const NODE={};AREAS.forEach(a=>a.nodes.forEach(([k,n])=>NODE[a.k+'/'+k]=n));
+const PH=Object.fromEntries(PHASES.map(p=>[p.k,p]));
+
+let items=[],notes=[];let loaded=false;let readOnly=false;
+let openTask=null;
+const busy=new Set();
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function store(k,v){try{if(v===undefined)return JSON.parse(localStorage.getItem(k));localStorage.setItem(k,JSON.stringify(v))}catch(e){return null}}
+const fmtDate=iso=>{try{const d=new Date(iso);return d.toLocaleString('ru-RU',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}catch(e){return''}};
+const newId=p=>p+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+
+const openPhases=new Set(store('opora.open')||['p1','p2','p3','p4']);
+const filt=Object.assign({q:'',area:'',phase:'',status:'',owner:''},store('opora.filt')||{});
+function stats(list){const t=list.length,d=list.filter(i=>i.status==='done').length,g=list.filter(i=>i.status==='doing').length;return{t,d,g,pct:t?Math.round(d/t*100):0}}
+function bar(s){if(!s.t)return'';return `<i class="b-done" style="width:${s.d/s.t*100}%"></i><i class="b-doing" style="width:${s.g/s.t*100}%"></i>`}
+function sorted(list){const po=k=>PHASES.findIndex(p=>p.k===k);return list.slice().sort((a,b)=>po(a.phase)-po(b.phase)||(a.order??0)-(b.order??0))}
+const CHECK='<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+function stBtn(it){return `<button class="st ${esc(it.status)}" data-cycle="${esc(it.id)}" type="button" ${readOnly?'disabled':''} title="${STATUS[it.status]||''}${readOnly?'':' — нажмите, чтобы сменить'}" aria-label="Статус: ${STATUS[it.status]||''}">${it.status==='done'?CHECK:''}</button>`}
+function areaChip(it){const a=AREA[it.area];if(!a)return'';return `<span class="chip"><span class="dot" style="background:var(--c-${a.k})"></span>${esc(NODE[it.area+'/'+it.node]||a.name)}</span>`}
+const taskNotes=id=>notes.filter(n=>n.task===id).sort((a,b)=>String(a.at).localeCompare(String(b.at)));
+const attCount=it=>(Array.isArray(it.docs)?it.docs.filter(d=>DOC[d]).length:0)+(Array.isArray(it.links)?it.links.length:0);
+function badges(it){const a=attCount(it),ns=taskNotes(it.id),open=ns.filter(n=>!n.done).length;let h='';
+  if(a)h+=`<span class="bdg" title="Документы и ссылки">док ${a}</span>`;
+  if(ns.length)h+=`<span class="bdg ${open?'open':''}" title="Заметки: всего ${ns.length}, не отмечено «сделано» ${open}">заметки ${ns.length}${open?' · '+open+' откр.':''}</span>`;
+  return h?`<span class="badges">${h}</span>`:''}
+
+// ---------- header
+function renderHeader(){
+  const main=items.filter(i=>i.phase!=='bl');const s=stats(main);
+  $('ov-pct').textContent=loaded?s.pct+'%':'—';
+  $('ov-txt').textContent=loaded?`готово ${s.d} из ${s.t} задач плана (без бэклога)`:'загружаю задачи…';
+  $('ov-doing').textContent=loaded&&s.g?`в работе: ${s.g}`:'';
+  $('ov-bar').innerHTML=bar(s);
+  $('phase-strip').innerHTML=PHASES.filter(p=>/^p[1-4]$/.test(p.k)).map(p=>{const ps=stats(items.filter(i=>i.phase===p.k));return `<div class="ps" title="${esc(p.name)}"><span>Этап ${p.n} · <span class="mono">${ps.d}/${ps.t}</span></span><div class="bar">${bar(ps)}</div></div>`}).join('');
+  const open=sorted(items.filter(i=>i.phase!=='bl'&&i.status!=='done'&&i.prio==='P1'));
+  const firstPh=open.length?open[0].phase:null;
+  let next=open.filter(i=>i.status==='doing').concat(open.filter(i=>i.status!=='doing'&&i.phase===firstPh));
+  next=[...new Map(next.map(i=>[i.id,i])).values()].slice(0,5);
+  $('next-list').innerHTML=!loaded?'<li><span></span><span class="muted">Список появится, когда загрузятся задачи.</span></li>':
+   next.length?next.map(it=>`<li>${stBtn(it)}<div><div class="t" data-open="${esc(it.id)}">${esc(it.title)}</div><div class="meta">Этап ${esc(PH[it.phase]?.n)} · ${esc(it.owner||'—')}${it.status==='doing'?' · в работе':''}</div></div></li>`).join(''):
+   '<li><span></span><span class="muted">Все критичные задачи плана закрыты.</span></li>';
+  const recent=notes.slice().sort((a,b)=>String(b.at).localeCompare(String(a.at))).slice(0,4);
+  $('feed').innerHTML=recent.length?recent.map(n=>{const it=items.find(i=>i.id===n.task);return `<li data-open="${esc(n.task)}"><div class="ft">${n.done?'<span class="done-tag">сделано</span> ':''}${esc(n.text)}</div><div class="fm">${esc(n.author||'')} · ${esc(fmtDate(n.at))} · ${esc(it?it.title:'задача удалена')}</div></li>`}).join(''):'<li class="muted" style="cursor:default">Пока нет заметок. Откройте задачу, чтобы оставить первую.</li>';
+}
+
+// ---------- plan
+function renderPlan(){
+  if(!loaded){$('plan').innerHTML='<p class="muted">Загружаю задачи…</p>';return}
+  if(!items.length){$('plan').innerHTML='<p class="muted">Задач пока нет. Добавьте первую на вкладке «Бэклог».</p>';return}
+  $('plan').innerHTML=PHASES.map(p=>{
+    const list=sorted(items.filter(i=>i.phase===p.k));const s=stats(list);
+    return `<details class="phase" data-phase="${p.k}" ${openPhases.has(p.k)?'open':''}>
+      <summary><div class="pn">${esc(p.n)}</div><div><div class="ph-name">${esc(p.name)}<span class="chev">›</span></div><div class="ph-goal">${esc(p.goal)}</div></div>
+      <div class="ph-side"><span class="mono" style="font-size:13px">${s.d}/${s.t}</span><div class="bar">${bar(s)}</div><span class="ph-when">${esc(p.when)}</span></div></summary>
+      <ul class="items">${list.map(it=>`<li class="item ${it.status==='done'?'is-done':''}">${stBtn(it)}<div><div class="title" data-open="${esc(it.id)}">${esc(it.title)}${badges(it)}</div>${it.note?`<div class="note">${esc(it.note)}</div>`:''}</div><div class="tags">${areaChip(it)}<span class="pr ${esc(it.prio)}">${esc(it.prio)}</span><span class="who">${esc(it.owner||'')}</span></div></li>`).join('')||'<li class="muted" style="padding:8px 0">Задач нет</li>'}</ul></details>`}).join('');
+}
+
+// ---------- backlog
+function opts(sel,list,all){sel.innerHTML=`<option value="">${all}</option>`+list.map(([v,l])=>`<option value="${esc(v)}">${esc(l)}</option>`).join('')}
+function initFilters(){
+  const area=[];AREAS.forEach(a=>{area.push([a.k,a.name]);a.nodes.forEach(([k,n])=>area.push([a.k+'/'+k,'  · '+n]))});
+  opts($('f-area'),area,'Все направления');
+  opts($('f-phase'),PHASES.map(p=>[p.k,p.n+'. '+p.name]),'Все этапы');
+  opts($('f-status'),[['open','Не готово'],...Object.entries(STATUS),['notes-open','Есть открытые заметки']],'Любой статус');
+  opts($('f-owner'),OWNERS.map(o=>[o,o]),'Все');
+  $('f-q').value=filt.q;$('f-area').value=filt.area;$('f-phase').value=filt.phase;$('f-status').value=filt.status;$('f-owner').value=filt.owner;
+  ['f-q','f-area','f-phase','f-status','f-owner'].forEach(id=>$(id).addEventListener(id==='f-q'?'input':'change',()=>{filt[id.slice(2)]=$(id).value;store('opora.filt',filt);renderBacklog()}));
+  $('bl-reset').onclick=()=>{Object.assign(filt,{q:'',area:'',phase:'',status:'',owner:''});['f-q','f-area','f-phase','f-status','f-owner'].forEach(id=>$(id).value='');store('opora.filt',filt);renderBacklog()};
+}
+function renderBacklog(){
+  if(!loaded)return;
+  const q=filt.q.trim().toLowerCase();
+  const list=sorted(items).filter(it=>{
+    if(filt.area){const [a,n]=filt.area.split('/');if(it.area!==a||(n&&it.node!==n))return false}
+    if(filt.phase&&it.phase!==filt.phase)return false;
+    if(filt.status==='open'){if(it.status==='done')return false}
+    else if(filt.status==='notes-open'){if(!taskNotes(it.id).some(n=>!n.done))return false}
+    else if(filt.status&&it.status!==filt.status)return false;
+    if(filt.owner&&it.owner!==filt.owner)return false;
+    if(q){const hay=[it.title,it.note,...taskNotes(it.id).map(n=>n.text),...(it.docs||[]).map(d=>DOC[d]?.t),...(it.links||[]).map(l=>l.t)].join(' ').toLowerCase();if(!hay.includes(q))return false}
+    return true});
+  $('bl-count').textContent=`Показано ${list.length} из ${items.length}`;
+  $('bl-body').innerHTML=list.length?list.map(it=>`<tr><td>${stBtn(it)}</td><td class="t" data-open="${esc(it.id)}"><div>${esc(it.title)}${badges(it)}</div>${it.note?`<div class="note">${esc(it.note)}</div>`:''}</td><td>${areaChip(it)}<div class="muted" style="font-size:12px;margin-top:3px">${esc(AREA[it.area]?.name||'')}</div></td><td class="mono" style="font-size:13px">${esc(PH[it.phase]?.n)}. ${esc(PH[it.phase]?.name||'')}</td><td><span class="pr ${esc(it.prio)}">${esc(it.prio)}</span></td><td class="who">${esc(it.owner||'')}</td></tr>`).join(''):
+   `<tr><td colspan="6" class="muted">${items.length?'Под фильтры ничего не попало.':'Задач пока нет. Нажмите «Добавить задачу».'}</td></tr>`;
+  $('bl-add').hidden=readOnly;
+}
+
+// ---------- mind map
+function renderMap(){
+  const W=1240,H=760,cx=620,cy=H/2;const svg=$('map');
+  const side=s=>AREAS.filter(a=>a.side===s);
+  const out=[];
+  function layout(areas){const gap=0.7;const slots=areas.reduce((n,a)=>n+a.nodes.length,0)+gap*(areas.length-1);const step=(H-70)/Math.max(1,slots-1);let y=35;const res=[];
+    areas.forEach(a=>{const ys=a.nodes.map(()=>{const v=y;y+=step;return v});y+=step*gap;res.push({a,ys,ay:(ys[0]+ys[ys.length-1])/2})});return res}
+  const tone=s=>!s.t?'none':s.d===s.t?'ok':(s.d||s.g)?'warn':'todo';
+  const all=stats(items.filter(i=>i.phase!=='bl'));
+  ['R','L'].forEach(sd=>{
+    const R=sd==='R';const ax=R?835:405;const lx=R?975:35;const LW=230;
+    layout(side(sd)).forEach(({a,ys,ay})=>{
+      const col=`var(--c-${a.k})`;const as=stats(items.filter(i=>i.area===a.k));
+      const ax0=R?ax-105:ax+105;
+      out.push(`<path d="M${cx+(R?80:-80)},${cy} C${(cx+ax0)/2},${cy} ${(cx+ax0)/2},${ay} ${ax0},${ay}" fill="none" stroke="${col}" stroke-width="2.5" opacity=".75"/>`);
+      ys.forEach((y,i)=>{const [nk,nn]=a.nodes[i];const ls=stats(items.filter(it=>it.area===a.k&&it.node===nk));const t=tone(ls);
+        const ex=R?ax+105:ax-105;const lx0=R?lx:lx+LW;
+        out.push(`<path d="M${ex},${ay} C${(ex+lx0)/2},${ay} ${(ex+lx0)/2},${y} ${lx0},${y}" fill="none" stroke="${col}" stroke-width="1.5" opacity=".55"/>`);
+        const dotFill=t==='ok'?'var(--ok)':t==='warn'?'var(--warn)':'var(--surface)';const dotStroke=t==='ok'?'var(--ok)':t==='warn'?'var(--warn)':'var(--line-2)';
+        out.push(`<g class="leaf" tabindex="0" role="button" data-node="${a.k}/${nk}" aria-label="${esc(nn)}: готово ${ls.d} из ${ls.t}">
+          <rect class="box" x="${lx}" y="${y-16}" width="${LW}" height="32" rx="8" fill="var(--surface)" stroke="var(--line-2)" stroke-width="1.2"/>
+          <circle cx="${lx+16}" cy="${y}" r="6" fill="${dotFill}" stroke="${dotStroke}" stroke-width="2"/>
+          <text x="${lx+30}" y="${y+4.5}" font-size="13" fill="var(--fg)" font-family="var(--f-body)">${esc(nn)}</text>
+          <text x="${lx+LW-12}" y="${y+4.5}" font-size="12" text-anchor="end" fill="${ls.t?'var(--muted)':'var(--dim)'}" font-family="var(--f-mono)">${ls.t?ls.d+'/'+ls.t:'—'}</text></g>`);
+      });
+      out.push(`<g><rect x="${ax-105}" y="${ay-24}" width="210" height="48" rx="12" fill="var(--surface)" stroke="${col}" stroke-width="2"/>
+        <text x="${ax}" y="${ay-3}" font-size="13" font-weight="700" text-anchor="middle" fill="var(--fg)" font-family="var(--f-body)">${esc(a.name)}</text>
+        <text x="${ax}" y="${ay+14}" font-size="11.5" text-anchor="middle" fill="var(--muted)" font-family="var(--f-mono)">${as.d}/${as.t} готово</text></g>`);
+    });
+  });
+  out.push(`<g><rect x="${cx-80}" y="${cy-54}" width="160" height="108" rx="18" fill="var(--accent)"/>
+    <text x="${cx}" y="${cy-18}" font-size="21" font-weight="700" text-anchor="middle" fill="var(--on-accent)" font-family="var(--f-display)">Опора</text>
+    <text x="${cx}" y="${cy+4}" font-size="11.5" text-anchor="middle" fill="var(--on-accent)" font-family="var(--f-body)" opacity=".9">к первому платному</text>
+    <text x="${cx}" y="${cy+19}" font-size="11.5" text-anchor="middle" fill="var(--on-accent)" font-family="var(--f-body)" opacity=".9">аудиту</text>
+    <text x="${cx}" y="${cy+40}" font-size="13" text-anchor="middle" fill="var(--on-accent)" font-family="var(--f-mono)">${loaded?all.pct+'% плана':'…'}</text></g>`);
+  svg.innerHTML=out.join('');
+}
+
+// ---------- documents tab
+function docActs(d){return `${d.read?`<button class="mini" data-read="${d.id}" type="button">Читать</button>`:''}${d.file?`<button class="mini" data-dl="${d.id}" type="button">Скачать .${esc(ext(d))}</button>`:''}`}
+function renderDocs(){
+  const used=id=>items.filter(i=>(i.docs||[]).includes(id));
+  const card=d=>{const u=used(d.id);return `<article class="dcard"><h3>${esc(d.t)}</h3><p>${esc(d.d)}</p><div class="used">${u.length?`Прикреплён к ${u.length} ${u.length===1?'задаче':'задачам'}: ${u.slice(0,3).map(i=>`<a href="#" data-open="${esc(i.id)}" style="color:var(--accent)">${esc(i.title.length>48?i.title.slice(0,46)+'…':i.title)}</a>`).join(', ')}${u.length>3?' и ещё '+(u.length-3):''}`:'Пока не прикреплён к задачам'}</div><div class="acts">${docActs(d)}</div></article>`};
+  $('docs').innerHTML=`<h2 class="sec-h">Рабочие документы</h2><div class="docs-grid">${DOCS.filter(d=>d.g==='work').map(card).join('')}</div>
+   <h2 class="sec-h">Файлы</h2><div class="docs-grid">${DOCS.filter(d=>d.g==='file').map(card).join('')}</div>`;
+}
+
+function renderAll(){renderHeader();renderPlan();renderBacklog();renderMap();renderDocs();if(openTask)renderDrawer()}
+
+// ---------- tabs
+const TABS=['plan','backlog','map','docs'];
+function setTab(t){if(!TABS.includes(t))t='plan';document.querySelectorAll('.tab').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===t));TABS.forEach(k=>$('view-'+k).hidden=k!==t);store('opora.tab',t)}
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>setTab(b.dataset.tab));
+
+// ---------- toast / notice
+let tt;function toast(m){const el=$('toast');el.textContent=m;el.hidden=false;clearTimeout(tt);tt=setTimeout(()=>el.hidden=true,2600)}
+function notice(m){const el=$('notice');el.textContent=m||'';el.hidden=!m}
+
+// ---------- GitHub storage: data/db.json in the private repo
+const GH={owner:'alex25ml',repo:'opora-data',branch:'main',path:'data/db.json'};
+const API=window.__OPORA_API||'https://api.github.com';
+let token=store('opora.key')||'';
+let DB=null,SHA=null,ETAG=null,lastSync=null;
+const b64enc=str=>{const bytes=new TextEncoder().encode(str);let bin='';for(let i=0;i<bytes.length;i+=0x8000)bin+=String.fromCharCode.apply(null,bytes.subarray(i,i+0x8000));return btoa(bin)};
+const b64dec=b=>new TextDecoder().decode(Uint8Array.from(atob(String(b).replace(/\s/g,'')),c=>c.charCodeAt(0)));
+const encPath=p=>p.split('/').map(encodeURIComponent).join('/');
+function gh(path,opt={}){return fetch(API+path,Object.assign({cache:'no-store'},opt,{headers:Object.assign({'Accept':'application/vnd.github+json','Authorization':'Bearer '+token,'X-GitHub-Api-Version':'2022-11-28'},opt.headers||{})}))}
+const contentsUrl=p=>`/repos/${GH.owner}/${GH.repo}/contents/${encPath(p)}`;
+async function ghRaw(p,as){const r=await gh(contentsUrl(p)+'?ref='+GH.branch,{headers:{'Accept':'application/vnd.github.raw+json'}});if(!r.ok)throw new Error('HTTP '+r.status);return as==='blob'?r.blob():r.text()}
+// read db.json; returns {db,sha} or {notModified:true}; throws {status}
+async function loadRemote(useEtag){
+  const r=await gh(contentsUrl(GH.path)+'?ref='+GH.branch,{headers:useEtag&&ETAG?{'If-None-Match':ETAG}:{}});
+  if(r.status===304)return{notModified:true};
+  if(!r.ok){const e=new Error('HTTP '+r.status);e.status=r.status;e.limit=r.headers.get('x-ratelimit-remaining');throw e}
+  const et=r.headers.get('ETag');const j=await r.json();
+  let text=j.content?b64dec(j.content):'';
+  if(!text&&j.download_url===undefined){text=await ghRaw(GH.path,'text')}
+  if(!text)text=await ghRaw(GH.path,'text');
+  const db=JSON.parse(text);db.items=db.items||{};db.notes=db.notes||{};
+  return{db,sha:j.sha,etag:et};
+}
+function applyDB(){
+  items=Object.entries(DB.items||{}).map(([id,v])=>Object.assign({id},v));
+  notes=Object.entries(DB.notes||{}).map(([id,v])=>Object.assign({id},v));
+  loaded=true;renderAll();
+}
+function setSync(state,msg){const d=$('sync-dot'),t=$('sync-txt');if(!d)return;d.className='dotst'+(state==='busy'?' busy':state==='err'?' err':'');
+  t.textContent=msg||(state==='busy'?'Сохраняю…':state==='err'?'Нет связи с хранилищем':lastSync?'Сохранено и синхронизировано в '+lastSync.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}):'')}
+async function refresh(silent){
+  if(!token)return false;
+  try{const res=await loadRemote(!!DB);lastSync=new Date();
+    if(!res.notModified){DB=res.db;SHA=res.sha;ETAG=res.etag;applyDB()}
+    setSync('ok');return true}
+  catch(e){if(e.status===401){lockScreen('Ключ больше не действует. Попросите новый у Александра.');return false}
+    setSync('err',e.status===403&&e.limit==='0'?'Превышен лимит запросов GitHub, подождите несколько минут':undefined);if(!silent)toast('Не удалось загрузить данные. Проверьте интернет.');return false}
+}
+let queue=Promise.resolve();
+// mutate(d) changes the db object in place; it is applied to the local copy at once and re-applied to the fresh remote copy before saving
+function commit(msg,mutate,okMsg){
+  if(readOnly||!DB)return Promise.resolve(false);
+  try{mutate(DB);applyDB()}catch(e){}
+  const job=queue.then(async()=>{
+    setSync('busy');
+    for(let attempt=0;attempt<5;attempt++){
+      if(attempt)await new Promise(r=>setTimeout(r,400*attempt+Math.random()*300));
+      const fresh=await loadRemote(false);
+      const d=fresh.db;mutate(d);d.updatedAt=new Date().toISOString();
+      const r=await gh(contentsUrl(GH.path),{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:msg,content:b64enc(JSON.stringify(d,null,1)),sha:fresh.sha,branch:GH.branch})});
+      if(r.ok){const j=await r.json();DB=d;SHA=j.content&&j.content.sha;ETAG=null;lastSync=new Date();applyDB();setSync('ok');if(okMsg)toast(okMsg);return true}
+      if(r.status===409||r.status===422)continue;
+      const e=new Error('HTTP '+r.status);e.status=r.status;throw e;
+    }
+    throw new Error('conflict');
+  }).catch(e=>{
+    if(e&&e.status===403){readOnly=true;notice('Этот ключ даёт только просмотр: изменения не сохраняются. Нужен ключ с правом записи (Contents: Read and write).')}
+    else if(e&&e.status===401){lockScreen('Ключ больше не действует. Попросите новый у Александра.')}
+    else toast('Не сохранилось: нет связи с GitHub. Изменение отменено, попробуйте ещё раз.');
+    setSync('err');ETAG=null;refresh(true);return false});
+  queue=job.then(()=>{},()=>{});
+  return job;
+}
+async function cycle(id){const it=items.find(i=>i.id===id);if(!it||readOnly)return;const ns=NEXT_ST[it.status]||'doing';const now=new Date().toISOString();
+  await commit(`${author()}: «${it.title}» → ${STATUS[ns]}`,d=>{if(d.items[id]){d.items[id].status=ns;d.items[id].updatedAt=now}});
+}
+const updItem=(id,data,msg)=>{const now=new Date().toISOString();const it=items.find(i=>i.id===id);
+  return commit(`${author()}: изменена задача «${it?it.title:id}»`,d=>{if(d.items[id])Object.assign(d.items[id],data,{updatedAt:now})},msg)};
+
+// ---------- downloads & reader
+async function download(id){const d=DOC[id];if(!d||!d.file)return;
+  toast('Скачиваю «'+d.t+'»…');
+  try{const blob=await ghRaw(d.file,'blob');const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=d.name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000)}
+  catch(e){toast('Файл не скачался. Проверьте интернет и попробуйте ещё раз.')}
+}
+let mermaidP=null;
+function loadMermaid(){if(mermaidP)return mermaidP;mermaidP=new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js';s.onload=()=>res(window.mermaid);s.onerror=rej;document.head.appendChild(s)});return mermaidP}
+async function openReader(id){const d=DOC[id];if(!d||!d.read)return;
+  $('reader-root').innerHTML=`<div class="reader-ov" id="rov"><div class="reader" role="dialog" aria-modal="true" aria-labelledby="rd-h"><div class="rd-top"><h3 id="rd-h">${esc(d.t)}</h3>${docActs(Object.assign({},d,{read:null}))}<button class="x" id="rd-x" type="button" aria-label="Закрыть">×</button></div><div class="rd-body" id="rd-body"><p class="muted">Открываю документ…</p></div></div></div>`;
+  const close=()=>{$('reader-root').innerHTML=''};
+  $('rd-x').onclick=close;$('rov').addEventListener('click',e=>{if(e.target.id==='rov')close()});
+  $('rov').addEventListener('keydown',e=>{if(e.key==='Escape'){e.stopPropagation();close()}});$('rd-x').focus();
+  try{const html=await ghRaw(d.read,'text');const body=$('rd-body');if(!body)return;
+    body.innerHTML=html;body.querySelectorAll('a[href^="http"]').forEach(a=>{a.target='_blank';a.rel='noopener'});
+    const pres=[...body.querySelectorAll('pre.mermaid')];
+    if(pres.length){try{const m=await loadMermaid();const dark=matchMedia('(prefers-color-scheme: dark)').matches&&document.documentElement.dataset.theme!=='light'||document.documentElement.dataset.theme==='dark';m.initialize({startOnLoad:false,theme:dark?'dark':'neutral',securityLevel:'strict'});await m.run({nodes:pres})}catch(e){}}
+  }catch(e){const body=$('rd-body');if(body)body.innerHTML='<p>Документ не загрузился. Обновите страницу или скачайте оригинал.</p>'}
+}
+
+// ---------- task drawer
+function author(){const a=store('opora.author');return AUTHORS.includes(a)?a:'Александр'}
+function openDrawer(id){const it=items.find(i=>i.id===id);if(!it)return;openTask=id;
+  const nodeOpts=AREAS.map(a=>`<optgroup label="${esc(a.name)}">${a.nodes.map(([k,n])=>`<option value="${a.k}/${k}" ${it.area===a.k&&it.node===k?'selected':''}>${esc(n)}</option>`).join('')}</optgroup>`).join('');
+  const sel=(sid,list,v)=>`<select id="${sid}">${list.map(([k,l])=>`<option value="${esc(k)}" ${k===v?'selected':''}>${esc(l)}</option>`).join('')}</select>`;
+  const libOpts=DOCS.map(d=>`<option value="${d.id}">${esc(d.t)}</option>`).join('');
+  $('drawer-root').innerHTML=`<div class="drawer-ov" id="dov"><aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="dr-title">
+    <div class="dr-top" id="dr-top"></div>
+    <div class="dr-body">
+      <div id="dr-desc"></div>
+      <section class="dr-sec"><h4><span>Документы и ссылки</span></h4><div id="dr-att"></div>
+        <div ${readOnly?'hidden':''}>
+          <div class="addrow two"><div class="field"><label for="att-lib">Прикрепить документ из библиотеки</label><select id="att-lib"><option value="">Выберите документ…</option>${libOpts}</select></div><button class="btn" id="att-lib-add" type="button">Прикрепить</button></div>
+          <div class="addrow"><div class="field"><label for="lnk-t">Название ссылки</label><input id="lnk-t" placeholder="Например: папка клиента"></div><div class="field"><label for="lnk-u">Адрес</label><input id="lnk-u" type="url" inputmode="url" placeholder="https://disk.yandex.ru/…"></div><button class="btn" id="lnk-add" type="button">Добавить ссылку</button></div>
+        </div>
+      </section>
+      <section class="dr-sec"><h4><span>Заметки</span><span id="dr-ncount" class="mono" style="text-transform:none;letter-spacing:0;font-weight:500"></span></h4><ul class="notes" id="dr-notes"></ul>
+        <form class="note-form" id="nf" ${readOnly?'hidden':''}>
+          <div class="field"><label for="nf-text">Новая заметка</label><textarea id="nf-text" placeholder="Вопрос, решение, результат или что осталось сделать"></textarea></div>
+          <div class="row3"><label class="chk" for="nf-author">Автор <select id="nf-author">${AUTHORS.map(a=>`<option ${a===author()?'selected':''}>${a}</option>`).join('')}</select></label>
+            <label class="chk"><input type="checkbox" id="nf-done"> Сразу отметить «сделано»</label><span class="spacer"></span>
+            <button class="btn primary" type="submit" id="nf-add">Добавить заметку</button></div>
+        </form>
+      </section>
+      <details class="edit-box" ${readOnly?'hidden':''}><summary>Изменить задачу</summary><div class="edit-in">
+        <div class="field"><label for="d-title">Что сделать</label><input id="d-title" value="${esc(it.title)}"></div>
+        <div class="field"><label for="d-note">Описание</label><textarea id="d-note">${esc(it.note||'')}</textarea></div>
+        <div class="field"><label for="d-node">Направление и узел mind-карты</label><select id="d-node">${nodeOpts}</select></div>
+        <div class="row"><div class="field"><label for="d-phase">Этап</label>${sel('d-phase',PHASES.map(p=>[p.k,p.n+'. '+p.name]),it.phase)}</div>
+          <div class="field"><label for="d-owner">Кто ведёт</label>${sel('d-owner',OWNERS.map(o=>[o,o]),it.owner)}</div></div>
+        <div class="row"><div class="field"><label for="d-prio">Приоритет</label>${sel('d-prio',Object.entries(PRIO),it.prio)}</div><div></div></div>
+        <div class="dlg-actions" style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary" id="d-save" type="button">Сохранить</button><span class="spacer"></span><button class="btn danger" id="d-del" type="button">Удалить задачу</button></div>
+      </div></details>
+    </div></aside></div>`;
+  $('dov').addEventListener('click',e=>{if(e.target.id==='dov')closeDrawer()});
+  $('dov').addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('reader-root').innerHTML)closeDrawer()});
+  renderDrawer();
+  $('dr-x')&&$('dr-x').focus();
+  if(readOnly)return;
+  $('nf-author').onchange=()=>store('opora.author',$('nf-author').value);
+  $('nf').onsubmit=async e=>{e.preventDefault();const text=$('nf-text').value.trim();if(!text){$('nf-text').focus();return}
+    const a=$('nf-author').value;store('opora.author',a);const done=$('nf-done').checked;const now=new Date().toISOString();
+    $('nf-add').disabled=true;
+    const nid=newId('n');const tid=openTask;const it0=items.find(i=>i.id===tid);const ok=await commit(`${a}: заметка к «${it0?it0.title:tid}»`,d=>{d.notes=d.notes||{};d.notes[nid]={task:tid,text,author:a,at:now,done,doneAt:done?now:null}},'Заметка добавлена');
+    const b=$('nf-add');if(b)b.disabled=false;if(ok){$('nf-text').value='';$('nf-done').checked=false}};
+  $('att-lib-add').onclick=async()=>{const v=$('att-lib').value;const cur=items.find(i=>i.id===openTask);if(!v||!cur)return;const docs=Array.isArray(cur.docs)?cur.docs.slice():[];
+    if(docs.includes(v)){toast('Этот документ уже прикреплён');return}docs.push(v);if(await updItem(cur.id,{docs},'Документ прикреплён'))$('att-lib').value=''};
+  $('lnk-add').onclick=async()=>{const t=$('lnk-t').value.trim(),u=$('lnk-u').value.trim();const cur=items.find(i=>i.id===openTask);if(!cur)return;
+    if(!/^https?:\/\/\S+$/i.test(u)){toast('Вставьте адрес, который начинается с https://');$('lnk-u').focus();return}
+    const links=Array.isArray(cur.links)?cur.links.slice():[];links.push({t:t||u.replace(/^https?:\/\//,'').slice(0,60),u});
+    if(await updItem(cur.id,{links},'Ссылка добавлена')){$('lnk-t').value='';$('lnk-u').value=''}};
+  $('d-save').onclick=async()=>{const title=$('d-title').value.trim();if(!title){$('d-title').focus();return}const [area,node]=$('d-node').value.split('/');
+    await updItem(openTask,{title,note:$('d-note').value.trim(),area,node,phase:$('d-phase').value,owner:$('d-owner').value,prio:$('d-prio').value},'Сохранено')};
+  $('d-del').onclick=()=>{const b=$('d-del');if(b.dataset.armed){const id=openTask;const t0=(items.find(i=>i.id===id)||{}).title||id;closeDrawer();commit(`${author()}: удалена задача «${t0}»`,d=>{delete d.items[id];Object.keys(d.notes||{}).forEach(k=>{if(d.notes[k].task===id)delete d.notes[k]})},'Задача удалена');return}
+    b.dataset.armed='1';b.textContent='Точно удалить задачу?';setTimeout(()=>{if(b.isConnected){delete b.dataset.armed;b.textContent='Удалить задачу'}},4000)};
+}
+function closeDrawer(){openTask=null;$('drawer-root').innerHTML=''}
+function renderDrawer(){
+  const it=items.find(i=>i.id===openTask);
+  if(!it){closeDrawer();return}
+  $('dr-top').innerHTML=`${stBtn(it)}<div><h3 id="dr-title">${esc(it.title)}</h3><div class="dr-meta"><span class="chip">Этап ${esc(PH[it.phase]?.n)} · ${esc(PH[it.phase]?.name||'')}</span>${areaChip(it)}<span class="pr ${esc(it.prio)}">${esc(PRIO[it.prio]||it.prio)}</span><span class="who">ведёт: ${esc(it.owner||'—')}</span><span class="who">· ${esc(STATUS[it.status]||'')}</span></div></div><button class="x" id="dr-x" type="button" aria-label="Закрыть">×</button>`;
+  $('dr-x').onclick=closeDrawer;
+  $('dr-desc').innerHTML=it.note?`<p class="desc">${esc(it.note)}</p>`:'';
+  const docs=(Array.isArray(it.docs)?it.docs:[]).filter(d=>DOC[d]).map(id=>DOC[id]);
+  const links=Array.isArray(it.links)?it.links:[];
+  let host=u=>{try{return new URL(u).hostname}catch(e){return''}};
+  $('dr-att').innerHTML=(docs.length||links.length)?`<ul class="att">${docs.map(d=>`<li><span class="ic">${esc(ext(d))}</span><div class="an">${esc(d.t)}<small>${esc(d.d)}</small></div><div class="acts">${docActs(d)}${readOnly?'':`<button class="mini ghost" data-unatt="${d.id}" type="button" title="Открепить от задачи">Открепить</button>`}</div></li>`).join('')}${links.map((l,i)=>`<li><span class="ic lnk">link</span><div class="an"><a href="${esc(l.u)}" target="_blank" rel="noopener">${esc(l.t)}</a><small>${esc(host(l.u))}</small></div><div class="acts">${readOnly?'':`<button class="mini ghost" data-unlink="${i}" type="button">Убрать</button>`}</div></li>`).join('')}</ul>`:'<div class="empty">К задаче пока ничего не прикреплено.</div>';
+  const ns=taskNotes(it.id);const open=ns.filter(n=>!n.done).length;
+  $('dr-ncount').textContent=ns.length?`${ns.length} · сделано ${ns.length-open}`:'';
+  $('dr-notes').innerHTML=ns.length?ns.map(n=>`<li class="note ${n.done?'is-done':''}"><label class="chk" title="Отметка «сделано»"><input type="checkbox" data-ndone="${esc(n.id)}" ${n.done?'checked':''} ${readOnly?'disabled':''} aria-label="Сделано"></label><div><div class="nt">${esc(n.text)}</div><div class="nm">${n.done?'<span class="done-tag">сделано</span>':''}<span>${esc(n.author||'')}</span><span>${esc(fmtDate(n.at))}</span>${n.done&&n.doneAt&&n.doneAt!==n.at?`<span>отмечено ${esc(fmtDate(n.doneAt))}</span>`:''}</div></div>${readOnly?'<span></span>':`<button class="mini ghost" data-ndel="${esc(n.id)}" type="button">Удалить</button>`}</li>`).join(''):'<li class="empty">Заметок пока нет. Напишите вопрос, решение или результат — партнёр увидит его здесь.</li>';
+}
+
+// ---------- create dialog (new task)
+function openCreate(){
+  const nodeOpts=AREAS.map(a=>`<optgroup label="${esc(a.name)}">${a.nodes.map(([k,n])=>`<option value="${a.k}/${k}">${esc(n)}</option>`).join('')}</optgroup>`).join('');
+  const sel=(id,list,v)=>`<select id="${id}">${list.map(([k,l])=>`<option value="${esc(k)}" ${k===v?'selected':''}>${esc(l)}</option>`).join('')}</select>`;
+  $('dlg-root').innerHTML=`<div class="overlay" id="ov"><div class="dlg" role="dialog" aria-modal="true" aria-labelledby="dlg-h">
+    <h3 id="dlg-h">Новая задача</h3>
+    <div class="field"><label for="c-title">Что сделать</label><input id="c-title"></div>
+    <div class="field"><label for="c-note">Описание</label><textarea id="c-note"></textarea></div>
+    <div class="field"><label for="c-node">Направление и узел mind-карты</label><select id="c-node">${nodeOpts}</select></div>
+    <div class="row"><div class="field"><label for="c-phase">Этап</label>${sel('c-phase',PHASES.map(p=>[p.k,p.n+'. '+p.name]),'bl')}</div>
+      <div class="field"><label for="c-owner">Кто ведёт</label>${sel('c-owner',OWNERS.map(o=>[o,o]),'Оба')}</div></div>
+    <div class="row"><div class="field"><label for="c-prio">Приоритет</label>${sel('c-prio',Object.entries(PRIO),'P2')}</div><div></div></div>
+    <p id="c-err" style="margin:0;color:var(--crit)" hidden>Напишите, что сделать.</p>
+    <div class="actions"><button class="btn primary" id="c-save" type="button">Добавить</button><button class="btn" id="c-cancel" type="button">Отмена</button></div>
+  </div></div>`;
+  const close=()=>{$('dlg-root').innerHTML=''};
+  $('ov').addEventListener('click',e=>{if(e.target.id==='ov')close()});$('c-cancel').onclick=close;
+  $('ov').addEventListener('keydown',e=>{if(e.key==='Escape')close()});$('c-title').focus();
+  $('c-save').onclick=async()=>{const title=$('c-title').value.trim();if(!title){$('c-err').hidden=false;return}const [area,node]=$('c-node').value.split('/');
+    const body={title,note:$('c-note').value.trim(),phase:$('c-phase').value,status:'todo',prio:$('c-prio').value,owner:$('c-owner').value,area,node,docs:[],links:[],order:Math.max(0,...items.map(i=>i.order||0))+10,updatedAt:new Date().toISOString()};
+    $('c-save').disabled=true;const id=newId('u');const ok=await commit(`${author()}: новая задача «${title}»`,d=>{d.items[id]=body},'Задача добавлена');if(ok){close();}else $('c-save').disabled=false};
+}
+
+// ---------- events (delegated)
+document.addEventListener('click',e=>{
+  const c=e.target.closest('[data-cycle]');if(c){e.preventDefault();e.stopPropagation();cycle(c.dataset.cycle);return}
+  const rd=e.target.closest('[data-read]');if(rd){openReader(rd.dataset.read);return}
+  const dl=e.target.closest('[data-dl]');if(dl){download(dl.dataset.dl);return}
+  const op=e.target.closest('[data-open]');if(op){e.preventDefault();$('reader-root').innerHTML='';openDrawer(op.dataset.open);return}
+  const lf=e.target.closest('[data-node]');if(lf){goNode(lf.dataset.node);return}
+  const ua=e.target.closest('[data-unatt]');if(ua){const it=items.find(i=>i.id===openTask);if(it)updItem(it.id,{docs:(it.docs||[]).filter(d=>d!==ua.dataset.unatt)},'Документ откреплён');return}
+  const ul=e.target.closest('[data-unlink]');if(ul){const it=items.find(i=>i.id===openTask);if(it){const links=(it.links||[]).slice();links.splice(+ul.dataset.unlink,1);updItem(it.id,{links},'Ссылка убрана')}return}
+  const nd=e.target.closest('[data-ndel]');if(nd){if(nd.dataset.armed){const nid=nd.dataset.ndel;commit(`${author()}: удалена заметка`,d=>{if(d.notes)delete d.notes[nid]},'Заметка удалена');return}nd.dataset.armed='1';nd.textContent='Точно?';setTimeout(()=>{if(nd.isConnected){delete nd.dataset.armed;nd.textContent='Удалить'}},3500);return}
+});
+document.addEventListener('change',e=>{const t=e.target;if(t.matches&&t.matches('[data-ndone]')){const id=t.dataset.ndone;const done=t.checked;const n=notes.find(x=>x.id===id);const now=new Date().toISOString();
+  commit(`${author()}: заметка ${done?'отмечена «сделано»':'снова открыта'}${n?' — '+n.text.slice(0,50):''}`,d=>{if(d.notes&&d.notes[id]){d.notes[id].done=done;d.notes[id].doneAt=done?now:null}},done?'Отмечено «сделано»':'Отметка снята')}});
+document.addEventListener('keydown',e=>{const lf=e.target.closest&&e.target.closest('[data-node]');if(lf&&(e.key==='Enter'||e.key===' ')){e.preventDefault();goNode(lf.dataset.node)}});
+function goNode(v){Object.assign(filt,{q:'',area:v,phase:'',status:'',owner:''});$('f-q').value='';$('f-area').value=v;$('f-phase').value='';$('f-status').value='';$('f-owner').value='';store('opora.filt',filt);renderBacklog();setTab('backlog');window.scrollTo({top:$('view-backlog').offsetTop-80})}
+document.addEventListener('toggle',e=>{const d=e.target;if(d.classList&&d.classList.contains('phase')){d.open?openPhases.add(d.dataset.phase):openPhases.delete(d.dataset.phase);store('opora.open',[...openPhases])}},true);
+$('bl-add').onclick=()=>openCreate();
+
+// ---------- boot
+initFilters();
+const h=(location.hash||'').slice(1);setTab(h||store('opora.tab')||'plan');
+renderAll();
+// ---------- small API for Claude (used through the browser built into the Claude app)
+window.opora={
+  ready:()=>!!DB,
+  snapshot:()=>JSON.parse(JSON.stringify(DB||{})),
+  refresh:()=>{ETAG=null;return refresh(true)},
+  setStatus:(id,st)=>{if(!STATUS[st])throw new Error('status: todo|doing|done');const now=new Date().toISOString();const it=(DB.items||{})[id];return commit(`Claude: «${it?it.title:id}» → ${STATUS[st]}`,d=>{if(d.items[id]){d.items[id].status=st;d.items[id].updatedAt=now}})},
+  addNote:(task,text,author,done)=>{const now=new Date().toISOString();const nid=newId('n');const a=author||'Claude';return commit(`${a}: заметка к ${task}`,d=>{if(!d.items[task])return;d.notes=d.notes||{};d.notes[nid]={task,text,author:a,at:now,done:!!done,doneAt:done?now:null}})},
+  updateItem:(id,data)=>{const now=new Date().toISOString();return commit(`Claude: изменена задача ${id}`,d=>{if(d.items[id])Object.assign(d.items[id],data,{updatedAt:now})})},
+  addItem:(body)=>{const id=newId('u');const now=new Date().toISOString();const b=Object.assign({status:'todo',prio:'P2',owner:'Оба',phase:'bl',area:'strat',node:'offer',note:'',docs:[],links:[],order:Math.max(0,...items.map(i=>i.order||0))+10,updatedAt:now},body);return commit(`Claude: новая задача «${b.title}»`,d=>{d.items[id]=b}).then(ok=>ok?id:null)},
+  toggleNote:(nid,done)=>{const now=new Date().toISOString();return commit(`Claude: заметка ${done?'сделано':'открыта'}`,d=>{if(d.notes&&d.notes[nid]){d.notes[nid].done=!!done;d.notes[nid].doneAt=done?now:null}})},
+};
+// ---------- sign-in with access key
+function lockScreen(err){
+  const L=$('lock');L.hidden=false;
+  const e=$('lk-err');e.textContent=err||'';e.hidden=!err;
+  $('lk-key').value='';
+  const a=store('opora.author');document.querySelectorAll('input[name="lk-who"]').forEach(r=>{r.checked=r.value===a});
+  setTimeout(()=>{const k=$('lk-key');if(k)k.focus()},50);
+}
+function renderWho(){$('sync-who').textContent=author()}
+$('lk-form').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const k=$('lk-key').value.trim();const who=(document.querySelector('input[name="lk-who"]:checked')||{}).value;
+  const err=m=>{const el=$('lk-err');el.textContent=m;el.hidden=false};
+  if(!who){err('Отметьте, кто вы: так подписываются заметки.');return}
+  if(!k){err('Вставьте ключ доступа.');$('lk-key').focus();return}
+  const btn=$('lk-go');btn.disabled=true;btn.textContent='Проверяю ключ…';
+  token=k;
+  try{
+    const res=await loadRemote(false);
+    store('opora.key',k);store('opora.author',who);
+    DB=res.db;SHA=res.sha;ETAG=res.etag;lastSync=new Date();readOnly=false;notice('');
+    $('lock').hidden=true;applyDB();setSync('ok');renderWho();startPolling();
+  }catch(ex){
+    token='';
+    err(ex.status===401?'Ключ не подошёл. Проверьте, что скопировали его целиком, начиная с github_pat_.':
+        ex.status===404?'Этот ключ не открывает хранилище opora-data. Нужен ключ, выпущенный для этого репозитория.':
+        ex.status===403?'GitHub временно ограничил запросы. Подождите пару минут и попробуйте снова.':
+        'Не удалось связаться с GitHub. Проверьте интернет и попробуйте ещё раз.');
+  }finally{btn.disabled=false;btn.textContent='Войти'}
+});
+$('sync-refresh').onclick=async()=>{ETAG=null;setSync('busy','Обновляю…');if(await refresh(false))toast('Данные обновлены')};
+$('sync-out').onclick=()=>{store('opora.key','');token='';DB=null;items=[];notes=[];loaded=false;closeDrawer();renderAll();clearInterval(pollT);lockScreen()};
+$('sync-switch').onclick=()=>{store('opora.author',author()==='Александр'?'Татьяна':'Александр');renderWho();if(openTask)openDrawer(openTask);toast('Теперь вы подписываетесь как '+author())};
+let pollT;function startPolling(){clearInterval(pollT);pollT=setInterval(()=>{if(document.visibilityState==='visible'&&token&&DB)refresh(true)},30000)}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&token&&DB)refresh(true)});
+(async()=>{
+  if(GH.owner.startsWith('__')){notice('Страница ещё не подключена к хранилищу.');return}
+  if(!token){lockScreen();return}
+  renderWho();
+  const ok=await refresh(false);
+  if(ok)startPolling();
+  else if(!DB&&token)notice('Не удалось загрузить данные. Проверьте интернет и нажмите «Обновить».');
+})();
+
+})();
+</script>
+</body>
+</html>

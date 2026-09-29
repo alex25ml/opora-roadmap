@@ -651,6 +651,7 @@ async function loadRemote(useEtag){
 function applyDB(){
   if(Array.isArray(DB.phases)&&DB.phases.length){const same=JSON.stringify(DB.phases)===JSON.stringify(PHASES);PHASES=DB.phases;PH=Object.fromEntries(PHASES.map(p=>[p.k,p]));if(!same)refreshPhaseFilter()}
   if(DB.meta)META=Object.assign({},META,DB.meta);
+  if(DB.docMeta)Object.entries(DB.docMeta).forEach(([id,v])=>{if(!v)return;if(DOC[id])Object.assign(DOC[id],v);else if(v.t){const d=Object.assign({id,g:'work',d:''},v);DOCS.push(d);DOC[id]=d}});
   items=Object.entries(DB.items||{}).map(([id,v])=>Object.assign({id},v));
   notes=Object.entries(DB.notes||{}).map(([id,v])=>Object.assign({id},v));
   loaded=true;renderAll();

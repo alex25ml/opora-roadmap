@@ -81,6 +81,8 @@ h1{font-family:var(--f-display);font-weight:700;font-size:clamp(24px,4vw,34px);l
 /* tabs */
 .tabs{display:flex;gap:4px;margin:30px 0 18px;border-bottom:1px solid var(--line);overflow-x:auto}
 .tab{background:none;border:0;padding:10px 14px;cursor:pointer;color:var(--muted);font-weight:600;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap}
+.tab-link{color:var(--accent)}
+.tab-link span{font-size:.9em}
 .tab[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--accent)}
 .tab:hover{color:var(--fg)}
 .toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
@@ -342,6 +344,7 @@ svg .leaf:focus{outline:none}
     <button class="tab" role="tab" id="tab-plan" data-tab="plan" aria-selected="false">План по этапам</button>
     <button class="tab" role="tab" id="tab-backlog" data-tab="backlog" aria-selected="false">Бэклог</button>
     <button class="tab" role="tab" id="tab-map" data-tab="map" aria-selected="false">Mind-карта</button>
+    <button class="tab tab-link" id="tab-site" type="button" title="Открыть актуальную версию сайта в новом окне">Сайт проекта <span aria-hidden="true">↗</span></button>
     <button class="tab" role="tab" id="tab-docs" data-tab="docs" aria-selected="false">Документы</button>
   </nav>
 
@@ -618,8 +621,18 @@ function renderAll(){renderHot();renderHeader();renderPlan();renderBacklog();ren
 
 // ---------- tabs
 const TABS=['hot','plan','backlog','map','docs'];
-function setTab(t){if(!TABS.includes(t))t='hot';document.querySelectorAll('.tab').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===t));TABS.forEach(k=>$('view-'+k).hidden=k!==t);store('opora.tab2',t)}
-document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>setTab(b.dataset.tab));
+function setTab(t){if(!TABS.includes(t))t='hot';document.querySelectorAll('.tab[data-tab]').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===t));TABS.forEach(k=>$('view-'+k).hidden=k!==t);store('opora.tab2',t)}
+document.querySelectorAll('.tab[data-tab]').forEach(b=>b.onclick=()=>setTab(b.dataset.tab));
+// «Сайт проекта»: актуальный прототип из хранилища открывается в новом окне
+$('tab-site').onclick=async()=>{
+  if(!token||!DB){toast('Сначала войдите по ключу');return}
+  const file=(META&&META.siteFile)||'files/proto.html';
+  const w=window.open('','_blank');
+  if(!w){toast('Браузер заблокировал новое окно. Разрешите всплывающие окна для этого сайта и нажмите ещё раз.');return}
+  try{w.document.write('<!doctype html><meta charset="utf-8"><title>Сайт «Опора»</title><p style="font:16px system-ui,sans-serif;padding:24px;color:#555">Открываю актуальную версию сайта…</p>')}catch(e){}
+  try{const html=await ghRaw(file,'text');w.document.open();w.document.write(html);w.document.close()}
+  catch(e){try{w.document.body.innerHTML='<p style="font:16px system-ui,sans-serif;padding:24px">Не удалось загрузить сайт. Проверьте интернет и попробуйте ещё раз.</p>'}catch(_){}}
+};
 
 // ---------- toast / notice
 let tt;function toast(m){const el=$('toast');el.textContent=m;el.hidden=false;clearTimeout(tt);tt=setTimeout(()=>el.hidden=true,2600)}

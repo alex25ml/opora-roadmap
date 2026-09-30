@@ -54,7 +54,8 @@ button,input,select,textarea{font:inherit;color:inherit}
 .muted{color:var(--muted)}
 
 /* header */
-.top{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:28px;align-items:start}
+.top{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:28px;align-items:stretch}
+.top-l{display:flex;flex-direction:column}
 @media (max-width:820px){.top{grid-template-columns:minmax(0,1fr)}}
 .top > *{min-width:0}
 .eyebrow{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
@@ -71,7 +72,7 @@ h1{font-family:var(--f-display);font-weight:700;font-size:clamp(24px,4vw,34px);l
 .ps span{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ps .bar{height:5px}
 
-.next{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px}
+.next{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;display:flex;flex-direction:column}
 .next h2{font-size:14px;font-weight:700;display:flex;justify-content:space-between;gap:8px}
 .next ol{margin:10px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px}
 .next li{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:start;font-size:14px}
@@ -175,10 +176,11 @@ svg .leaf:focus{outline:none}
 .badges{display:inline-flex;gap:6px;margin-left:8px;vertical-align:1px}
 .bdg{font-size:11.5px;color:var(--muted);border:1px solid var(--line);border-radius:6px;padding:0 6px;font-family:var(--f-mono);white-space:nowrap}
 .bdg.open{border-color:var(--warn);color:var(--warn)}
-.feed{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
-.feed h2{font-size:14px;font-weight:700}
-.feed ul{list-style:none;margin:8px 0 0;padding:0 6px 0 0;display:flex;flex-direction:column;gap:8px;max-height:210px;overflow-y:auto;overscroll-behavior:contain}
-.next ol{max-height:330px;overflow-y:auto;padding-right:6px!important;overscroll-behavior:contain}
+.feed{margin-top:22px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 18px 12px;flex:1 1 0;min-height:190px;display:flex;flex-direction:column}
+.feed h2{font-size:14px;font-weight:700;display:flex;justify-content:space-between;gap:8px}
+.feed ul{list-style:none;margin:8px 0 0;padding:0 6px 0 0;display:flex;flex-direction:column;gap:2px;flex:1 1 0;min-height:0;overflow-y:auto;overscroll-behavior:contain}
+.next ol{flex:1 1 0;min-height:260px;overflow-y:auto;padding-right:6px!important;overscroll-behavior:contain}
+@media (max-width:820px){.top{row-gap:0}.top-l{display:contents}.top .next{order:1;margin-top:22px}.top .feed{order:2}.feed{flex:none;min-height:0}.feed ul{flex:none;max-height:280px}.next ol{flex:none;min-height:0;max-height:380px}}
 .next-seg{margin-top:10px;display:flex;width:100%}
 .next-seg .seg-b{flex:1;padding:6px 8px}
 .acks{display:inline-flex;gap:4px;vertical-align:1px;margin-left:4px}
@@ -186,12 +188,23 @@ svg .leaf:focus{outline:none}
 button.ack{cursor:pointer}
 button.ack:hover{border-color:var(--ok);color:var(--ok)}
 .ack.on{background:var(--ok-soft);border-color:var(--ok);color:var(--ok)}
+.ackp{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.ackrow{display:flex;gap:12px;align-items:flex-start;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;cursor:pointer}
+.ackrow:hover{border-color:var(--ok)}
+.ackrow.ro{cursor:default}.ackrow.ro:hover{border-color:var(--line)}
+.ackrow.on{background:var(--ok-soft);border-color:var(--ok)}
+.ackrow input{width:20px;height:20px;margin:1px 0 0;accent-color:var(--ok);cursor:pointer;flex:none}
+.ackrow input:disabled{cursor:default}
+.ackrow b{font-weight:700}
+.ackrow small{display:block;font-size:12px;color:var(--muted);margin-top:2px}
+.ackrow.on small{color:var(--ok)}
 .acks.big{margin:10px 0 0;gap:8px;flex-wrap:wrap}
 .acks.big .ack{height:28px;padding:0 10px;font:600 13px var(--f-body)}
-.next .feed li{display:block;font-size:13px;cursor:pointer;min-width:0}
+.feed li{display:block;font-size:13px;cursor:pointer;min-width:0;padding:6px 8px;margin:0 -8px;border-radius:8px}
+.feed li:hover{background:var(--surface-2)}
 .feed li:hover .ft{color:var(--accent)}
 .feed .ft{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.feed .fm{font-size:12px;color:var(--muted)}
+.feed .fm{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 .drawer-ov{position:fixed;inset:0;background:rgb(10 10 20 / .45);z-index:50;display:flex;justify-content:flex-end}
 .drawer{background:var(--bg);width:min(760px,100%);height:100%;overflow:auto;border-left:1px solid var(--line);display:flex;flex-direction:column}
@@ -329,7 +342,7 @@ button.ack:hover{border-color:var(--ok);color:var(--ok)}
 <div class="wrap">
   <div class="syncbar"><span><span class="dotst" id="sync-dot"></span><span id="sync-txt">Подключаюсь…</span></span><span>· вы: <b id="sync-who"></b> <button class="linkbtn" id="sync-switch" type="button">сменить</button></span><span>· <button class="linkbtn" id="sync-refresh" type="button">Обновить</button></span><span>· <button class="linkbtn" id="sync-out" type="button">Выйти</button></span></div>
   <header class="top">
-    <div>
+    <div class="top-l">
       <div class="eyebrow">Консалтинг «Опора» · Татьяна Кочерова и Александр Оленович</div>
       <h1>Дорожная карта: запуск продаж 15 октября</h1>
       <p class="lede">Все ветки проекта в одном месте. Кружок меняет статус задачи: не начато → в работе → готово. Нажмите на название, чтобы открыть задачу с документами и общими заметками.</p>
@@ -342,12 +355,12 @@ button.ack:hover{border-color:var(--ok);color:var(--ok)}
         <div class="bar" id="ov-bar"></div>
         <div class="phase-strip" id="phase-strip"></div>
       </div>
+      <section class="feed" aria-labelledby="feed-h"><h2 id="feed-h"><span>Свежие заметки</span><span class="muted mono" id="feed-n" style="font-weight:500;font-size:12px"></span></h2><ul id="feed"><li class="muted" style="cursor:default">Пока нет заметок.</li></ul></section>
     </div>
     <aside class="next" aria-labelledby="next-h">
       <h2 id="next-h"><span>Следующие шаги</span><span class="muted mono" style="font-weight:500;font-size:12px">по срокам</span></h2>
       <div class="seg next-seg" id="next-seg" role="group" aria-label="Чьи шаги"></div>
       <ol id="next-list"><li><span></span><span class="muted">Список появится, когда загрузятся задачи.</span></li></ol>
-      <div class="feed"><h2>Свежие заметки <span class="muted mono" id="feed-n" style="font-weight:500;font-size:12px"></span></h2><ul id="feed"><li class="muted" style="cursor:default">Пока нет заметок.</li></ul></div>
     </aside>
   </header>
 
@@ -474,6 +487,9 @@ const ackWho=it=>it.owner==='Александр'?['Александр']:it.owner
 const acked=(it,n)=>!!(it.acks&&it.acks[n]);
 // person's list: own tasks + shared ones he/she has not marked as worked out
 const forPerson=(it,n)=>!n||it.owner===n||(it.owner!=='Александр'&&it.owner!=='Татьяна'&&!acked(it,n));
+function ackPanel(it){return ackWho(it).map(n=>{const on=acked(it,n);const mine=n===author()&&!readOnly;
+  const sub=on?`отработано ${fmtDate(it.acks[n])}`:mine?'поставьте галочку, когда с вашей стороны всё сделано':`не отмечено · ставит ${n==='Татьяна'?'Татьяна':'Александр'}`;
+  return `<label class="ackrow${on?' on':''}${mine?'':' ro'}"><input type="checkbox" data-ackchk="${esc(it.id)}" ${on?'checked':''} ${mine?'':'disabled'}><span><b>${esc(n)}</b>${mine?' <span class="muted">(вы)</span>':''}<small>${esc(sub)}</small></span></label>`}).join('')+(ackWho(it).length>1?'':'<div class="muted" style="font-size:12px">Задачу ведёт один партнёр — отметка только его.</div>')}
 function ackMarks(it,big){return `<span class="acks${big?' big':''}">${ackWho(it).map(n=>{const on=acked(it,n);const mine=n===author()&&!readOnly;const tip=`${n}: ${on?'отработано '+fmtDate(it.acks[n]):'не отмечено'}${mine?' — нажмите, чтобы '+(on?'снять':'поставить')+' отметку':''}`;
   return mine?`<button type="button" class="ack${on?' on':''}" data-ack="${esc(it.id)}" title="${esc(tip)}" aria-pressed="${on}">${big?esc(n)+(on?' ✓ отработано':' — отметить «отработано»'):n[0]+(on?'✓':'')}</button>`:`<span class="ack${on?' on':''}" title="${esc(tip)}">${big?esc(n)+(on?' ✓ отработано':' — не отмечено'):n[0]+(on?'✓':'')}</span>`}).join('')}</span>`}
 const plural=(n,a,b,c)=>{const m=Math.abs(n)%100,k=m%10;return m>10&&m<20?c:k===1?a:k>=2&&k<=4?b:c};
@@ -522,7 +538,7 @@ function renderHeader(){
    next.length?next.map(it=>`<li>${stBtn(it)}<div><div class="t" data-open="${esc(it.id)}">${esc(it.title)}</div><div class="meta">${dueChip(it)} · ${esc(it.owner||'—')}${it.status==='doing'?' · в работе':''} ${ackMarks(it)}</div></div></li>`).join(''):
    `<li><span></span><span class="muted">${nextWho==='Оба'?'Все задачи плана закрыты.':'У '+(nextWho==='Татьяна'?'Татьяны':'Александра')+' открытых задач нет.'}</span></li>`;
   const recent=notes.slice().sort((a,b)=>String(b.at).localeCompare(String(a.at))).slice(0,50);
-  $('feed-n').textContent=notes.length?String(notes.length):'';
+  $('feed-n').textContent=notes.length?`всего ${notes.length}`:'';
   $('feed').innerHTML=recent.length?recent.map(n=>{const it=items.find(i=>i.id===n.task);return `<li data-open="${esc(n.task)}"><div class="ft">${n.done?'<span class="done-tag">сделано</span> ':''}${esc(n.text)}</div><div class="fm">${esc(n.author||'')} · ${esc(fmtDate(n.at))} · ${esc(it?it.title:'задача удалена')}</div></li>`}).join(''):'<li class="muted" style="cursor:default">Пока нет заметок. Откройте задачу, чтобы оставить первую.</li>';
 }
 
@@ -760,6 +776,7 @@ function openDrawer(id){const it=items.find(i=>i.id===id);if(!it)return;openTask
     <div class="dr-top" id="dr-top"></div>
     <div class="dr-body">
       <div id="dr-desc"></div>
+      <section class="dr-sec"><h4><span>Отработано с каждой стороны</span></h4><div class="ackp" id="dr-ack"></div></section>
       <section class="dr-sec"><h4><span>Документы и ссылки</span></h4><div id="dr-att"></div>
         <div ${readOnly?'hidden':''}>
           <div class="addrow two"><div class="field"><label for="att-lib">Прикрепить документ из библиотеки</label><select id="att-lib"><option value="">Выберите документ…</option>${libOpts}</select></div><button class="btn" id="att-lib-add" type="button">Прикрепить</button></div>
@@ -810,8 +827,9 @@ function closeDrawer(){openTask=null;$('drawer-root').innerHTML=''}
 function renderDrawer(){
   const it=items.find(i=>i.id===openTask);
   if(!it){closeDrawer();return}
-  $('dr-top').innerHTML=`${stBtn(it)}<div><h3 id="dr-title">${esc(it.title)}</h3><div class="dr-meta"><span class="chip">Этап ${esc(PH[it.phase]?.n)} · ${esc(PH[it.phase]?.name||'')}</span>${areaChip(it)}${dueChip(it)}<span class="pr ${esc(it.prio)}">${esc(PRIO[it.prio]||it.prio)}</span><span class="who">ведёт: ${esc(it.owner||'—')}</span><span class="who">· ${esc(STATUS[it.status]||'')}</span></div><div class="dr-acks">${ackMarks(it,true)}</div></div><button class="x" id="dr-x" type="button" aria-label="Закрыть">×</button>`;
+  $('dr-top').innerHTML=`${stBtn(it)}<div><h3 id="dr-title">${esc(it.title)}</h3><div class="dr-meta"><span class="chip">Этап ${esc(PH[it.phase]?.n)} · ${esc(PH[it.phase]?.name||'')}</span>${areaChip(it)}${dueChip(it)}<span class="pr ${esc(it.prio)}">${esc(PRIO[it.prio]||it.prio)}</span><span class="who">ведёт: ${esc(it.owner||'—')}</span><span class="who">· ${esc(STATUS[it.status]||'')}</span></div></div><button class="x" id="dr-x" type="button" aria-label="Закрыть">×</button>`;
   $('dr-x').onclick=closeDrawer;
+  $('dr-ack').innerHTML=ackPanel(it);
   $('dr-desc').innerHTML=it.note?`<p class="desc">${esc(it.note)}</p>`:'';
   const docs=(Array.isArray(it.docs)?it.docs:[]).filter(d=>DOC[d]).map(id=>DOC[id]);
   const links=Array.isArray(it.links)?it.links:[];
@@ -859,7 +877,7 @@ document.addEventListener('click',e=>{
   const ul=e.target.closest('[data-unlink]');if(ul){const it=items.find(i=>i.id===openTask);if(it){const links=(it.links||[]).slice();links.splice(+ul.dataset.unlink,1);updItem(it.id,{links},'Ссылка убрана')}return}
   const nd=e.target.closest('[data-ndel]');if(nd){if(nd.dataset.armed){const nid=nd.dataset.ndel;commit(`${author()}: удалена заметка`,d=>{if(d.notes)delete d.notes[nid]},'Заметка удалена');return}nd.dataset.armed='1';nd.textContent='Точно?';setTimeout(()=>{if(nd.isConnected){delete nd.dataset.armed;nd.textContent='Удалить'}},3500);return}
 });
-document.addEventListener('change',e=>{const t=e.target;if(t.matches&&t.matches('[data-ndone]')){const id=t.dataset.ndone;const done=t.checked;const n=notes.find(x=>x.id===id);const now=new Date().toISOString();
+document.addEventListener('change',e=>{const t=e.target;if(t.matches&&t.matches('[data-ackchk]')){toggleAck(t.dataset.ackchk);return}if(t.matches&&t.matches('[data-ndone]')){const id=t.dataset.ndone;const done=t.checked;const n=notes.find(x=>x.id===id);const now=new Date().toISOString();
   commit(`${author()}: заметка ${done?'отмечена «сделано»':'снова открыта'}${n?' — '+n.text.slice(0,50):''}`,d=>{if(d.notes&&d.notes[id]){d.notes[id].done=done;d.notes[id].doneAt=done?now:null}},done?'Отмечено «сделано»':'Отметка снята')}});
 document.addEventListener('keydown',e=>{const lf=e.target.closest&&e.target.closest('[data-node]');if(lf&&(e.key==='Enter'||e.key===' ')){e.preventDefault();goNode(lf.dataset.node)}});
 function goNode(v){Object.assign(filt,{q:'',area:v,phase:'',status:'',owner:''});$('f-q').value='';$('f-area').value=v;$('f-phase').value='';$('f-status').value='';$('f-owner').value='';store('opora.filt',filt);renderBacklog();setTab('backlog');window.scrollTo({top:$('view-backlog').offsetTop-80})}

@@ -177,7 +177,17 @@ svg .leaf:focus{outline:none}
 .bdg.open{border-color:var(--warn);color:var(--warn)}
 .feed{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
 .feed h2{font-size:14px;font-weight:700}
-.feed ul{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
+.feed ul{list-style:none;margin:8px 0 0;padding:0 6px 0 0;display:flex;flex-direction:column;gap:8px;max-height:210px;overflow-y:auto;overscroll-behavior:contain}
+.next ol{max-height:330px;overflow-y:auto;padding-right:6px!important;overscroll-behavior:contain}
+.next-seg{margin-top:10px;display:flex;width:100%}
+.next-seg .seg-b{flex:1;padding:6px 8px}
+.acks{display:inline-flex;gap:4px;vertical-align:1px;margin-left:4px}
+.ack{font:600 11px var(--f-mono);min-width:22px;height:20px;padding:0 5px;border-radius:6px;border:1px solid var(--line-2);background:var(--surface);color:var(--dim);display:inline-flex;align-items:center;justify-content:center;white-space:nowrap}
+button.ack{cursor:pointer}
+button.ack:hover{border-color:var(--ok);color:var(--ok)}
+.ack.on{background:var(--ok-soft);border-color:var(--ok);color:var(--ok)}
+.acks.big{margin:10px 0 0;gap:8px;flex-wrap:wrap}
+.acks.big .ack{height:28px;padding:0 10px;font:600 13px var(--f-body)}
 .next .feed li{display:block;font-size:13px;cursor:pointer;min-width:0}
 .feed li:hover .ft{color:var(--accent)}
 .feed .ft{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -335,8 +345,9 @@ svg .leaf:focus{outline:none}
     </div>
     <aside class="next" aria-labelledby="next-h">
       <h2 id="next-h"><span>Следующие шаги</span><span class="muted mono" style="font-weight:500;font-size:12px">по срокам</span></h2>
+      <div class="seg next-seg" id="next-seg" role="group" aria-label="Чьи шаги"></div>
       <ol id="next-list"><li><span></span><span class="muted">Список появится, когда загрузятся задачи.</span></li></ol>
-      <div class="feed"><h2>Свежие заметки</h2><ul id="feed"><li class="muted" style="cursor:default">Пока нет заметок.</li></ul></div>
+      <div class="feed"><h2>Свежие заметки <span class="muted mono" id="feed-n" style="font-weight:500;font-size:12px"></span></h2><ul id="feed"><li class="muted" style="cursor:default">Пока нет заметок.</li></ul></div>
     </aside>
   </header>
 
@@ -459,11 +470,17 @@ const daysBetween=(a,b)=>Math.round((Date.UTC(...String(b).split('-').map((v,i)=
 const fmtDay=s=>pd(s).toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long'});
 const shortDate=s=>{const [y,m,d]=String(s).split('-');return d+'.'+m};
 function dueChip(it){if(!it.due)return'';if(it.status==='done')return `<span class="due">до ${shortDate(it.due)}</span>`;const dd=daysBetween(todayISO(),it.due);const cls=dd<0?'over':dd<=2?'soon':'';return `<span class="due ${cls}" title="Срок">${dd<0?'просрочено · ':dd===0?'сегодня · ':''}до ${shortDate(it.due)}</span>`}
+const ackWho=it=>it.owner==='Александр'?['Александр']:it.owner==='Татьяна'?['Татьяна']:['Александр','Татьяна'];
+const acked=(it,n)=>!!(it.acks&&it.acks[n]);
+// person's list: own tasks + shared ones he/she has not marked as worked out
+const forPerson=(it,n)=>!n||it.owner===n||(it.owner!=='Александр'&&it.owner!=='Татьяна'&&!acked(it,n));
+function ackMarks(it,big){return `<span class="acks${big?' big':''}">${ackWho(it).map(n=>{const on=acked(it,n);const mine=n===author()&&!readOnly;const tip=`${n}: ${on?'отработано '+fmtDate(it.acks[n]):'не отмечено'}${mine?' — нажмите, чтобы '+(on?'снять':'поставить')+' отметку':''}`;
+  return mine?`<button type="button" class="ack${on?' on':''}" data-ack="${esc(it.id)}" title="${esc(tip)}" aria-pressed="${on}">${big?esc(n)+(on?' ✓ отработано':' — отметить «отработано»'):n[0]+(on?'✓':'')}</button>`:`<span class="ack${on?' on':''}" title="${esc(tip)}">${big?esc(n)+(on?' ✓ отработано':' — не отмечено'):n[0]+(on?'✓':'')}</span>`}).join('')}</span>`}
 const plural=(n,a,b,c)=>{const m=Math.abs(n)%100,k=m%10;return m>10&&m<20?c:k===1?a:k>=2&&k<=4?b:c};
 const byDue=(a,b)=>(a.due||'9999').localeCompare(b.due||'9999');
 
 let items=[],notes=[];let loaded=false;let readOnly=false;
-let openTask=null;
+let openTask=null;let nextWho=store('opora.nextWho')||'Оба';
 const busy=new Set();
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -497,11 +514,15 @@ function renderHeader(){
   const lp=PHASES.filter(p=>p.launch).map(p=>p.k);const ls=stats(items.filter(i=>lp.includes(i.phase)));
   const left=META.launch?daysBetween(todayISO(),META.launch):null;
   $('launch').innerHTML=loaded&&META.launch?`<div class="launch-row"><span class="launch-date">${esc(META.launchName||'Запуск')} — ${esc(pd(META.launch).toLocaleDateString('ru-RU',{day:'numeric',month:'long'}))}</span><span class="launch-left ${left!==null&&left<=3?'soon':''}">${left>0?'осталось '+left+' '+plural(left,'день','дня','дней'):left===0?'сегодня':'срок прошёл'}</span></div><div class="bar">${bar(ls)}</div><div class="launch-sub">Задачи запуска (этапы ${lp.map(k=>PH[k].n).join(', ')}): готово ${ls.d} из ${ls.t}${ls.g?', в работе '+ls.g:''}</div>`:'';
-  const next=items.filter(i=>i.phase!=='bl'&&i.phase!=='p0'&&i.status!=='done').sort((a,b)=>byDue(a,b)||String(a.prio).localeCompare(String(b.prio))||(a.order||0)-(b.order||0)).slice(0,5);
+  const nextBase=items.filter(i=>i.phase!=='bl'&&i.phase!=='p0'&&i.status!=='done');
+  const nextCnt=w=>nextBase.filter(i=>w==='Оба'||forPerson(i,w)).length;
+  $('next-seg').innerHTML=['Александр','Татьяна','Оба'].map(w=>`<button type="button" class="seg-b" data-nextwho="${w}" aria-pressed="${nextWho===w}">${w} <span class="mono">${loaded?nextCnt(w):''}</span></button>`).join('');
+  const next=nextBase.filter(i=>nextWho==='Оба'||forPerson(i,nextWho)).sort((a,b)=>byDue(a,b)||String(a.prio).localeCompare(String(b.prio))||(a.order||0)-(b.order||0)).slice(0,12);
   $('next-list').innerHTML=!loaded?'<li><span></span><span class="muted">Список появится, когда загрузятся задачи.</span></li>':
-   next.length?next.map(it=>`<li>${stBtn(it)}<div><div class="t" data-open="${esc(it.id)}">${esc(it.title)}</div><div class="meta">${dueChip(it)} · ${esc(it.owner||'—')}${it.status==='doing'?' · в работе':''}</div></div></li>`).join(''):
-   '<li><span></span><span class="muted">Все критичные задачи плана закрыты.</span></li>';
-  const recent=notes.slice().sort((a,b)=>String(b.at).localeCompare(String(a.at))).slice(0,4);
+   next.length?next.map(it=>`<li>${stBtn(it)}<div><div class="t" data-open="${esc(it.id)}">${esc(it.title)}</div><div class="meta">${dueChip(it)} · ${esc(it.owner||'—')}${it.status==='doing'?' · в работе':''} ${ackMarks(it)}</div></div></li>`).join(''):
+   `<li><span></span><span class="muted">${nextWho==='Оба'?'Все задачи плана закрыты.':'У '+(nextWho==='Татьяна'?'Татьяны':'Александра')+' открытых задач нет.'}</span></li>`;
+  const recent=notes.slice().sort((a,b)=>String(b.at).localeCompare(String(a.at))).slice(0,50);
+  $('feed-n').textContent=notes.length?String(notes.length):'';
   $('feed').innerHTML=recent.length?recent.map(n=>{const it=items.find(i=>i.id===n.task);return `<li data-open="${esc(n.task)}"><div class="ft">${n.done?'<span class="done-tag">сделано</span> ':''}${esc(n.text)}</div><div class="fm">${esc(n.author||'')} · ${esc(fmtDate(n.at))} · ${esc(it?it.title:'задача удалена')}</div></li>`}).join(''):'<li class="muted" style="cursor:default">Пока нет заметок. Откройте задачу, чтобы оставить первую.</li>';
 }
 
@@ -514,7 +535,7 @@ function renderPlan(){
     return `<details class="phase" data-phase="${p.k}" ${openPhases.has(p.k)?'open':''}>
       <summary><div class="pn">${esc(p.n)}</div><div><div class="ph-name">${esc(p.name)}<span class="chev">›</span></div><div class="ph-goal">${esc(p.goal)}</div></div>
       <div class="ph-side"><span class="mono" style="font-size:13px">${s.d}/${s.t}</span><div class="bar">${bar(s)}</div><span class="ph-when">${esc(p.when)}</span></div></summary>
-      <ul class="items">${list.map(it=>`<li class="item ${it.status==='done'?'is-done':''}">${stBtn(it)}<div><div class="title" data-open="${esc(it.id)}">${esc(it.title)}${badges(it)}</div>${it.note?`<div class="note">${esc(it.note)}</div>`:''}</div><div class="tags">${dueChip(it)}${areaChip(it)}<span class="pr ${esc(it.prio)}">${esc(it.prio)}</span><span class="who">${esc(it.owner||'')}</span></div></li>`).join('')||'<li class="muted" style="padding:8px 0">Задач нет</li>'}</ul></details>`}).join('');
+      <ul class="items">${list.map(it=>`<li class="item ${it.status==='done'?'is-done':''}">${stBtn(it)}<div><div class="title" data-open="${esc(it.id)}">${esc(it.title)}${badges(it)}</div>${it.note?`<div class="note">${esc(it.note)}</div>`:''}</div><div class="tags">${dueChip(it)}${areaChip(it)}<span class="pr ${esc(it.prio)}">${esc(it.prio)}</span><span class="who">${esc(it.owner||'')}</span>${ackMarks(it)}</div></li>`).join('')||'<li class="muted" style="padding:8px 0">Задач нет</li>'}</ul></details>`}).join('');
 }
 
 // ---------- backlog
@@ -543,7 +564,7 @@ function renderBacklog(){
     if(q){const hay=[it.title,it.note,...taskNotes(it.id).map(n=>n.text),...(it.docs||[]).map(d=>DOC[d]?.t),...(it.links||[]).map(l=>l.t)].join(' ').toLowerCase();if(!hay.includes(q))return false}
     return true});
   $('bl-count').textContent=`Показано ${list.length} из ${items.length}`;
-  $('bl-body').innerHTML=list.length?list.map(it=>`<tr><td>${stBtn(it)}</td><td class="t" data-open="${esc(it.id)}"><div>${esc(it.title)}${badges(it)}</div>${it.note?`<div class="note">${esc(it.note)}</div>`:''}</td><td>${areaChip(it)}<div class="muted" style="font-size:12px;margin-top:3px">${esc(AREA[it.area]?.name||'')}</div></td><td class="mono" style="font-size:13px">${esc(PH[it.phase]?.n)}. ${esc(PH[it.phase]?.name||'')}<div>${dueChip(it)}</div></td><td><span class="pr ${esc(it.prio)}">${esc(it.prio)}</span></td><td class="who">${esc(it.owner||'')}</td></tr>`).join(''):
+  $('bl-body').innerHTML=list.length?list.map(it=>`<tr><td>${stBtn(it)}</td><td class="t" data-open="${esc(it.id)}"><div>${esc(it.title)}${badges(it)}</div>${it.note?`<div class="note">${esc(it.note)}</div>`:''}</td><td>${areaChip(it)}<div class="muted" style="font-size:12px;margin-top:3px">${esc(AREA[it.area]?.name||'')}</div></td><td class="mono" style="font-size:13px">${esc(PH[it.phase]?.n)}. ${esc(PH[it.phase]?.name||'')}<div>${dueChip(it)}</div></td><td><span class="pr ${esc(it.prio)}">${esc(it.prio)}</span></td><td class="who">${esc(it.owner||'')}<div style="margin-top:4px">${ackMarks(it)}</div></td></tr>`).join(''):
    `<tr><td colspan="6" class="muted">${items.length?'Под фильтры ничего не попало.':'Задач пока нет. Нажмите «Добавить задачу».'}</td></tr>`;
   $('bl-add').hidden=readOnly;
 }
@@ -596,21 +617,21 @@ function renderDocs(){
 }
 
 let hotOwner=store('opora.hotOwner')||'';
-function hotRow(it){return `<li class="item ${it.status==='done'?'is-done':''}">${stBtn(it)}<div><div class="title" data-open="${esc(it.id)}">${esc(it.title)}${badges(it)}</div>${it.note?`<div class="note">${esc(it.note)}</div>`:''}</div><div class="tags">${dueChip(it)}<span class="chip">Этап ${esc(PH[it.phase]?.n)}</span><span class="pr ${esc(it.prio)}">${esc(it.prio)}</span><span class="who">${esc(it.owner||'')}</span></div></li>`}
+function hotRow(it){return `<li class="item ${it.status==='done'?'is-done':''}">${stBtn(it)}<div><div class="title" data-open="${esc(it.id)}">${esc(it.title)}${badges(it)}</div>${it.note?`<div class="note">${esc(it.note)}</div>`:''}</div><div class="tags">${dueChip(it)}<span class="chip">Этап ${esc(PH[it.phase]?.n)}</span><span class="pr ${esc(it.prio)}">${esc(it.prio)}</span><span class="who">${esc(it.owner||'')}</span>${ackMarks(it)}</div></li>`}
 function renderHot(){
   const el=$('hot');if(!el)return;
   if(!loaded){el.innerHTML='<p class="muted">Загружаю задачи…</p>';return}
   const t=todayISO(),end=addDays(t,6);
-  const mine=it=>!hotOwner||it.owner===hotOwner||it.owner==='Оба';
+  const mine=it=>forPerson(it,hotOwner);
   const all=items.filter(i=>i.status!=='done'&&i.due&&i.due<=end&&i.phase!=='bl');
   const list=all.filter(mine);
   const over=list.filter(i=>i.due<t).sort((a,b)=>byDue(a,b)||(a.order||0)-(b.order||0));
   const doneWeek=items.filter(i=>i.status==='done'&&i.due&&i.due>=t&&i.due<=end&&mine(i));
   $('hot-n').textContent=all.length?String(all.length):'';
-  const cnt=o=>all.filter(i=>!o||i.owner===o||i.owner==='Оба').length;
+  const cnt=o=>all.filter(i=>forPerson(i,o)).length;
   let h=`<div class="hot-head"><p class="hot-sum">С ${esc(fmtDay(t))} по ${esc(fmtDay(end))}: <b>${list.length}</b> ${plural(list.length,'задача','задачи','задач')}${over.length?`, из них <b class="over-t">${over.length} ${plural(over.length,'просрочена','просрочены','просрочено')}</b>`:''}.</p>
     <div class="seg" role="group" aria-label="Чьи задачи">${[['','Все',cnt('')],['Александр','Александр',cnt('Александр')],['Татьяна','Татьяна',cnt('Татьяна')]].map(([v,l,c])=>`<button type="button" class="seg-b" data-hotowner="${v}" aria-pressed="${hotOwner===v}">${l} <span class="mono">${c}</span></button>`).join('')}</div></div>`;
-  if(hotOwner)h+=`<p class="muted" style="margin:-4px 0 12px;font-size:13px">Показаны задачи, где ведёт ${esc(hotOwner)}, и общие задачи «Оба».</p>`;
+  if(hotOwner)h+=`<p class="muted" style="margin:-4px 0 12px;font-size:13px">Показаны задачи, где ведёт ${esc(hotOwner)}, и общие задачи «Оба», которые ${esc(hotOwner)} ещё не отметил${hotOwner==='Татьяна'?'а':''} как отработанные.</p>`;
   if(over.length)h+=`<section class="hot-day over"><h3>Просрочено</h3><ul class="items">${over.map(hotRow).join('')}</ul></section>`;
   for(let d=0;d<7;d++){const day=addDays(t,d);const l=list.filter(i=>i.due===day).sort((a,b)=>String(a.prio).localeCompare(String(b.prio))||(a.order||0)-(b.order||0));if(!l.length)continue;
     h+=`<section class="hot-day"><h3>${d===0?'Сегодня':d===1?'Завтра':''}${d<2?', ':''}${esc(fmtDay(day))}</h3><ul class="items">${l.map(hotRow).join('')}</ul></section>`}
@@ -704,6 +725,8 @@ function commit(msg,mutate,okMsg){
 async function cycle(id){const it=items.find(i=>i.id===id);if(!it||readOnly)return;const ns=NEXT_ST[it.status]||'doing';const now=new Date().toISOString();
   await commit(`${author()}: «${it.title}» → ${STATUS[ns]}`,d=>{if(d.items[id]){d.items[id].status=ns;d.items[id].updatedAt=now}});
 }
+function toggleAck(id){const it=items.find(i=>i.id===id);const n=author();if(!it||readOnly)return;const on=!acked(it,n);const now=new Date().toISOString();
+  commit(`${n}: «${it.title}» — ${on?'отработано с моей стороны':'отметка «отработано» снята'}`,d=>{if(!d.items[id])return;d.items[id].acks=Object.assign({},d.items[id].acks||{},{[n]:on?now:null})},on?'Отмечено: с вашей стороны отработано':'Отметка снята')}
 const updItem=(id,data,msg)=>{const now=new Date().toISOString();const it=items.find(i=>i.id===id);
   return commit(`${author()}: изменена задача «${it?it.title:id}»`,d=>{if(d.items[id])Object.assign(d.items[id],data,{updatedAt:now})},msg)};
 
@@ -787,7 +810,7 @@ function closeDrawer(){openTask=null;$('drawer-root').innerHTML=''}
 function renderDrawer(){
   const it=items.find(i=>i.id===openTask);
   if(!it){closeDrawer();return}
-  $('dr-top').innerHTML=`${stBtn(it)}<div><h3 id="dr-title">${esc(it.title)}</h3><div class="dr-meta"><span class="chip">Этап ${esc(PH[it.phase]?.n)} · ${esc(PH[it.phase]?.name||'')}</span>${areaChip(it)}${dueChip(it)}<span class="pr ${esc(it.prio)}">${esc(PRIO[it.prio]||it.prio)}</span><span class="who">ведёт: ${esc(it.owner||'—')}</span><span class="who">· ${esc(STATUS[it.status]||'')}</span></div></div><button class="x" id="dr-x" type="button" aria-label="Закрыть">×</button>`;
+  $('dr-top').innerHTML=`${stBtn(it)}<div><h3 id="dr-title">${esc(it.title)}</h3><div class="dr-meta"><span class="chip">Этап ${esc(PH[it.phase]?.n)} · ${esc(PH[it.phase]?.name||'')}</span>${areaChip(it)}${dueChip(it)}<span class="pr ${esc(it.prio)}">${esc(PRIO[it.prio]||it.prio)}</span><span class="who">ведёт: ${esc(it.owner||'—')}</span><span class="who">· ${esc(STATUS[it.status]||'')}</span></div><div class="dr-acks">${ackMarks(it,true)}</div></div><button class="x" id="dr-x" type="button" aria-label="Закрыть">×</button>`;
   $('dr-x').onclick=closeDrawer;
   $('dr-desc').innerHTML=it.note?`<p class="desc">${esc(it.note)}</p>`:'';
   const docs=(Array.isArray(it.docs)?it.docs:[]).filter(d=>DOC[d]).map(id=>DOC[id]);
@@ -825,6 +848,8 @@ function openCreate(){
 // ---------- events (delegated)
 document.addEventListener('click',e=>{
   const c=e.target.closest('[data-cycle]');if(c){e.preventDefault();e.stopPropagation();cycle(c.dataset.cycle);return}
+  const nw=e.target.closest('[data-nextwho]');if(nw){nextWho=nw.dataset.nextwho;store('opora.nextWho',nextWho);renderHeader();return}
+  const ak=e.target.closest('[data-ack]');if(ak){e.stopPropagation();toggleAck(ak.dataset.ack);return}
   const ho=e.target.closest('[data-hotowner]');if(ho){hotOwner=ho.dataset.hotowner;store('opora.hotOwner',hotOwner);renderHot();return}
   const rd=e.target.closest('[data-read]');if(rd){openReader(rd.dataset.read);return}
   const dl=e.target.closest('[data-dl]');if(dl){download(dl.dataset.dl);return}
@@ -855,6 +880,7 @@ window.opora={
   updateItem:(id,data)=>{const now=new Date().toISOString();return commit(`Claude: изменена задача ${id}`,d=>{if(d.items[id])Object.assign(d.items[id],data,{updatedAt:now})})},
   addItem:(body)=>{const id=newId('u');const now=new Date().toISOString();const b=Object.assign({status:'todo',prio:'P2',owner:'Оба',phase:'bl',area:'strat',node:'offer',note:'',docs:[],links:[],order:Math.max(0,...items.map(i=>i.order||0))+10,updatedAt:now},body);return commit(`Claude: новая задача «${b.title}»`,d=>{d.items[id]=b}).then(ok=>ok?id:null)},
   applyPlan:(p,msg)=>commit(msg||'Claude: обновлён план',d=>{if(p.phases)d.phases=p.phases;if(p.meta)d.meta=Object.assign({},d.meta||{},p.meta);Object.entries(p.items||{}).forEach(([id,v])=>{if(d.items[id])Object.assign(d.items[id],v)})}),
+  setAck:(id,name,on)=>{const now=new Date().toISOString();return commit(`${name}: отметка «отработано» ${on?'поставлена':'снята'} (${id})`,d=>{if(d.items[id])d.items[id].acks=Object.assign({},d.items[id].acks||{},{[name]:on?now:null})})},
   setDue:(id,due)=>{const it=(DB.items||{})[id];return commit(`Claude: срок «${it?it.title:id}» → ${due}`,d=>{if(d.items[id])d.items[id].due=due})},
   toggleNote:(nid,done)=>{const now=new Date().toISOString();return commit(`Claude: заметка ${done?'сделано':'открыта'}`,d=>{if(d.notes&&d.notes[nid]){d.notes[nid].done=!!done;d.notes[nid].doneAt=done?now:null}})},
 };

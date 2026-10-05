@@ -16,7 +16,7 @@ html{-webkit-text-size-adjust:100%}
 img{max-width:100%}
 [hidden]{display:none!important}
 
-/* Layout: одна колонка ~1100px; шапка со сводкой и следующими шагами, четыре вкладки — План, Бэклог, Mind-карта, Документы; карточка задачи открывается боковой панелью с документами и заметками. Бренд сайта «Опора»: Unbounded / Manrope / JetBrains Mono, фиолетовый акцент. */
+/* Layout: одна колонка ~1100px; шапка со сводкой и следующими шагами, вкладки — Горит, План, Бэклог, Mind-карта, Канбан, Документы; карточка задачи открывается боковой панелью с документами и заметками. Бренд сайта «Опора»: Unbounded / Manrope / JetBrains Mono, фиолетовый акцент. */
 :root{
   --bg:#F5F5FA; --surface:#FFFFFF; --surface-2:#EEEEF6; --line:#DFDFEB; --line-2:#C9C9DA;
   --fg:#15152B; --muted:#5C5E7C; --dim:#8A8CA6;
@@ -325,6 +325,39 @@ button.ack:hover{border-color:var(--ok);color:var(--ok)}
 .syncbar .dotst.busy{background:var(--warn)}
 .syncbar .dotst.err{background:var(--crit)}
 .linkbtn{background:none;border:0;padding:0;color:var(--accent);cursor:pointer;font:inherit;text-decoration:underline;text-underline-offset:2px}
+
+/* kanban: три столбца по статусу, фильтры по участнику и этапам */
+.kb-filters{display:flex;flex-direction:column;gap:10px;margin-bottom:12px}
+.kb-frow{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.kb-flabel{font-size:12px;color:var(--muted);font-weight:600;min-width:74px}
+.kb-chips{display:flex;gap:6px;flex-wrap:wrap}
+.kb-chip{border:1px solid var(--line-2);background:var(--surface);border-radius:99px;padding:6px 12px;cursor:pointer;font-weight:600;font-size:13px;color:var(--muted);white-space:nowrap}
+.kb-chip:hover{border-color:var(--accent);color:var(--fg)}
+.kb-chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.kb-chip .mono{font-weight:500;opacity:.85;margin-left:2px}
+.kb{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(272px,1fr);gap:12px;overflow-x:auto;align-items:start;padding-bottom:6px;scroll-snap-type:x proximity}
+.kb-col{background:var(--surface-2);border:1px solid var(--line);border-radius:var(--r);padding:10px;display:flex;flex-direction:column;gap:8px;min-width:0;scroll-snap-align:start}
+.kb-col.over{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft) inset}
+.kb-h{display:flex;align-items:center;gap:8px;font-weight:700;font-size:14px;padding:2px 4px 4px}
+.kb-h i{width:10px;height:10px;border-radius:50%;flex:none;border:2px solid var(--line-2);background:var(--surface)}
+.kb-col[data-kbcol="doing"] .kb-h i{background:var(--warn);border-color:var(--warn)}
+.kb-col[data-kbcol="done"] .kb-h i{background:var(--ok);border-color:var(--ok)}
+.kb-h .mono{margin-left:auto;font-weight:500;font-size:13px;color:var(--muted)}
+.kb-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;min-height:56px}
+.kb-card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 10px 9px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.kb-card[draggable="true"]{cursor:grab}
+.kb-card:hover{border-color:var(--line-2)}
+.kb-card.drag{opacity:.45}
+.kb-card.p-over{border-left:3px solid var(--crit)}
+.kb-top{display:grid;grid-template-columns:24px minmax(0,1fr);gap:9px;align-items:start}
+.kb-card .title{font-size:14px;line-height:1.4;cursor:pointer;overflow-wrap:anywhere}
+.kb-card .title:hover{color:var(--accent)}
+.kb-card.is-done .title{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--line-2)}
+.kb-card .badges{margin-left:6px}
+.kb-meta{display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding-left:33px}
+.kb-empty{color:var(--dim);font-size:13px;padding:14px 8px;text-align:center;border:1px dashed var(--line-2);border-radius:10px}
+.kb-more{align-self:stretch;text-align:center}
+@media (max-width:600px){.kb{grid-auto-columns:86%}.kb-meta{padding-left:0}.kb-flabel{min-width:0;width:100%}}
 </style>
 </head>
 <body>
@@ -369,6 +402,7 @@ button.ack:hover{border-color:var(--ok);color:var(--ok)}
     <button class="tab" role="tab" id="tab-plan" data-tab="plan" aria-selected="false">План по этапам</button>
     <button class="tab" role="tab" id="tab-backlog" data-tab="backlog" aria-selected="false">Бэклог</button>
     <button class="tab" role="tab" id="tab-map" data-tab="map" aria-selected="false">Mind-карта</button>
+    <button class="tab" role="tab" id="tab-kanban" data-tab="kanban" aria-selected="false">Канбан</button>
     <button class="tab tab-link" id="tab-site" type="button" title="Открыть актуальную версию сайта в новом окне">Сайт проекта <span aria-hidden="true">↗</span></button>
     <button class="tab" role="tab" id="tab-docs" data-tab="docs" aria-selected="false">Документы</button>
   </nav>
@@ -415,6 +449,16 @@ button.ack:hover{border-color:var(--ok);color:var(--ok)}
       <span><i style="background:var(--surface);border:2px solid var(--line-2)"></i>не начато</span>
       <span>Цифры — готово / всего задач. Нажмите на узел, чтобы открыть его задачи в бэклоге.</span>
     </div>
+  </section>
+
+  <section id="view-kanban" role="tabpanel" aria-labelledby="tab-kanban" hidden>
+    <div class="kb-filters">
+      <div class="kb-frow"><span class="kb-flabel" id="kb-who-l">Кто ведёт</span><div class="seg" id="kb-who" role="group" aria-labelledby="kb-who-l"></div></div>
+      <div class="kb-frow"><span class="kb-flabel" id="kb-ph-l">Этапы</span><div class="kb-chips" id="kb-ph" role="group" aria-labelledby="kb-ph-l"></div></div>
+    </div>
+    <p class="count" id="kb-count" style="margin:0 0 12px"></p>
+    <div class="kb" id="kb"></div>
+    <p class="muted" id="kb-hint" style="font-size:13px;margin-top:14px">Перетащите карточку в другой столбец, чтобы сменить статус. На телефоне статус меняет кружок на карточке. Нажмите на название, чтобы открыть задачу.</p>
   </section>
 
   <section id="view-docs" role="tabpanel" aria-labelledby="tab-docs" hidden>
@@ -655,10 +699,55 @@ function renderHot(){
   if(doneWeek.length)h+=`<p class="muted" style="font-size:13px;margin-top:18px">Уже сделано из задач этой недели: ${doneWeek.length}.</p>`;
   el.innerHTML=h;
 }
-function renderAll(){renderHot();renderHeader();renderPlan();renderBacklog();renderMap();renderDocs();if(openTask)renderDrawer()}
+// ---------- kanban
+// Фильтр «кто»: задачи участника + общие («Оба»). Фильтр «этапы»: пусто = все задачи, иначе только выбранные этапы.
+let kbWho=store('opora.kbWho')||'';
+let kbPh=store('opora.kbPh');if(!Array.isArray(kbPh))kbPh=[];
+let kbDoneAll=false;const KB_DONE_MAX=8;
+const KB_COLS=[['todo','Не начато'],['doing','В работе'],['done','Готово']];
+const kbMine=(it,w)=>!w||it.owner===w||(it.owner!=='Александр'&&it.owner!=='Татьяна');
+function kbCard(it){const over=it.status!=='done'&&it.due&&it.due<todayISO();
+  return `<li class="kb-card${it.status==='done'?' is-done':''}${over?' p-over':''}" data-kb="${esc(it.id)}" ${readOnly?'':'draggable="true"'}>
+    <div class="kb-top">${stBtn(it)}<div class="title" data-open="${esc(it.id)}">${esc(it.title)}${badges(it)}</div></div>
+    <div class="kb-meta">${dueChip(it)}<span class="chip" title="${esc(PH[it.phase]?.name||'')}">${it.phase==='bl'?'Бэклог':'Этап '+esc(PH[it.phase]?.n)}</span><span class="pr ${esc(it.prio)}">${esc(it.prio)}</span><span class="who">${esc(it.owner||'')}</span>${ackMarks(it)}</div></li>`}
+function renderKanban(){
+  const el=$('kb');if(!el)return;
+  kbPh=kbPh.filter(k=>PH[k]);
+  const byWho=items.filter(i=>kbMine(i,kbWho));
+  const byPh=items.filter(i=>!kbPh.length||kbPh.includes(i.phase));
+  const cntWho=w=>byPh.filter(i=>kbMine(i,w)).length;
+  $('kb-who').innerHTML=[['','Все'],['Александр','Александр'],['Татьяна','Татьяна']].map(([v,l])=>`<button type="button" class="seg-b" data-kbwho="${v}" aria-pressed="${kbWho===v}">${l} <span class="mono">${loaded?cntWho(v):''}</span></button>`).join('');
+  $('kb-ph').innerHTML=`<button type="button" class="kb-chip" data-kbph="" aria-pressed="${!kbPh.length}">Все задачи <span class="mono">${loaded?byWho.length:''}</span></button>`+
+    PHASES.map(p=>`<button type="button" class="kb-chip" data-kbph="${esc(p.k)}" aria-pressed="${kbPh.includes(p.k)}" title="${esc(p.goal||'')}${p.when?' · '+esc(p.when):''}">${p.k==='bl'?'':esc(p.n)+'. '}${esc(p.name)} <span class="mono">${loaded?byWho.filter(i=>i.phase===p.k).length:''}</span></button>`).join('');
+  if(!loaded){el.innerHTML='<p class="muted">Загружаю задачи…</p>';$('kb-count').textContent='';return}
+  const list=byWho.filter(i=>!kbPh.length||kbPh.includes(i.phase));
+  const who=kbWho?(kbWho==='Татьяна'?'Татьяны':'Александра')+' и общие':'обоих партнёров';
+  $('kb-count').textContent=`Показано ${list.length} из ${items.length} ${plural(items.length,'задачи','задач','задач')}: задачи ${who}, ${kbPh.length?'этапы: '+PHASES.filter(p=>kbPh.includes(p.k)).map(p=>p.name).join(', '):'все этапы и бэклог'}.`;
+  const po=k=>PHASES.findIndex(p=>p.k===k);
+  el.innerHTML=KB_COLS.map(([st,name])=>{
+    let l=list.filter(i=>(i.status||'todo')===st);
+    if(st==='done')l.sort((a,b)=>String(b.updatedAt||'').localeCompare(String(a.updatedAt||'')));
+    else l.sort((a,b)=>byDue(a,b)||String(a.prio).localeCompare(String(b.prio))||po(a.phase)-po(b.phase)||(a.order||0)-(b.order||0));
+    const cut=st==='done'&&!kbDoneAll&&l.length>KB_DONE_MAX?l.length-KB_DONE_MAX:0;
+    const shown=cut?l.slice(0,KB_DONE_MAX):l;
+    return `<section class="kb-col" data-kbcol="${st}" aria-label="${name}: ${l.length}"><div class="kb-h"><i></i><span>${name}</span><span class="mono">${l.length}</span></div>
+      <ul class="kb-list">${shown.map(kbCard).join('')||`<li class="kb-empty">${st==='done'?'Готовых задач нет':st==='doing'?'В работе ничего нет':'Нет задач'}</li>`}</ul>
+      ${cut?`<button type="button" class="mini kb-more" data-kbmore="1">Показать ещё ${cut}</button>`:st==='done'&&kbDoneAll&&l.length>KB_DONE_MAX?'<button type="button" class="mini kb-more" data-kbmore="0">Свернуть</button>':''}</section>`}).join('');
+  $('kb-hint').hidden=readOnly;
+}
+function kbSetStatus(id,st){const it=items.find(i=>i.id===id);if(!it||readOnly||!STATUS[st]||it.status===st)return;const now=new Date().toISOString();
+  commit(`${author()}: «${it.title}» → ${STATUS[st]}`,d=>{if(d.items[id]){d.items[id].status=st;d.items[id].updatedAt=now}},'Статус: '+STATUS[st])}
+let kbDrag=null;
+const kbClear=()=>document.querySelectorAll('.kb-col.over').forEach(c=>c.classList.remove('over'));
+document.addEventListener('dragstart',e=>{const c=e.target.closest&&e.target.closest('[data-kb]');if(!c||readOnly)return;kbDrag=c.dataset.kb;try{e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',kbDrag)}catch(_){}setTimeout(()=>c.classList.add('drag'),0)});
+document.addEventListener('dragend',()=>{kbDrag=null;kbClear();document.querySelectorAll('.kb-card.drag').forEach(c=>c.classList.remove('drag'))});
+document.addEventListener('dragover',e=>{if(!kbDrag)return;const col=e.target.closest&&e.target.closest('[data-kbcol]');kbClear();if(!col)return;e.preventDefault();try{e.dataTransfer.dropEffect='move'}catch(_){}col.classList.add('over')});
+document.addEventListener('drop',e=>{if(!kbDrag)return;const col=e.target.closest&&e.target.closest('[data-kbcol]');if(!col)return;e.preventDefault();const id=kbDrag;kbDrag=null;kbClear();kbSetStatus(id,col.dataset.kbcol)});
+
+function renderAll(){renderHot();renderHeader();renderPlan();renderBacklog();renderMap();renderKanban();renderDocs();if(openTask)renderDrawer()}
 
 // ---------- tabs
-const TABS=['hot','plan','backlog','map','docs'];
+const TABS=['hot','plan','backlog','map','kanban','docs'];
 function setTab(t){if(!TABS.includes(t))t='hot';document.querySelectorAll('.tab[data-tab]').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===t));TABS.forEach(k=>$('view-'+k).hidden=k!==t);store('opora.tab2',t)}
 document.querySelectorAll('.tab[data-tab]').forEach(b=>b.onclick=()=>setTab(b.dataset.tab));
 // «Сайт проекта»: актуальный прототип из хранилища открывается в новом окне
@@ -869,6 +958,9 @@ document.addEventListener('click',e=>{
   const nw=e.target.closest('[data-nextwho]');if(nw){nextWho=nw.dataset.nextwho;store('opora.nextWho',nextWho);renderHeader();return}
   const ak=e.target.closest('[data-ack]');if(ak){e.stopPropagation();toggleAck(ak.dataset.ack);return}
   const ho=e.target.closest('[data-hotowner]');if(ho){hotOwner=ho.dataset.hotowner;store('opora.hotOwner',hotOwner);renderHot();return}
+  const kw=e.target.closest('[data-kbwho]');if(kw){kbWho=kw.dataset.kbwho;store('opora.kbWho',kbWho);renderKanban();return}
+  const kp=e.target.closest('[data-kbph]');if(kp){const k=kp.dataset.kbph;if(!k)kbPh=[];else{const i=kbPh.indexOf(k);if(i>=0)kbPh.splice(i,1);else kbPh.push(k)}store('opora.kbPh',kbPh);renderKanban();return}
+  const km=e.target.closest('[data-kbmore]');if(km){kbDoneAll=km.dataset.kbmore==='1';renderKanban();return}
   const rd=e.target.closest('[data-read]');if(rd){openReader(rd.dataset.read);return}
   const dl=e.target.closest('[data-dl]');if(dl){download(dl.dataset.dl);return}
   const op=e.target.closest('[data-open]');if(op){e.preventDefault();$('reader-root').innerHTML='';openDrawer(op.dataset.open);return}

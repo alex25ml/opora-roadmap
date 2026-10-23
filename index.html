@@ -404,7 +404,8 @@ button.ack:hover{border-color:var(--ok);color:var(--ok)}
     <button class="tab" role="tab" id="tab-map" data-tab="map" aria-selected="false">Mind-карта</button>
     <button class="tab" role="tab" id="tab-kanban" data-tab="kanban" aria-selected="false">Канбан</button>
     <button class="tab tab-link" id="tab-site" type="button" title="Открыть актуальную версию сайта в новом окне">Сайт проекта <span aria-hidden="true">↗</span></button>
-    <button class="tab" role="tab" id="tab-docs" data-tab="docs" aria-selected="false">Документы</button>
+    <button class="tab tab-link" id="tab-dash" type="button" title="Открыть актуальный дашборд в новом окне">Дашборд <span aria-hidden="true">↗</span></button>
+<button class="tab" role="tab" id="tab-docs" data-tab="docs" aria-selected="false">Документы</button>
   </nav>
 
   <div id="notice" class="notice" hidden></div>
@@ -751,6 +752,11 @@ const TABS=['hot','plan','backlog','map','kanban','docs'];
 function setTab(t){if(!TABS.includes(t))t='hot';document.querySelectorAll('.tab[data-tab]').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===t));TABS.forEach(k=>$('view-'+k).hidden=k!==t);store('opora.tab2',t)}
 document.querySelectorAll('.tab[data-tab]').forEach(b=>b.onclick=()=>setTab(b.dataset.tab));
 // «Сайт проекта»: актуальный прототип из хранилища открывается в новом окне
+$('tab-dash').onclick=()=>{
+  if(!token){toast('Сначала войдите по ключу');return}
+  const w=window.open('site.html?f=dash','_blank');
+  if(!w)toast('Браузер заблокировал новое окно. Разрешите всплывающие окна для этого сайта и нажмите ещё раз.');
+};
 $('tab-site').onclick=()=>{
   if(!token){toast('Сначала войдите по ключу');return}
   const w=window.open('site.html','_blank');

@@ -30,7 +30,18 @@ iframe{border:0;width:100%;height:100%;display:block}
     if(!r.ok)throw new Error(r.status);
     const html=await r.text();
     const t=(html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)||[])[1];if(t)document.title=t.trim();
-    const f=document.createElement('iframe');f.title=document.title;f.srcdoc=html;document.body.appendChild(f);msg.remove();
+    const f=document.createElement('iframe');f.title=document.title;document.body.appendChild(f);msg.remove();
+  const home=file;
+  const put=(src,h)=>{f.srcdoc=src.replace(/location\.hash\.slice\(1/g,'(window.__H!=null?window.__H:location.hash).slice(1').replace(/<head[^>]*>/i,m=>m+'<script>window.__H="#'+h+'"<\/script>')};
+  const wire=()=>{try{f.contentDocument.addEventListener('click',async ev=>{
+    const a=ev.target.closest&&ev.target.closest('a[href]');if(!a)return;
+    const m=(a.getAttribute('href')||'').match(/^(index\.html|seller-rx-[a-z0-9-]+\.html)(#[A-Za-z0-9:_-]*)?$/i);if(!m)return;
+    ev.preventDefault();
+    const path=m[1].toLowerCase()==='index.html'?home:'files/'+m[1];
+    try{const q=await fetch(API+path.split('/').map(encodeURIComponent).join('/')+'?ref=main',{headers:H,cache:'no-store'});if(!q.ok)throw 0;put(await q.text(),(m[2]||'').slice(1))}catch(e){}
+  })}catch(e){}};
+  f.addEventListener('load',wire);
+  put(html,'');
   }catch(e){msg.textContent='Не удалось загрузить сайт. Проверьте интернет и обновите страницу.'}
 })();
 </script>

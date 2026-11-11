@@ -47,6 +47,7 @@ img{max-width:100%}
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.5;margin:0}
 .wrap{max-width:1120px;margin:0 auto;padding-inline:20px;padding-block:28px 64px}
+@media (min-width:1300px){.wrap{max-width:2400px;padding-inline:clamp(32px,2.5vw,56px)}}
 h1,h2,h3{text-wrap:balance;margin:0}
 button,input,select,textarea{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
@@ -155,7 +156,7 @@ td.t .note{font-size:13px;color:var(--muted)}
 
 /* map */
 .map-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
-.map-wrap svg{display:block;min-width:980px;width:100%;height:auto}
+.map-wrap svg{display:block;min-width:980px;width:100%;max-width:1500px;margin:0 auto;height:auto}
 .legend{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--muted);margin-top:12px;align-items:center}
 .legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px}
 svg .leaf{cursor:pointer}
@@ -345,7 +346,7 @@ button.ack:hover{border-color:var(--ok);color:var(--ok)}
 /* stage 2: header by directions, quick archive, notes/next tabs, map filters, kanban columns */
 .top2{display:flex;flex-direction:column}
 .top2 .overall{margin-top:18px}
-.areas{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;margin-top:14px}
+.areas{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin-top:14px}
 .acard{text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;cursor:pointer;display:flex;flex-direction:column;gap:7px;font:inherit;color:inherit;min-width:0}
 .acard:hover{border-color:var(--accent)}
 .acard .an{display:flex;align-items:center;gap:8px;font-weight:600;font-size:14px;min-width:0}
@@ -468,7 +469,13 @@ svg .mm-addarea text{fill:var(--muted);font:500 11px var(--f-body)}
 .kb-chip[aria-pressed="true"] .dot{box-shadow:0 0 0 2px var(--on-accent)}
 .kb-chip .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:0}
 .kb-chip .mono{font-weight:500;opacity:.85;margin-left:2px}
-.kb{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(272px,1fr);gap:12px;overflow-x:auto;align-items:start;padding-bottom:6px;scroll-snap-type:x proximity}
+.kb{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(250px,1fr);gap:12px;overflow-x:auto;align-items:start;padding-bottom:6px;scrollbar-width:none}
+.kb::-webkit-scrollbar{display:none}
+/* horizontal scrollbar above the board; stays on screen while scrolling down the columns */
+.kb-ts{position:sticky;top:0;z-index:4;background:var(--bg);overflow-x:auto;overflow-y:hidden;padding:6px 0 4px;margin-bottom:4px}
+.kb-ts>div{height:1px}
+.kb-ts::-webkit-scrollbar{height:12px}.kb-ts::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:99px}.kb-ts::-webkit-scrollbar-track{background:var(--surface-2);border-radius:99px}
+.kb-ts{scrollbar-color:var(--line-2) var(--surface-2)}
 .kb-col{background:var(--surface-2);border:1px solid var(--line);border-radius:var(--r);padding:10px;display:flex;flex-direction:column;gap:8px;min-width:0;scroll-snap-align:start}
 .kb-col.over{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft) inset}
 .kb-h{display:flex;align-items:center;gap:8px;font-weight:700;font-size:14px;padding:2px 4px 4px}
@@ -606,6 +613,7 @@ svg .mm-addarea text{fill:var(--muted);font:500 11px var(--f-body)}
       <div class="kb-frow" id="kb-hid-row" hidden><span class="kb-flabel">Скрыты</span><div class="kb-chips" id="kb-hid"></div></div>
     </div>
     <div class="kb-cline"><p class="count" id="kb-count"></p><button type="button" class="btn" id="kb-newcol" data-kbnew="1">+ Столбец</button></div>
+    <div class="kb-ts" id="kb-ts" hidden><div id="kb-ts-in"></div></div>
     <div class="kb" id="kb"></div>
     <p class="muted" id="kb-hint" style="font-size:13px;margin-top:14px">Перетащите карточку в другой столбец, чтобы перенести задачу. Столбцы перетаскиваются за заголовок; кнопки в заголовке — переименовать, скрыть у себя, удалить. Каждый столбец относится к статусу «Не начато», «В работе» или «Готово» — по нему считаются проценты. На телефоне статус меняет кружок на карточке.</p>
   </section>
@@ -1107,7 +1115,13 @@ function renderKanban(){
     +(vis.length?'':'<div class="empty">Все столбцы скрыты — нажмите «показать» над доской.</div>')
     ;
   $('kb-hint').hidden=readOnly;$('kb-newcol').hidden=readOnly;
+  requestAnimationFrame(kbTopBar);
 }
+// top scrollbar mirrors the board's horizontal scroll
+function kbTopBar(){const kb=$('kb'),ts=$('kb-ts'),inn=$('kb-ts-in');if(!kb||!ts)return;const over=kb.scrollWidth>kb.clientWidth+1;ts.hidden=!over;if(over){inn.style.width=kb.scrollWidth+'px';ts.scrollLeft=kb.scrollLeft}}
+{let lock=false;const sync=(a,b)=>()=>{if(lock)return;lock=true;b.scrollLeft=a.scrollLeft;requestAnimationFrame(()=>lock=false)};
+  const kb=document.getElementById('kb'),ts=document.getElementById('kb-ts');if(kb&&ts){ts.addEventListener('scroll',sync(ts,kb));kb.addEventListener('scroll',sync(kb,ts))}
+  window.addEventListener('resize',()=>requestAnimationFrame(kbTopBar))}
 // move a card into a column: status follows the column
 function kbMove(id,colId){const it=findIt(id);const cols=kbCols();const c=cols.find(x=>x.id===colId);if(!it||!c||readOnly||it.archived)return;if(colIdOf(it,cols)===colId)return;
   const seen=it.status||'todo';const me=author();const now=new Date().toISOString();
@@ -1184,7 +1198,7 @@ function renderAll(){renderHot();renderHeader();renderPlan();renderBacklog();ren
 
 // ---------- tabs
 const TABS=['hot','next','plan','backlog','map','kanban','notes','docs','archive'];
-function setTab(t){if(!TABS.includes(t))t='hot';document.querySelectorAll('.tab[data-tab]').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===t));TABS.forEach(k=>$('view-'+k).hidden=k!==t);store('opora.tab2',t)}
+function setTab(t){if(!TABS.includes(t))t='hot';if(t==='kanban')requestAnimationFrame(kbTopBar);document.querySelectorAll('.tab[data-tab]').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===t));TABS.forEach(k=>$('view-'+k).hidden=k!==t);store('opora.tab2',t)}
 document.querySelectorAll('.tab[data-tab]').forEach(b=>b.onclick=()=>setTab(b.dataset.tab));
 // «Сайт проекта»: актуальный прототип из хранилища открывается в новом окне
 $('tab-dash').onclick=()=>{

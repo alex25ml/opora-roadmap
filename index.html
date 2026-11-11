@@ -1558,6 +1558,8 @@ function libSkip(path){const p=path.toLowerCase().replace(/ё/g,'е');const n=p.
   if(n.startsWith('~$')||n.startsWith('_')||n.startsWith('.'))return true;
   if(/лиды/.test(n))return true;
   if(/(ключ|key|token|токен|пароль|password|secret)/.test(n)&&/(github|токен|token|пароль|password|secret|pat)/.test(n))return true;
+  // lists of logins/passwords: «Доступы.xlsx», «Пароли», «Учётные записи», «Аккаунты» (singular «доступ к API» is a normal document)
+  if(/(^|[\s_\-—(])(доступы|пароли|логины|учетки|учетные записи|аккаунты|credentials|passwords|logins)([\s_\-—).]|$)/.test(n))return true;
   return!LIB_EXT.test(n)}
 async function sha256(buf){const h=await crypto.subtle.digest('SHA-256',buf);return Array.from(new Uint8Array(h)).map(b=>b.toString(16).padStart(2,'0')).join('')}
 const bufB64=buf=>{const by=new Uint8Array(buf);let bin='';for(let i=0;i<by.length;i+=0x8000)bin+=String.fromCharCode.apply(null,by.subarray(i,i+0x8000));return btoa(bin)};

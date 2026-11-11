@@ -9,6 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<script>try{var t=JSON.parse(localStorage.getItem('opora.theme'));if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}</script>
 <style>
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
@@ -18,11 +19,13 @@ img{max-width:100%}
 
 /* Layout: одна колонка ~1100px; шапка со сводкой и следующими шагами, вкладки — Горит, План, Бэклог, Mind-карта, Канбан, Документы; карточка задачи открывается боковой панелью с документами и заметками. Бренд сайта Seller RX: Unbounded / Manrope / JetBrains Mono, фиолетовый акцент. */
 :root{
-  --bg:#F5F5FA; --surface:#FFFFFF; --surface-2:#EEEEF6; --line:#DFDFEB; --line-2:#C9C9DA;
-  --fg:#15152B; --muted:#5C5E7C; --dim:#8A8CA6;
-  --accent:#5A4AE3; --accent-soft:#ECE9FE; --on-accent:#FFFFFF;
-  --ok:#1C8F5B; --ok-soft:#E0F3E9; --warn:#A8650A; --warn-soft:#FBEFD9; --crit:#C23538; --crit-soft:#FBE5E5;
-  --c-strat:#5A4AE3; --c-legal:#7A6A2E; --c-funnel:#C0417E; --c-sales:#1F7FC4; --c-audit:#1C8F7A; --c-data:#8A4FD8; --c-support:#6B7285;
+  /* светлая тема — песочная, не белая */
+  --bg:#ECE3D2; --surface:#F6F0E4; --surface-2:#E4D9C4; --line:#D8CAB0; --line-2:#C2B192;
+  --fg:#2A2317; --muted:#665A45; --dim:#877A62;
+  --accent:#5244D0; --accent-soft:#E2DAEC; --on-accent:#FFFFFF;
+  --ok:#2C7A4B; --ok-soft:#D9E6CC; --warn:#965809; --warn-soft:#F0DDB8; --crit:#B2342D; --crit-soft:#F1D3C6;
+  --c-strat:#5244D0; --c-legal:#7A6A2E; --c-funnel:#B33C74; --c-sales:#1D74B3; --c-audit:#1A8270; --c-data:#7E47C6; --c-support:#6A6A72;
+  color-scheme:light;
   --f-display:"Unbounded","Manrope",system-ui,sans-serif;
   --f-body:"Manrope",system-ui,-apple-system,"Segoe UI",sans-serif;
   --f-mono:"JetBrains Mono",ui-monospace,"Cascadia Mono",Consolas,monospace;
@@ -326,6 +329,8 @@ button.ack:hover{border-color:var(--ok);color:var(--ok)}
 .syncbar .dotst{width:8px;height:8px;border-radius:50%;background:var(--ok);display:inline-block;margin-right:6px}
 .syncbar .dotst.busy{background:var(--warn)}
 .syncbar .dotst.err{background:var(--crit)}
+.themebtn{background:var(--surface-2);border:1px solid var(--line);border-radius:999px;padding:1px 10px;color:var(--muted);cursor:pointer;font:inherit;font-size:12px}
+.themebtn:hover{color:var(--fg);border-color:var(--line-2)}
 .linkbtn{background:none;border:0;padding:0;color:var(--accent);cursor:pointer;font:inherit;text-decoration:underline;text-underline-offset:2px}
 
 /* stage 1: archive, conflict banners, personal keys */
@@ -546,7 +551,7 @@ svg .mm-addarea text{fill:var(--muted);font:500 11px var(--f-body)}
   </form>
 </div>
 <div class="wrap">
-  <div class="syncbar"><span><span class="dotst" id="sync-dot"></span><span id="sync-txt">Подключаюсь…</span></span><span>· вы: <b id="sync-who"></b><span class="keytag" id="sync-key"></span> <button class="linkbtn" id="sync-switch" type="button">сменить</button></span><span>· <button class="linkbtn" id="sync-refresh" type="button">Обновить</button></span><span>· <button class="linkbtn" id="sync-out" type="button">Выйти</button></span></div>
+  <div class="syncbar"><span><span class="dotst" id="sync-dot"></span><span id="sync-txt">Подключаюсь…</span></span><span>· вы: <b id="sync-who"></b><span class="keytag" id="sync-key"></span> <button class="linkbtn" id="sync-switch" type="button">сменить</button></span><span>· <button class="linkbtn" id="sync-refresh" type="button">Обновить</button></span><span>· <button class="linkbtn" id="sync-out" type="button">Выйти</button></span><span>· <button class="themebtn" id="theme-btn" type="button" title="Тема: авто → светлая → тёмная"></button></span></div>
   <header class="top2">
     <div class="eyebrow">Консалтинг Seller RX · Татьяна Кочерова и Александр Оленович</div>
     <h1>Дорожная карта Seller RX</h1>
@@ -1793,6 +1798,9 @@ function lockScreen(err){
   const a=store('opora.author');document.querySelectorAll('input[name="lk-who"]').forEach(r=>{r.checked=r.value===a});
   setTimeout(()=>{const k=$('lk-key');if(k)k.focus()},50);
 }
+const THEMES=[['auto','Тема: как в системе'],['light','Тема: светлая'],['dark','Тема: тёмная']];
+function curTheme(){const t=store('opora.theme');return t==='light'||t==='dark'?t:'auto'}
+function applyTheme(t){const r=document.documentElement;if(t==='auto')delete r.dataset.theme;else r.dataset.theme=t;const b=$('theme-btn');if(b)b.textContent=THEMES.find(x=>x[0]===t)[1]}
 function renderWho(){$('sync-who').textContent=author();const b=boundName();$('sync-switch').hidden=!!b;const kt=$('sync-key');kt.textContent=b?'личный ключ':'общий ключ';kt.className='keytag'+(b?' own':'');kt.title=b?'Ключ закреплён за вами: подпись не меняется':'Подпись выбирается вручную. Чтобы закрепить подпись, войдите с личным ключом и отметьте «Это мой личный ключ»'}
 $('lk-form').addEventListener('submit',async e=>{
   e.preventDefault();
@@ -1819,6 +1827,8 @@ $('lk-form').addEventListener('submit',async e=>{
 });
 $('sync-refresh').onclick=async()=>{ETAG=null;setSync('busy','Обновляю…');if(await refresh(false))toast('Данные обновлены')};
 $('sync-out').onclick=()=>{store('opora.key','');token='';keyFp='';DB=null;items=[];notes=[];loaded=false;closeDrawer();renderAll();clearInterval(pollT);lockScreen()};
+applyTheme(curTheme());
+$('theme-btn').onclick=()=>{const i=THEMES.findIndex(x=>x[0]===curTheme());const t=THEMES[(i+1)%3][0];store('opora.theme',t);applyTheme(t);try{renderAll()}catch(e){}};
 $('sync-switch').onclick=()=>{if(boundName())return;store('opora.author',author()==='Александр'?'Татьяна':'Александр');renderWho();if(openTask)openDrawer(openTask);toast('Теперь вы подписываетесь как '+author())};
 let pollT;function startPolling(){clearInterval(pollT);pollT=setInterval(()=>{if(document.visibilityState==='visible'&&token&&DB)refresh(true)},30000)}
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&token&&DB)refresh(true)});

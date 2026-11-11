@@ -1530,11 +1530,15 @@ const lastV=d=>d&&Array.isArray(d.versions)&&d.versions.length?d.versions[d.vers
 const fmtSize=b=>b==null?'':b<1024?b+' Б':b<1048576?Math.round(b/1024)+' КБ':(b/1048576).toFixed(1).replace('.',',')+' МБ';
 const extOf=n=>{const m=String(n||'').match(/\.([^.\/]+)$/);return m?m[1].toLowerCase():''};
 // family key: file name without version mark (v6, -v3) and with extension; generic names keep their folder
+// copies made by the sync: «… (с сайта 2026-11-11)», «… (до замены 2026-11-11)» — same document as the original
+const COPY_RE=/\s*\((?:с сайта|до замены)[^)]*\)\s*$/i;
+const REPL_DIR='_заменено при сверке';
 function nameInfo(path){const parts=String(path).split('/');const name=parts.pop();const dir=parts.join('/');const ext=extOf(name);let stem=ext?name.slice(0,-(ext.length+1)):name;
+  let copy=false;{const cm=stem.match(COPY_RE);if(cm){copy=true;stem=stem.slice(0,cm.index).trim()}}
   let v=null;const m=stem.match(/(^|[\s_\-])v(\d+(?:\.\d+)?)(?=$|[\s_\-—])/i);if(m){v=parseFloat(m[2]);stem=(stem.slice(0,m.index)+(m.index?' ':'')+stem.slice(m.index+m[0].length)).replace(/\s+/g,' ').replace(/\s*([—-])\s*$/,'').trim()}
   let key=(stem+'.'+ext).toLowerCase().replace(/ё/g,'е').replace(/[–—]/g,'-').replace(/\s+/g,' ').trim();
   if(/^(readme|index|config|requirements)\b/i.test(stem))key=dir.toLowerCase()+'/'+key;
-  return{name,dir,ext,stem,v,key}}
+  return{name,dir,ext,stem,v,key,copy}}
 function suggestCat(path){const p=path.toLowerCase();
   if(/калькулятор услуг|цены на услуги|линейк/.test(p))return'services';
   if(/лид-магнит|lead-magnet|резюме|структура и контент сайта|кейс|seller-rx/.test(p))return'marketing';
@@ -1550,6 +1554,7 @@ const LIB_EXT=/\.(docx?|xlsx|xlsm|xls|pdf|pptx?|md|html?|csv|txt)$/i;
 function libSkip(path){const p=path.toLowerCase().replace(/ё/g,'е');const n=p.split('/').pop();
   if(/(^|\/)(\.venv|venv|__pycache__|node_modules|\.git|github|claude outputs|для сервера|логи|csv|exports?)(\/|$)/.test(p))return true;
   if(/^клиенты\//.test(p)&&!/^клиенты\/_шаблоны\//.test(p))return true;
+  if(/(^|\/)_(?!шаблоны(\/|$))[^\/]*\//.test(p))return true;
   if(n.startsWith('~$')||n.startsWith('_')||n.startsWith('.'))return true;
   if(/лиды/.test(n))return true;
   if(/(ключ|key|token|токен|пароль|password|secret)/.test(n)&&/(github|токен|token|пароль|password|secret|pat)/.test(n))return true;
@@ -1611,27 +1616,39 @@ async function scanDir(root){const out=[];
   for(const x of out){x.sha=await sha256(await x.file.arrayBuffer())}
   return out}
 async function writeLocal(root,dir,name,blob){let d=root;for(const part of String(dir||'').split('/').filter(Boolean))d=await d.getDirectoryHandle(part,{create:true});
-  let nm=name;try{const ex=await d.getFileHandle(nm);const f=await ex.getFile();const s=await sha256(await f.arrayBuffer());const b=await sha256(await blob.arrayBuffer());if(s===b)return nm;
-    const e=extOf(nm);nm=(e?nm.slice(0,-(e.length+1)):nm)+' (с сайта '+todayISO()+')'+(e?'.'+e:'')}catch(_){}
-  const fh=await d.getFileHandle(nm,{create:true});const w=await fh.createWritable();await w.write(blob);await w.close();return nm}
+  let backup=null;
+  try{const ex=await d.getFileHandle(name);const f=await ex.getFile();const s=await sha256(await f.arrayBuffer());const b=await sha256(await blob.arrayBuffer());if(s===b)return{name,same:true};
+    // keep the replaced file: <folder>/_заменено при сверке/<name> (до замены ГГГГ-ММ-ДД).<ext>
+    const bd=await d.getDirectoryHandle(REPL_DIR,{create:true});const e=extOf(name);const st=e?name.slice(0,-(e.length+1)):name;
+    let bn=`${st} (до замены ${todayISO()})${e?'.'+e:''}`;
+    try{await bd.getFileHandle(bn);const t=new Date();bn=`${st} (до замены ${todayISO()} ${String(t.getHours()).padStart(2,'0')}-${String(t.getMinutes()).padStart(2,'0')}-${String(t.getSeconds()).padStart(2,'0')})${e?'.'+e:''}`}catch(_){}
+    const bh=await bd.getFileHandle(bn,{create:true});const bw=await bh.createWritable();await bw.write(f);await bw.close();backup=REPL_DIR+'/'+bn}catch(err){if(err&&err.name!=='NotFoundError'&&err.name!=='TypeMismatchError')throw err}
+  const fh=await d.getFileHandle(name,{create:true});const w=await fh.createWritable();await w.write(blob);await w.close();return{name,backup}}
 // compare a folder with the library
+const normDir=x=>String(x||'').toLowerCase().replace(/ё/g,'е').replace(/\\/g,'/').replace(/^\/+|\/+$/g,'');
+const byVer=(a,b)=>(b.v??-1)-(a.v??-1)||b.mtime-a.mtime;
 function libCompare(files){const docs=libDocs().filter(d=>!d.archived);const byKey={};files.forEach(f=>{(byKey[f.key]=byKey[f.key]||[]).push(f)});
   const rows=[];const used=new Set();
+  // split a family: main files in the document's folder (without copy marks) and all other copies
+  const split=(d,all)=>{const hasDir=d.dir!=null;const main=all.filter(f=>!f.copy&&(!hasDir||normDir(f.dir)===normDir(d.dir))).sort(byVer);const others=all.filter(f=>!main.includes(f)).sort(byVer);return{main,others}};
   docs.forEach(d=>{const lv=lastV(d);
     // prepared entry without a file yet: the first matching local file becomes version 1
-    if(!lv){if(!d.key)return;const loc0=(byKey[d.key]||[]).slice().sort((a,b)=>(b.v??-1)-(a.v??-1)||b.mtime-a.mtime);used.add(d.key);if(loc0.length)rows.push({kind:'upload',doc:d,lv:null,loc:loc0[0],first:true});return}
-    const key=d.key||nameInfo((d.dir?d.dir+'/':'')+lv.name).key;const loc=(byKey[key]||[]).slice().sort((a,b)=>(b.v??-1)-(a.v??-1)||b.mtime-a.mtime);used.add(key);
-    const svInfo=nameInfo(lv.name);const sv=lv.v??svInfo.v;
-    if(!loc.length){rows.push({kind:'missing',doc:d,lv});return}
-    const top=loc[0];const hasSite=loc.find(f=>f.sha===lv.sha);const inHist=f=>d.versions.slice(0,-1).some(x=>x.sha===f.sha);
-    if(top.sha===lv.sha){rows.push({kind:'ok',doc:d,lv,loc:top,copies:loc.length});return}
-    if(top.v!=null&&sv!=null){if(top.v>sv){rows.push({kind:'upload',doc:d,lv,loc:top});return}
-      if(top.v<sv){rows.push({kind:'download',doc:d,lv,loc:top});return}}
-    if(hasSite&&hasSite!==top&&top.v==null){rows.push({kind:'conflict',doc:d,lv,loc:top});return}
-    if(inHist(top)){rows.push({kind:'download',doc:d,lv,loc:top});return}
-    rows.push({kind:top.mtime>Date.parse(lv.at)?'upload':'conflict',doc:d,lv,loc:top})});
-  Object.entries(byKey).forEach(([k,fs])=>{if(used.has(k))return;const top=fs.slice().sort((a,b)=>(b.v??-1)-(a.v??-1)||b.mtime-a.mtime)[0];rows.push({kind:'new',loc:top,copies:fs.length,cat:suggestCat(top.path)})});
+    if(!lv){if(!d.key)return;const all=byKey[d.key]||[];used.add(d.key);const {main,others}=split(d,all);const loc0=main[0]||others.filter(f=>!f.copy)[0];if(loc0)rows.push({kind:'upload',doc:d,lv:null,loc:loc0,first:true,others:others.filter(f=>f!==loc0)});return}
+    const key=d.key||nameInfo((d.dir?d.dir+'/':'')+lv.name).key;used.add(key);
+    const {main,others}=split(d,byKey[key]||[]);
+    const svInfo=nameInfo(lv.name);const sv=lv.v??svInfo.v;const base={doc:d,lv,others};
+    if(!main.length){rows.push(Object.assign({kind:'missing'},base));return}
+    const top=main[0];const hasSite=main.find(f=>f.sha===lv.sha);const inHist=f=>d.versions.slice(0,-1).some(x=>x.sha===f.sha);
+    const R=k=>rows.push(Object.assign({kind:k,loc:top,copies:main.length},base));
+    if(top.sha===lv.sha)return R('ok');
+    if(top.v!=null&&sv!=null){if(top.v>sv)return R('upload');if(top.v<sv)return R('download')}
+    if(hasSite&&hasSite!==top&&top.v==null)return R('conflict');
+    if(inHist(top))return R('download');
+    R(top.mtime>Date.parse(lv.at)?'upload':'conflict')});
+  Object.entries(byKey).forEach(([k,fs])=>{if(used.has(k))return;const main=fs.filter(f=>!f.copy);const top=(main.length?main:fs).slice().sort(byVer)[0];rows.push({kind:'new',loc:top,copies:fs.length,cat:suggestCat(top.path)})});
   return rows}
+// copies in other folders that can be refreshed from the site: same file name, different content
+const staleCopies=r=>r.lv?(r.others||[]).filter(f=>!f.copy&&f.name===r.lv.name&&f.sha!==r.lv.sha):[];
 const LIB_KIND={download:['На сайте новее — скачать к себе',true],missing:['Нет у вас — скачать к себе',true],upload:['У вас новее — загрузить на сайт',true],new:['Есть только у вас — добавить в библиотеку',false],conflict:['Отличаются, версия не ясна — решите вручную',false],ok:['Совпадают',false]};
 async function runLibSync(pick){if(libBusy)return;const root=await libDir(pick);if(!root)return;libBusy=true;const box=$('lib-syncbox');box.hidden=false;box.innerHTML='<div class="empty">Читаю папку «'+esc(root.name)+'» и сравниваю файлы…</div>';
   try{await loadLib(false);const files=await scanDir(root);libScan={root,rows:libCompare(files),n:files.length};renderLibSync()}
@@ -1639,15 +1656,18 @@ async function runLibSync(pick){if(libBusy)return;const root=await libDir(pick);
 function renderLibSync(){const box=$('lib-syncbox');if(!box||!libScan)return;const {root,rows,n}=libScan;
   const cnt=k=>rows.filter(r=>r.kind===k).length;const cats=libCats();
   const row=(r,i)=>{const d=r.doc,lv=r.lv,l=r.loc;const chk=!readOnly&&LIB_KIND[r.kind][1];
-    const site=lv?`<span>на сайте: <b>${esc(lv.name)}</b> · ${esc(fmtDate(lv.at))} · ${auChip(lv.by)}</span>`:'';const loc=l?`<span>у вас: <b>${esc(l.path)}</b> · ${esc(fmtDate(new Date(l.mtime).toISOString()))}${r.copies>1?` · копий: ${r.copies}`:''}</span>`:'';
+    const site=lv?`<span>на сайте: <b>${esc(lv.name)}</b> · ${esc(fmtDate(lv.at))} · ${auChip(lv.by)}</span>`:'';const loc=l?`<span>у вас: <b>${esc(l.path)}</b> · ${esc(fmtDate(new Date(l.mtime).toISOString()))}${r.copies>1?` · версий в папке: ${r.copies}`:''}</span>`:r.kind==='missing'&&d?`<span>скачается в папку: <b>${esc(d.dir||'«Консалтинг» (корень)')}</b></span>`:'';
+    const oth=(r.others||[]).length?`<span>ещё копии: ${r.others.map(f=>`<b>${esc(f.path)}</b> — ${f.copy?'лишняя копия, можно удалить':lv&&f.sha===lv.sha?'как на сайте':'отличается'}`).join('; ')}</span>`:'';
+    const stale=staleCopies(r).length;
     const act=r.kind==='new'?`<select data-lsc="${i}" aria-label="Раздел">${cats.map(c=>`<option value="${c.k}" ${c.k===r.cat?'selected':''}>${esc(c.name)}</option>`).join('')}</select><button class="mini" data-lsrun="${i}" data-how="up">Добавить</button>`
-      :r.kind==='conflict'?`<button class="mini" data-lsrun="${i}" data-how="down">Скачать с сайта</button><button class="mini" data-lsrun="${i}" data-how="up">Загрузить мою</button>`
+      :r.kind==='conflict'?`<button class="mini" data-lsrun="${i}" data-how="down" title="Ваш файл сохранится в «${REPL_DIR}»">Заменить мою версией с сайта</button><button class="mini" data-lsrun="${i}" data-how="up">Загрузить мою на сайт</button>`
       :r.kind==='ok'?'':`<button class="mini" data-lsrun="${i}" data-how="${r.kind==='upload'?'up':'down'}">${r.kind==='upload'?'Загрузить':'Скачать'}</button>`;
-    return `<li class="ls-row" data-lsi="${i}">${r.kind==='ok'||readOnly?'<span></span>':`<input type="checkbox" data-lsck="${i}" ${chk?'checked':''} aria-label="Выполнить">`}<div><div class="ls-t">${esc(d?d.title:l.stem)}</div><div class="ls-m">${site}${loc}</div></div><div class="acts">${act}</div></li>`};
+    const act2=!readOnly&&stale?`<button class="mini" data-lsrun="${i}" data-how="copies" title="Заменить версией с сайта; прежние файлы — в «${REPL_DIR}»">Обновить копии (${stale})</button>`:'';
+    return `<li class="ls-row" data-lsi="${i}">${r.kind==='ok'||readOnly?'<span></span>':`<input type="checkbox" data-lsck="${i}" ${chk?'checked':''} aria-label="Выполнить">`}<div><div class="ls-t">${esc(d?d.title:l.stem)}</div><div class="ls-m">${site}${loc}${oth}</div></div><div class="acts">${act}${act2}</div></li>`};
   const grp=k=>{const rs=rows.map((r,i)=>[r,i]).filter(([r])=>r.kind===k);if(!rs.length)return'';
     return k==='ok'?`<details class="ls-g"><summary>${LIB_KIND[k][0]}: ${rs.length}</summary><ul class="ls-list">${rs.map(([r,i])=>row(r,i)).join('')}</ul></details>`:`<section class="ls-g"><h4>${LIB_KIND[k][0]}: ${rs.length}</h4><ul class="ls-list">${rs.map(([r,i])=>row(r,i)).join('')}</ul></section>`};
-  const todo=rows.filter(r=>r.kind!=='ok').length;
-  box.innerHTML=`<div class="ls-head"><div><b>Сверка с папкой «${esc(root.name)}»</b><div class="muted" style="font-size:13px">Файлов документов: ${n}. ${todo?`Требуют решения: ${todo}.`:'Всё совпадает с библиотекой.'} Данные клиентов, реестр лидов, ключи и программный код не сверяются.</div></div>
+  const todo=rows.filter(r=>r.kind!=='ok').length;const nst=rows.filter(r=>r.kind==='ok'&&staleCopies(r).length).length;
+  box.innerHTML=`<div class="ls-head"><div><b>Сверка с папкой «${esc(root.name)}»</b><div class="muted" style="font-size:13px">Файлов документов: ${n}. ${todo?`Требуют решения: ${todo}.`:'Всё совпадает с библиотекой.'}${nst?` Есть устаревшие копии в других папках: ${nst} (в «Совпадают», кнопка «Обновить копии»).`:''} Данные клиентов, реестр лидов, ключи и программный код не сверяются.<br>Сравнивается файл из папки, указанной в библиотеке; копии в других папках показаны отдельно. Скачивание заменяет файл с тем же именем, а прежний сохраняет в подпапке «${REPL_DIR}» рядом с ним (она не сверяется).</div></div>
     <div class="acts">${readOnly||!todo?'':'<button class="btn primary" id="ls-all" type="button">Выполнить отмеченное</button>'}<button class="btn" id="ls-again" type="button">Сверить ещё раз</button><button class="btn" id="ls-other" type="button">Другая папка</button><button class="btn" id="ls-close" type="button">Закрыть</button></div></div>
     ${['download','missing','upload','new','conflict','ok'].map(grp).join('')}`;
   $('ls-again').onclick=()=>runLibSync(false);$('ls-other').onclick=()=>runLibSync(true);$('ls-close').onclick=()=>{box.hidden=true};
@@ -1655,7 +1675,10 @@ function renderLibSync(){const box=$('lib-syncbox');if(!box||!libScan)return;con
     $('ls-all').disabled=true;let ok=0;for(const i of idx){const r=libScan.rows[i];const how=r.kind==='upload'||r.kind==='new'?'up':'down';if(await libDo(i,how,true))ok++}
     toast(`Готово: ${ok} из ${idx.length}`,5000);runLibSync(false)}}
 async function libDo(i,how,quiet){const r=libScan&&libScan.rows[i];if(!r||readOnly)return false;const root=libScan.root;
-  try{if(how==='down'){const lv=r.lv;const blob=await ghRaw(lv.file,'blob');const dir=r.loc?r.loc.dir:(r.doc.dir||'');const nm=await writeLocal(root,dir,lv.name,blob);if(!quiet){toast(`Сохранено в папку: ${dir?dir+'/':''}${nm}`,5000);runLibSync(false)}return true}
+  try{if(how==='copies'){const lv=r.lv;const list=staleCopies(r);if(!list.length)return false;const blob=await ghRaw(lv.file,'blob');for(const f of list)await writeLocal(root,f.dir,lv.name,blob);
+      if(!quiet){toast(`Обновлено копий: ${list.length}. Прежние файлы — в «${REPL_DIR}» рядом с ними.`,6000);runLibSync(false)}return true}
+    if(how==='down'){const lv=r.lv;const blob=await ghRaw(lv.file,'blob');const dir=r.loc?r.loc.dir:(r.doc.dir||'');const res=await writeLocal(root,dir,lv.name,blob);
+      if(!quiet){toast(`Сохранено: ${dir?dir+'/':''}${res.name}${res.backup?` · прежний файл — в «${REPL_DIR}»`:''}`,6000);runLibSync(false)}return true}
     const l=r.loc;const sel=document.querySelector(`[data-lsc="${i}"]`);const cat=sel?sel.value:(r.cat||suggestCat(l.path));
     const docId=r.doc?r.doc.id:newKey('d');const meta=r.doc?{dir:r.doc.dir}:{title:/^(readme|index|config|requirements)\b/i.test(l.stem)&&l.dir?l.dir.split('/').pop()+' — '+l.stem:l.stem,cat,aud:suggestAud(cat),dir:l.dir,key:l.key,desc:''};
     const ok=await libUploadFile(l.file,docId,meta);if(ok&&!quiet)runLibSync(false);return ok}

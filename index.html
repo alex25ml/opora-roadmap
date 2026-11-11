@@ -453,6 +453,9 @@ svg .mm-addarea text{fill:var(--muted);font:500 11px var(--f-body)}
 .natt select{background:var(--surface);border:1px solid var(--line-2);border-radius:7px;padding:3px 6px;font-size:12.5px;max-width:220px}
 .note-form .row-sub{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:13px;color:var(--muted)}
 .note-form .row-sub select{background:var(--surface);border:1px solid var(--line-2);border-radius:8px;padding:6px 8px;max-width:100%;min-width:0;flex:1}
+.pend{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--muted);white-space:nowrap}
+.au.sm{font-size:11.5px;padding:0 7px 0 2px}.au.sm b{width:14px;height:14px;font-size:9px}
+.who .pend{display:flex;margin-top:3px}
 /* kanban: три столбца по статусу, фильтры по участнику и этапам */
 .kb-filters{display:flex;flex-direction:column;gap:10px;margin-bottom:12px}
 .kb-frow{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
@@ -687,13 +690,24 @@ const daysBetween=(a,b)=>Math.round((Date.UTC(...String(b).split('-').map((v,i)=
 const fmtDay=s=>pd(s).toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long'});
 const shortDate=s=>{const [y,m,d]=String(s).split('-');return d+'.'+m};
 function dueChip(it){if(!it.due)return'';if(it.status==='done')return `<span class="due">до ${shortDate(it.due)}</span>`;const dd=daysBetween(todayISO(),it.due);const cls=dd<0?'over':dd<=2?'soon':'';return `<span class="due ${cls}" title="Срок">${dd<0?'просрочено · ':dd===0?'сегодня · ':''}до ${shortDate(it.due)}</span>`}
-const ackWho=it=>it.owner==='Александр'?['Александр']:it.owner==='Татьяна'?['Татьяна']:['Александр','Татьяна'];
+const subWho=w=>w==='Александр'?['Александр']:w==='Татьяна'?['Татьяна']:w==='Оба'?['Александр','Татьяна']:[];
+// open subtasks: who they wait for (null if there are none)
+function pend(it){if(!it||it.status==='done')return null;const op=(Array.isArray(it.subs)?it.subs:[]).filter(x=>!x.done);if(!op.length)return null;
+  const who=new Set();let un=false;op.forEach(x=>{const w=subWho(x.who);if(w.length)w.forEach(n=>who.add(n));else un=true});return{who,unassigned:un,open:op.length}}
+const ownerWho=it=>it.owner==='Александр'?['Александр']:it.owner==='Татьяна'?['Татьяна']:['Александр','Татьяна'];
+const ackWho=it=>{const s=new Set(ownerWho(it));(Array.isArray(it.subs)?it.subs:[]).forEach(x=>subWho(x.who).forEach(n=>s.add(n)));return AUTHORS.filter(n=>s.has(n))};
+// chip «ждёт: Татьяна» when the remaining subtasks are on someone other than the owner
+function pendChip(it){const p=pend(it);if(!p||!p.who.size)return'';const ow=ownerWho(it);const w=AUTHORS.filter(n=>p.who.has(n));
+  if(!p.unassigned&&w.length===ow.length&&w.every(n=>ow.includes(n)))return'';
+  return `<span class="pend" title="Открытые подзадачи ждут: ${esc(w.join(', '))}">ждёт: ${w.map(n=>`<span class="au sm ${n==='Александр'?'a':'t'}"><b>${n[0]}</b>${esc(n)}</span>`).join('')}</span>`}
 const acked=(it,n)=>!!(it.acks&&it.acks[n]);
 // person's list: own tasks + shared ones he/she has not marked as worked out
-const forPerson=(it,n)=>!n||it.owner===n||(it.owner!=='Александр'&&it.owner!=='Татьяна'&&!acked(it,n));
+// person's list: tasks with his/her open subtasks; tasks waiting only for the partner's subtasks are not in it;
+// otherwise own tasks + shared ones he/she has not marked as worked out
+const forPerson=(it,n)=>{if(!n)return true;const p=pend(it);if(p){if(p.who.has(n))return true;if(!p.unassigned)return false}return it.owner===n||(it.owner!=='Александр'&&it.owner!=='Татьяна'&&!acked(it,n))};
 function ackPanel(it){return ackWho(it).map(n=>{const on=acked(it,n);const mine=n===author()&&!readOnly;
   const sub=on?`отработано ${fmtDate(it.acks[n])}`:mine?'поставьте галочку, когда с вашей стороны всё сделано':`не отмечено · ставит ${n==='Татьяна'?'Татьяна':'Александр'}`;
-  return `<label class="ackrow${on?' on':''}${mine?'':' ro'}"><input type="checkbox" data-ackchk="${esc(it.id)}" ${on?'checked':''} ${mine?'':'disabled'}><span><b>${esc(n)}</b>${mine?' <span class="muted">(вы)</span>':''}<small>${esc(sub)}</small></span></label>`}).join('')+(ackWho(it).length>1?'':'<div class="muted" style="font-size:12px">Задачу ведёт один партнёр — отметка только его.</div>')}
+  return `<label class="ackrow${on?' on':''}${mine?'':' ro'}"><input type="checkbox" data-ackchk="${esc(it.id)}" ${on?'checked':''} ${mine?'':'disabled'}><span><b>${esc(n)}</b>${mine?' <span class="muted">(вы)</span>':''}<small>${esc(sub)}</small></span></label>`}).join('')+(ackWho(it).length>1?(ownerWho(it).length===1?(o=>`<div class="muted" style="font-size:12px">Отметка ${o==='Татьяна'?'Татьяны':'Александра'} — потому что у ${o==='Татьяна'?'неё':'него'} есть подзадачи в этой задаче.</div>`)(ackWho(it).find(n=>!ownerWho(it).includes(n))):''):'<div class="muted" style="font-size:12px">Задачу ведёт один партнёр — отметка только его.</div>')}
 function ackMarks(it,big){return `<span class="acks${big?' big':''}">${ackWho(it).map(n=>{const on=acked(it,n);const mine=n===author()&&!readOnly;const tip=`${n}: ${on?'отработано '+fmtDate(it.acks[n]):'не отмечено'}${mine?' — нажмите, чтобы '+(on?'снять':'поставить')+' отметку':''}`;
   return mine?`<button type="button" class="ack${on?' on':''}" data-ack="${esc(it.id)}" title="${esc(tip)}" aria-pressed="${on}">${big?esc(n)+(on?' ✓ отработано':' — отметить «отработано»'):n[0]+(on?'✓':'')}</button>`:`<span class="ack${on?' on':''}" title="${esc(tip)}">${big?esc(n)+(on?' ✓ отработано':' — не отмечено'):n[0]+(on?'✓':'')}</span>`}).join('')}</span>`}
 const plural=(n,a,b,c)=>{const m=Math.abs(n)%100,k=m%10;return m>10&&m<20?c:k===1?a:k>=2&&k<=4?b:c};
@@ -763,7 +777,7 @@ function renderNext(){
   const list=base.filter(i=>nextWho==='Оба'||forPerson(i,nextWho)).sort((a,b)=>byDue(a,b)||String(a.prio).localeCompare(String(b.prio))||(a.order||0)-(b.order||0));
   $('next-n').textContent=loaded&&list.length?String(list.length):'';
   $('next-sum').innerHTML=loaded?`Незакрытые задачи этапов (без бэклога), по сроку: <b>${list.length}</b>`:'Загружаю задачи…';
-  const h=$('next-hint');h.hidden=nextWho==='Оба';h.textContent=nextWho==='Оба'?'':`Задачи, где ведёт ${nextWho}, и общие задачи «Оба», которые ${nextWho} ещё не отметил${nextWho==='Татьяна'?'а':''} как отработанные.`;
+  const h=$('next-hint');h.hidden=nextWho==='Оба';h.textContent=nextWho==='Оба'?'':`Задачи, где ведёт ${nextWho} или у ${nextWho==='Татьяна'?'неё':'него'} есть открытые подзадачи, и общие задачи «Оба», которые ${nextWho} ещё не отметил${nextWho==='Татьяна'?'а':''} как отработанные. Задачи, где остались только подзадачи партнёра, — в списке партнёра.`;
   el.innerHTML=!loaded?'':list.length?list.map(hotRow).join(''):`<li class="empty">${nextWho==='Оба'?'Все задачи этапов закрыты.':'У '+(nextWho==='Татьяна'?'Татьяны':'Александра')+' открытых задач нет.'}</li>`;
 }
 // ---------- notes tab
@@ -792,7 +806,7 @@ function renderPlan(){
     return `<details class="phase" data-phase="${p.k}" ${openPhases.has(p.k)?'open':''}>
       <summary><div class="pn">${esc(p.n)}</div><div><div class="ph-name">${esc(p.name)}<span class="chev">›</span></div><div class="ph-goal">${esc(p.goal)}</div></div>
       <div class="ph-side"><span class="mono" style="font-size:13px">${s.d}/${s.t}</span><div class="bar">${bar(s)}</div><span class="ph-when">${esc(p.when)}</span></div></summary>
-      <ul class="items">${list.map(it=>`<li class="item ${it.status==='done'?'is-done':''}">${stc(it)}<div><div class="title" data-open="${esc(it.id)}">${esc(it.title)}${badges(it)}</div>${it.note?`<div class="note">${esc(it.note)}</div>`:''}</div><div class="tags">${dueChip(it)}${areaChip(it)}<span class="pr ${esc(it.prio)}">${esc(it.prio)}</span><span class="who">${esc(it.owner||'')}</span>${ackMarks(it)}</div></li>`).join('')||'<li class="muted" style="padding:8px 0">Задач нет</li>'}</ul></details>`}).join('');
+      <ul class="items">${list.map(it=>`<li class="item ${it.status==='done'?'is-done':''}">${stc(it)}<div><div class="title" data-open="${esc(it.id)}">${esc(it.title)}${badges(it)}</div>${it.note?`<div class="note">${esc(it.note)}</div>`:''}</div><div class="tags">${dueChip(it)}${areaChip(it)}<span class="pr ${esc(it.prio)}">${esc(it.prio)}</span><span class="who">${esc(it.owner||'')}</span>${pendChip(it)}${ackMarks(it)}</div></li>`).join('')||'<li class="muted" style="padding:8px 0">Задач нет</li>'}</ul></details>`}).join('');
 }
 
 // ---------- backlog
@@ -824,7 +838,7 @@ function renderBacklog(){
     if(q){const hay=[it.title,it.note,...(it.subs||[]).map(x=>x.t),...taskNotes(it.id).map(n=>n.text),...(it.docs||[]).map(d=>DOC[d]?.t),...(it.links||[]).map(l=>l.t)].join(' ').toLowerCase();if(!hay.includes(q))return false}
     return true});
   $('bl-count').textContent=filt.status==='arch'?`В архиве: показано ${list.length} из ${archItems.length}`:`Показано ${list.length} из ${items.length}`;
-  $('bl-body').innerHTML=list.length?list.map(it=>`<tr${it.archived?' class="is-arch"':''}><td>${stc(it)}</td><td class="t" data-open="${esc(it.id)}"><div>${esc(it.title)}${badges(it)}</div>${it.note?`<div class="note">${esc(it.note)}</div>`:''}</td><td>${areaChip(it)}<div class="muted" style="font-size:12px;margin-top:3px">${esc(AREA[it.area]?.name||'')}</div></td><td class="mono" style="font-size:13px">${esc(PH[it.phase]?.n)}. ${esc(PH[it.phase]?.name||'')}<div>${dueChip(it)}</div></td><td><span class="pr ${esc(it.prio)}">${esc(it.prio)}</span></td><td class="who">${esc(it.owner||'')}<div style="margin-top:4px">${ackMarks(it)}</div></td></tr>`).join(''):
+  $('bl-body').innerHTML=list.length?list.map(it=>`<tr${it.archived?' class="is-arch"':''}><td>${stc(it)}</td><td class="t" data-open="${esc(it.id)}"><div>${esc(it.title)}${badges(it)}</div>${it.note?`<div class="note">${esc(it.note)}</div>`:''}</td><td>${areaChip(it)}<div class="muted" style="font-size:12px;margin-top:3px">${esc(AREA[it.area]?.name||'')}</div></td><td class="mono" style="font-size:13px">${esc(PH[it.phase]?.n)}. ${esc(PH[it.phase]?.name||'')}<div>${dueChip(it)}</div></td><td><span class="pr ${esc(it.prio)}">${esc(it.prio)}</span></td><td class="who">${esc(it.owner||'')}${pendChip(it)}<div style="margin-top:4px">${ackMarks(it)}</div></td></tr>`).join(''):
    `<tr><td colspan="6" class="muted">${items.length?'Под фильтры ничего не попало.':'Задач пока нет. Нажмите «Добавить задачу».'}</td></tr>`;
   $('bl-add').hidden=readOnly;
 }
@@ -993,7 +1007,7 @@ function renderDocs(){
 }
 
 let hotOwner=store('opora.hotOwner')||'';
-function hotRow(it){return `<li class="item ${it.status==='done'?'is-done':''}">${stc(it)}<div><div class="title" data-open="${esc(it.id)}">${esc(it.title)}${badges(it)}</div>${it.note?`<div class="note">${esc(it.note)}</div>`:''}</div><div class="tags">${dueChip(it)}<span class="chip">Этап ${esc(PH[it.phase]?.n)}</span><span class="pr ${esc(it.prio)}">${esc(it.prio)}</span><span class="who">${esc(it.owner||'')}</span>${ackMarks(it)}</div></li>`}
+function hotRow(it){return `<li class="item ${it.status==='done'?'is-done':''}">${stc(it)}<div><div class="title" data-open="${esc(it.id)}">${esc(it.title)}${badges(it)}</div>${it.note?`<div class="note">${esc(it.note)}</div>`:''}</div><div class="tags">${dueChip(it)}<span class="chip">Этап ${esc(PH[it.phase]?.n)}</span><span class="pr ${esc(it.prio)}">${esc(it.prio)}</span><span class="who">${esc(it.owner||'')}</span>${pendChip(it)}${ackMarks(it)}</div></li>`}
 function renderHot(){
   const el=$('hot');if(!el)return;
   if(!loaded){el.innerHTML='<p class="muted">Загружаю задачи…</p>';return}
@@ -1007,7 +1021,7 @@ function renderHot(){
   const cnt=o=>all.filter(i=>forPerson(i,o)).length;
   let h=`<div class="hot-head"><p class="hot-sum">С ${esc(fmtDay(t))} по ${esc(fmtDay(end))}: <b>${list.length}</b> ${plural(list.length,'задача','задачи','задач')}${over.length?`, из них <b class="over-t">${over.length} ${plural(over.length,'просрочена','просрочены','просрочено')}</b>`:''}.</p>
     <div class="seg" role="group" aria-label="Чьи задачи">${[['','Все',cnt('')],['Александр','Александр',cnt('Александр')],['Татьяна','Татьяна',cnt('Татьяна')]].map(([v,l,c])=>`<button type="button" class="seg-b" data-hotowner="${v}" aria-pressed="${hotOwner===v}">${l} <span class="mono">${c}</span></button>`).join('')}</div></div>`;
-  if(hotOwner)h+=`<p class="muted" style="margin:-4px 0 12px;font-size:13px">Показаны задачи, где ведёт ${esc(hotOwner)}, и общие задачи «Оба», которые ${esc(hotOwner)} ещё не отметил${hotOwner==='Татьяна'?'а':''} как отработанные.</p>`;
+  if(hotOwner)h+=`<p class="muted" style="margin:-4px 0 12px;font-size:13px">Показаны задачи, где ведёт ${esc(hotOwner)} или у ${hotOwner==='Татьяна'?'неё':'него'} есть открытые подзадачи, и общие задачи «Оба», которые ${esc(hotOwner)} ещё не отметил${hotOwner==='Татьяна'?'а':''} как отработанные. Задачи, где остались только подзадачи партнёра, — в списке партнёра.</p>`;
   if(over.length)h+=`<section class="hot-day over"><h3>Просрочено</h3><ul class="items">${over.map(hotRow).join('')}</ul></section>`;
   for(let d=0;d<7;d++){const day=addDays(t,d);const l=list.filter(i=>i.due===day).sort((a,b)=>String(a.prio).localeCompare(String(b.prio))||(a.order||0)-(b.order||0));if(!l.length)continue;
     h+=`<section class="hot-day"><h3>${d===0?'Сегодня':d===1?'Завтра':''}${d<2?', ':''}${esc(fmtDay(day))}</h3><ul class="items">${l.map(hotRow).join('')}</ul></section>`}
@@ -1019,7 +1033,7 @@ function renderHot(){
 function renderArchive(){const el=$('arch');if(!el)return;$('arch-n').textContent=loaded&&archItems.length?String(archItems.length):'';
   if(!loaded){el.innerHTML='<p class="muted">Загружаю задачи…</p>';return}
   const keys=[...ALLAREAS.map(a=>a.k),...new Set(archItems.map(t=>t.area).filter(k=>!AREA[k]))];
-  const row=it=>`<li class="item ${it.status==='done'?'is-done':''}">${stBtn(it)}<div><div class="title" data-open="${esc(it.id)}">${esc(it.title)}${badges(it)}</div><div class="note">В архиве с ${esc(fmtDate(it.archived))}${it.archivedBy?' · '+esc(it.archivedBy):''} · ${esc(NODE[it.area+'/'+it.node]||'')} · ${it.phase==='bl'?'бэклог':'этап '+esc(PH[it.phase]?.n||'')} · ${esc(STATUS[it.status]||'')}</div></div><div class="tags"><span class="who">${esc(it.owner||'')}</span>${readOnly?'':`<button type="button" class="mini" data-unarch="${esc(it.id)}">Вернуть</button>`}</div></li>`;
+  const row=it=>`<li class="item ${it.status==='done'?'is-done':''}">${stBtn(it)}<div><div class="title" data-open="${esc(it.id)}">${esc(it.title)}${badges(it)}</div><div class="note">В архиве с ${esc(fmtDate(it.archived))}${it.archivedBy?' · '+esc(it.archivedBy):''} · ${esc(NODE[it.area+'/'+it.node]||'')} · ${it.phase==='bl'?'бэклог':'этап '+esc(PH[it.phase]?.n||'')} · ${esc(STATUS[it.status]||'')}</div></div><div class="tags"><span class="who">${esc(it.owner||'')}</span>${pendChip(it)}${readOnly?'':`<button type="button" class="mini" data-unarch="${esc(it.id)}">Вернуть</button>`}</div></li>`;
   let h='',total=0;
   keys.forEach(k=>{const a=ALLAREAS.find(x=>x.k===k);const l=archItems.filter(t=>t.area===k).sort((p,q)=>String(q.archived).localeCompare(String(p.archived)));
     const an=a?a.nodes.filter(n=>n.archived&&!a.archived):[];
@@ -1044,14 +1058,14 @@ const colsOf=d=>{const c=d&&d.kanban&&Array.isArray(d.kanban.cols)?d.kanban.cols
 const kbCols=()=>colsOf(DB);
 function colIdOf(it,cols){const st=it.status||'todo';const c=it.col&&cols.find(x=>x.id===it.col);if(c&&c.st===st)return c.id;const f=cols.find(x=>x.st===st);return f?f.id:null}
 function fixCol(d,x){const cols=colsOf(d);const c=x.col&&cols.find(z=>z.id===x.col);if(x.col&&(!c||c.st!==(x.status||'todo')))delete x.col}
-const kbMine=(it,w)=>!w||it.owner===w||(it.owner!=='Александр'&&it.owner!=='Татьяна');
+const kbMine=(it,w)=>{if(!w)return true;const p=pend(it);if(p&&p.who.has(w))return true;return it.owner===w||(it.owner!=='Александр'&&it.owner!=='Татьяна')};
 const IC_EDIT='<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 13l.6-2.6L10.8 3.2a1.4 1.4 0 0 1 2 2L5.6 12.4z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>';
 const IC_HIDE='<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1.8 8s2.2-4 6.2-4 6.2 4 6.2 4-2.2 4-6.2 4S1.8 8 1.8 8z" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M2.5 13.5l11-11" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>';
 const IC_DEL='<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.6 8.5h5.8l.6-8.5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" stroke-linecap="round"/></svg>';
 function kbCard(it){const over=!it.archived&&it.status!=='done'&&it.due&&it.due<todayISO();const drag=!readOnly&&!it.archived;
   return `<li class="kb-card${it.status==='done'?' is-done':''}${over?' p-over':''}${it.archived?' is-arch':''}" data-kb="${esc(it.id)}" ${drag?'draggable="true"':''}>
     <div class="kb-top">${stc(it)}<div class="title" data-open="${esc(it.id)}">${esc(it.title)}${badges(it)}</div></div>
-    <div class="kb-meta">${it.archived?'<span class="chip arch">архив</span>':''}${dueChip(it)}<span class="chip" title="${esc(PH[it.phase]?.name||'')}">${it.phase==='bl'?'Бэклог':'Этап '+esc(PH[it.phase]?.n)}</span><span class="pr ${esc(it.prio)}">${esc(it.prio)}</span><span class="who">${esc(it.owner||'')}</span>${ackMarks(it)}</div></li>`}
+    <div class="kb-meta">${it.archived?'<span class="chip arch">архив</span>':''}${dueChip(it)}<span class="chip" title="${esc(PH[it.phase]?.name||'')}">${it.phase==='bl'?'Бэклог':'Этап '+esc(PH[it.phase]?.n)}</span><span class="pr ${esc(it.prio)}">${esc(it.prio)}</span><span class="who">${esc(it.owner||'')}</span>${pendChip(it)}${ackMarks(it)}</div></li>`}
 function renderKanban(){
   const el=$('kb');if(!el)return;
   kbPh=kbPh.filter(k=>PH[k]);
@@ -1379,7 +1393,7 @@ function closeDrawer(){openTask=null;$('drawer-root').innerHTML=''}
 function renderDrawer(){
   const it=findIt(openTask);
   if(!it){closeDrawer();return}
-  $('dr-top').innerHTML=`${stBtn(it)}<div><h3 id="dr-title">${esc(it.title)}</h3><div class="dr-meta"><span class="chip">Этап ${esc(PH[it.phase]?.n)} · ${esc(PH[it.phase]?.name||'')}</span>${areaChip(it)}${dueChip(it)}<span class="pr ${esc(it.prio)}">${esc(PRIO[it.prio]||it.prio)}</span><span class="who">ведёт: ${esc(it.owner||'—')}</span><span class="who">· ${esc(STATUS[it.status]||'')}</span></div></div><div class="dr-btns">${readOnly?'':`<button class="mini" data-arch="${esc(it.id)}" type="button" title="${it.archived?'Вернуть задачу в план и списки':'Убрать из плана и списков; задача и заметки сохранятся'}">${it.archived?'Вернуть из архива':'В архив'}</button>`}<button class="x" id="dr-x" type="button" aria-label="Закрыть">×</button></div>`;
+  $('dr-top').innerHTML=`${stBtn(it)}<div><h3 id="dr-title">${esc(it.title)}</h3><div class="dr-meta"><span class="chip">Этап ${esc(PH[it.phase]?.n)} · ${esc(PH[it.phase]?.name||'')}</span>${areaChip(it)}${dueChip(it)}<span class="pr ${esc(it.prio)}">${esc(PRIO[it.prio]||it.prio)}</span><span class="who">ведёт: ${esc(it.owner||'—')}</span>${pendChip(it)}<span class="who">· ${esc(STATUS[it.status]||'')}</span></div></div><div class="dr-btns">${readOnly?'':`<button class="mini" data-arch="${esc(it.id)}" type="button" title="${it.archived?'Вернуть задачу в план и списки':'Убрать из плана и списков; задача и заметки сохранятся'}">${it.archived?'Вернуть из архива':'В архив'}</button>`}<button class="x" id="dr-x" type="button" aria-label="Закрыть">×</button></div>`;
   $('dr-x').onclick=closeDrawer;
   const fl=[];
   if(it.archived)fl.push(`<div class="dr-flag">В архиве с ${esc(fmtDate(it.archived))}${it.archivedBy?' · убрал'+(it.archivedBy==='Татьяна'?'а':'')+' '+esc(it.archivedBy):''}. Задача не видна в плане, бэклоге, канбане и сводке.</div>`);

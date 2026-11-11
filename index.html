@@ -1677,12 +1677,18 @@ function renderLibSync(){const box=$('lib-syncbox');if(!box||!libScan)return;con
     $('ls-all').disabled=true;let ok=0;for(const i of idx){const r=libScan.rows[i];const how=r.kind==='upload'||r.kind==='new'?'up':'down';if(await libDo(i,how,true))ok++}
     toast(`Готово: ${ok} из ${idx.length}`,5000);runLibSync(false)}}
 async function libDo(i,how,quiet){const r=libScan&&libScan.rows[i];if(!r||readOnly)return false;const root=libScan.root;
+  if(r.busy||r.done){if(!quiet)toast('Уже выполнено — нажмите «Сверить ещё раз».',4000);return false}r.busy=true;
+  document.querySelectorAll(`[data-lsrun="${i}"],[data-lsck="${i}"]`).forEach(b=>b.disabled=true);
+  try{const ok=await libDoRow(r,i,how,quiet,root);if(ok)r.done=true;return ok}finally{r.busy=false;if(!r.done)document.querySelectorAll(`[data-lsrun="${i}"],[data-lsck="${i}"]`).forEach(b=>b.disabled=false)}}
+async function libDoRow(r,i,how,quiet,root){
   try{if(how==='copies'){const lv=r.lv;const list=staleCopies(r);if(!list.length)return false;const blob=await ghRaw(lv.file,'blob');for(const f of list)await writeLocal(root,f.dir,lv.name,blob);
       if(!quiet){toast(`Обновлено копий: ${list.length}. Прежние файлы — в «${REPL_DIR}» рядом с ними.`,6000);runLibSync(false)}return true}
     if(how==='down'){const lv=r.lv;const blob=await ghRaw(lv.file,'blob');const dir=r.loc?r.loc.dir:(r.doc.dir||'');const res=await writeLocal(root,dir,lv.name,blob);
       if(!quiet){toast(`Сохранено: ${dir?dir+'/':''}${res.name}${res.backup?` · прежний файл — в «${REPL_DIR}»`:''}`,6000);runLibSync(false)}return true}
     const l=r.loc;const sel=document.querySelector(`[data-lsc="${i}"]`);const cat=sel?sel.value:(r.cat||suggestCat(l.path));
-    const docId=r.doc?r.doc.id:newKey('d');const meta=r.doc?{dir:r.doc.dir}:{title:/^(readme|index|config|requirements)\b/i.test(l.stem)&&l.dir?l.dir.split('/').pop()+' — '+l.stem:l.stem,cat,aud:suggestAud(cat),dir:l.dir,key:l.key,desc:''};
+    let ex=null;if(!r.doc){await loadLib(false);ex=libDocs().find(d=>!d.archived&&d.key===l.key&&normDir(d.dir)===normDir(l.dir))||null}
+    if(ex&&!quiet)toast(`«${ex.title}» уже есть в библиотеке — загружаю как новую версию.`,5000);
+    const doc=r.doc||ex;const docId=doc?doc.id:newKey('d');const meta=doc?{dir:doc.dir}:{title:/^(readme|index|config|requirements)\b/i.test(l.stem)&&l.dir?l.dir.split('/').pop()+' — '+l.stem:l.stem,cat,aud:suggestAud(cat),dir:l.dir,key:l.key,desc:''};
     const ok=await libUploadFile(l.file,docId,meta);if(ok&&!quiet)runLibSync(false);return ok}
   catch(e){toast('Не получилось: '+(e.message||e),6000);return false}}
 // ---- library tab

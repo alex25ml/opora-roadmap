@@ -406,6 +406,12 @@ svg .mm-ctl path{stroke:var(--muted);stroke-width:1.5;fill:none;stroke-linecap:r
 svg .mm-ctl:hover circle,svg .mm-ctl:focus circle{stroke:var(--accent);fill:var(--accent-soft)}
 svg .mm-ctl:hover path,svg .mm-ctl:focus path{stroke:var(--accent)}
 svg .mm-ctl:focus{outline:none}
+svg .leaf .nctl{opacity:0;pointer-events:none;transition:opacity .12s}
+svg .leaf:hover .nctl,svg .leaf:focus-within .nctl{opacity:1;pointer-events:auto}
+svg .leaf .lcnt{transition:opacity .12s}
+svg .leaf:hover .lcnt,svg .leaf:focus-within .lcnt{opacity:0}
+svg .leaf .nctl .mm-ctl{opacity:1}
+svg .leaf .nctl .mm-ctl circle{fill:var(--surface-2)}
 svg .mm-addarea text{fill:var(--muted);font:500 11px var(--f-body)}
 .swatches{display:flex;gap:8px;flex-wrap:wrap}
 .swatches label{width:30px;height:30px;border-radius:50%;cursor:pointer;display:grid;place-items:center;border:2px solid transparent}
@@ -914,7 +920,7 @@ function renderMap(){
   if(!MMF.some(x=>x[0]===mmF))mmF='all';
   $('mm-seg').innerHTML=MMF.map(([v,l])=>`<button type="button" class="seg-b" data-mmf="${v}" aria-pressed="${mmF===v}">${l} <span class="mono">${loaded?mmPool(v).length:''}</span></button>`).join('');
   const AR=mmF==='arch',ALL=mmF==='all';
-  $('mm-legend').textContent=(ALL?'Цифры — готово / всего задач (без архива).':`Цифры — сколько задач «${MMF.find(x=>x[0]===mmF)[1]}» в узле.`)+' Нажмите на узел — его задачи в бэклоге; «+» у узла — новая задача; «+» под направлением — новый узел; «+» под центром — новое направление; карандаш — переименовать, узлы, архив.';
+  $('mm-legend').textContent=(ALL?'Цифры — готово / всего задач (без архива).':`Цифры — сколько задач «${MMF.find(x=>x[0]===mmF)[1]}» в узле.`)+' Нажмите на узел — его задачи в бэклоге; «+» у узла — новая задача; «+» под направлением — новый узел; «+» под центром — новое направление; карандаш — переименовать, узлы, архив. Наведите на узел — у него появятся карандаш (название, удаление) и архив.';
   const pool=mmPool(mmF);
   const fCol={done:'var(--ok)',doing:'var(--warn)',todo:'var(--muted)',arch:'var(--dim)'}[mmF];
   const list=(AR?ALLAREAS:ALLAREAS.filter(a=>!a.archived)).map(a=>({a,nodes:AR?a.nodes:a.nodes.filter(n=>!n.archived)}));
@@ -927,7 +933,7 @@ function renderMap(){
   const out=[];
   const tone=s=>!s.t?'none':s.d===s.t?'ok':(s.d||s.g)?'warn':'todo';
   const all=stats(items);
-  const ctl=(x,y,attr,label,path,main)=>`<g class="mm-ctl${main?' main':''}" tabindex="0" role="button" ${attr} aria-label="${esc(label)}"><title>${esc(label)}</title><circle cx="${x}" cy="${y}" r="8"/><path d="${path(x,y)}"/></g>`;
+  const ctl=(x,y,attr,label,path,main)=>`<g class="mm-ctl${main?' main':''}" tabindex="0" role="button" ${attr} aria-label="${esc(label)}"><title>${esc(label)}</title><circle cx="${x}" cy="${y}" r="10.5"/><path d="${path(x,y)}" transform="translate(${x} ${y}) scale(1.3) translate(${-x} ${-y})"/></g>`;
   const P_PLUS=(x,y)=>`M${x-3.5},${y}h7M${x},${y-3.5}v7`;
   const P_EDIT=(x,y)=>`M${x-3},${y+3}l.5-2 4.5-4.5 1.5 1.5-4.5 4.5z`;
   const P_ARCH=(x,y)=>`M${x-4},${y-3.5}h8v2.5h-8zM${x-3.2},${y-1}v4.5h6.4v-4.5M${x-1.2},${y+1}h2.4`;
@@ -952,13 +958,13 @@ function renderMap(){
           <rect class="box" x="${lx}" y="${yy-16}" width="${LW}" height="32" rx="8" fill="var(--surface)" stroke="var(--line-2)" stroke-width="1.2"${narch?' stroke-dasharray="4 3"':''}/>
           <circle cx="${lx+16}" cy="${yy}" r="6" fill="${dotFill}" stroke="${dotStroke}" stroke-width="2"/>
           <text x="${lx+30}" y="${yy+4.5}" font-size="13" fill="var(--fg)" font-family="var(--f-body)">${esc((m=>nn.length>m?nn.slice(0,m-1)+'…':nn)(narch?16:label.length>3?20:23))}${narch?' · архив':''}</text>
-          <text x="${lx+LW-12}" y="${yy+4.5}" font-size="12" text-anchor="end" fill="${ls.t?'var(--muted)':'var(--dim)'}" font-family="var(--f-mono)">${label}</text></g>`);
+          <text class="lcnt" x="${lx+LW-12}" y="${yy+4.5}" font-size="12" text-anchor="end" fill="${ls.t?'var(--muted)':'var(--dim)'}" font-family="var(--f-mono)">${label}</text>${readOnly?'':`<g class="nctl">${ctl(lx+LW-41,yy,`data-nodeedit="${esc(a.k)}/${esc(nk)}"`,`Изменить узел «${nn}»: название, архив, удаление`,P_EDIT)}${nd.archived?ctl(lx+LW-16,yy,`data-nodeunarch="${esc(a.k)}/${esc(nk)}"`,`Вернуть узел «${nn}» из архива`,P_BACK):a.archived?'':ctl(lx+LW-16,yy,`data-nodearch="${esc(a.k)}/${esc(nk)}"`,`Узел «${nn}» в архив`,P_ARCH)}</g>`}</g>`);
         if(!readOnly&&!narch){const px=R?lx+LW+16:lx-16;
           out.push(`<g class="mm-add" tabindex="0" role="button" data-addnode="${esc(a.k)}/${esc(nk)}" aria-label="Новая задача в узле «${esc(nn)}»"><title>Новая задача: ${esc(nn)}</title><circle cx="${px}" cy="${yy}" r="10"/><path d="M${px-4},${yy}h8M${px},${yy-4}v8" fill="none"/></g>`)}
       });
       const ctls=readOnly?'':a.archived?
-          ctl(ax-12,ay+19,`data-areaunarch="${esc(a.k)}"`,`Вернуть направление «${a.name}» из архива`,P_BACK,true)+ctl(ax+12,ay+19,`data-areaedit="${esc(a.k)}"`,`Изменить направление «${a.name}»`,P_EDIT)
-         :ctl(ax-24,ay+19,`data-newnode="${esc(a.k)}"`,`Новый узел в «${a.name}»`,P_PLUS,true)+ctl(ax,ay+19,`data-areaedit="${esc(a.k)}"`,`Изменить направление «${a.name}»: название, узлы, удаление`,P_EDIT)+ctl(ax+24,ay+19,`data-areaarch="${esc(a.k)}"`,`Направление «${a.name}» целиком в архив`,P_ARCH);
+          ctl(ax-14,ay+19,`data-areaunarch="${esc(a.k)}"`,`Вернуть направление «${a.name}» из архива`,P_BACK,true)+ctl(ax+14,ay+19,`data-areaedit="${esc(a.k)}"`,`Изменить направление «${a.name}»`,P_EDIT)
+         :ctl(ax-27,ay+19,`data-newnode="${esc(a.k)}"`,`Новый узел в «${a.name}»`,P_PLUS,true)+ctl(ax,ay+19,`data-areaedit="${esc(a.k)}"`,`Изменить направление «${a.name}»: название, узлы, удаление`,P_EDIT)+ctl(ax+27,ay+19,`data-areaarch="${esc(a.k)}"`,`Направление «${a.name}» целиком в архив`,P_ARCH);
       out.push(`<g class="mm-area"${dim}><rect x="${ax-105}" y="${ay-30}" width="210" height="60" rx="12" fill="var(--surface)" stroke="${col}" stroke-width="2"${a.archived?' stroke-dasharray="6 4"':''}/>
         <text x="${ax}" y="${ay-11}" font-size="13" font-weight="700" text-anchor="middle" fill="var(--fg)" font-family="var(--f-body)">${esc(a.name.length>26?a.name.slice(0,25)+'…':a.name)}</text>
         <text x="${ax}" y="${ay+4}" font-size="11.5" text-anchor="middle" fill="var(--muted)" font-family="var(--f-mono)">${a.archived?'в архиве · ':''}${ALL?`${as.d}/${as.t} готово`:`${as.t} ${plural(as.t,'задача','задачи','задач')}`}</text>${ctls}</g>`);
@@ -1046,6 +1052,36 @@ function openAreaDlg(k){const a=k?ALLAREAS.find(x=>x.k===k):null;if(k&&!a)return
     $('ad-delgo').onclick=async()=>{const to=tc?$('ad-to').value:null;const [ta,tn]=to?to.split('/'):[null,null];const me=author(),now=new Date().toISOString();
       if(await saveAreas(`удалено направление «${a.name}»`,(L,d)=>{const i=L.findIndex(z=>z.k===k);if(i<0)return;L.splice(i,1);
         Object.values(d.items||{}).forEach(t=>{if(t.area===k){t.area=ta;t.node=tn;t.updatedAt=now;t.updatedBy=me;if(t.archivedWith&&t.archivedWith.indexOf(':'+k)>0)delete t.archivedWith}})},'Направление удалено'))close()}};
+}
+// one node: rename, archive / return, delete (tasks moved to another node)
+function openNodeEdit(k,nk){const a=ALLAREAS.find(x=>x.k===k);const nd=a&&a.nodes.find(z=>z.k===nk);if(!nd)return;
+  const tc=allItems.filter(t=>t.area===k&&t.node===nk).length;
+  const others=ALLAREAS.filter(x=>!x.archived).flatMap(x=>x.nodes.filter(z=>!z.archived&&!(x.k===k&&z.k===nk)).map(z=>[x.k+'/'+z.k,x.name+' · '+z.name]));
+  $('dlg-root').innerHTML=`<div class="overlay" id="ov"><div class="dlg" role="dialog" aria-modal="true" aria-labelledby="dlg-h">
+    <h3 id="dlg-h">Узел «${esc(nd.name)}»${nd.archived?' · в архиве':''}</h3>
+    <p class="muted" style="margin:0;font-size:13px">Направление «${esc(a.name)}»${a.archived?' (в архиве)':''} · ${tc} ${plural(tc,'задача','задачи','задач')} (вместе с архивными)</p>
+    <div class="field"><label for="ne-name">Название узла</label><input id="ne-name" value="${esc(nd.name)}"></div>
+    <p id="ne-err" style="margin:0;color:var(--crit)" hidden></p>
+    <div id="ne-delbox" hidden></div>
+    <div class="actions"><button class="btn primary" id="ne-save" type="button">Сохранить</button>${a.archived&&!nd.archived?'':`<button class="btn" id="ne-arch" type="button">${nd.archived?'Вернуть из архива':'В архив'}</button>`}<button class="btn danger" id="ne-del" type="button">Удалить</button><button class="btn" id="ne-cancel" type="button">Закрыть</button></div>
+  </div></div>`;
+  const close=()=>{$('dlg-root').innerHTML=''};const err=m=>{$('ne-err').textContent=m;$('ne-err').hidden=!m};
+  $('ov').addEventListener('click',e=>{if(e.target.id==='ov')close()});$('ne-cancel').onclick=close;
+  $('ov').addEventListener('keydown',e=>{if(e.key==='Escape')close();if(e.key==='Enter'&&e.target.id==='ne-name')$('ne-save').click()});
+  const inp=$('ne-name');inp.focus();inp.select();
+  $('ne-save').onclick=async()=>{const v=inp.value.trim();if(!v){err('Напишите название узла.');inp.focus();return}if(v===nd.name){close();return}
+    $('ne-save').disabled=true;
+    const ok=await saveAreas(`узел «${nd.name}» → «${v}»`,L=>{const y=findA(L,k).nodes.find(z=>z.k===nk);if(!y)throw conflictErr('Этот узел уже удалили.');y.name=v},'Сохранено');
+    if(ok)close();else{const b=$('ne-save');if(b)b.disabled=false}};
+  if($('ne-arch'))$('ne-arch').onclick=async()=>{if(await archiveNode(k,nk,!nd.archived))close()};
+  $('ne-del').onclick=()=>{const box=$('ne-delbox');if(!box.hidden)return;
+    if(a.nodes.length<2){err('Это единственный узел направления — удалите направление целиком (карандаш у направления).');return}
+    if(tc&&!others.length){err('Некуда перенести задачи: нет другого активного узла.');return}
+    box.hidden=false;box.innerHTML=`<p style="margin:0">${tc?`${tc} ${plural(tc,'задачу','задачи','задач')} перенести в: <select id="ne-to">${others.map(([v,l])=>`<option value="${esc(v)}">${esc(l)}</option>`).join('')}</select>`:'Узел пустой.'}</p><div class="actions"><button class="btn danger" id="ne-delgo" type="button">Удалить узел «${esc(nd.name)}»</button></div>`;
+    $('ne-delgo').onclick=async()=>{const to=tc?$('ne-to').value:null;const [ta,tn]=to?to.split('/'):[null,null];const me=author(),now=new Date().toISOString();$('ne-delgo').disabled=true;
+      const ok=await saveAreas(`удалён узел «${nd.name}»`,(L,d)=>{const x=findA(L,k);if(x.nodes.length<2)throw conflictErr('Это единственный узел направления.');x.nodes=x.nodes.filter(z=>z.k!==nk);
+        Object.values(d.items||{}).forEach(t=>{if(t.area===k&&t.node===nk){t.area=ta;t.node=tn;t.updatedAt=now;t.updatedBy=me;if(t.archivedWith==='node:'+k+'/'+nk)delete t.archivedWith}})},'Узел удалён');
+      if(ok)close();else{const b=$('ne-delgo');if(b)b.disabled=false}}};
 }
 function openNodeDlg(k){const a=ALLAREAS.find(x=>x.k===k);if(!a)return;
   $('dlg-root').innerHTML=`<div class="overlay" id="ov"><div class="dlg" role="dialog" aria-modal="true" aria-labelledby="dlg-h">
@@ -1796,6 +1832,8 @@ document.addEventListener('click',e=>{
   const aed=e.target.closest('[data-areaedit]');if(aed){if(!readOnly)openAreaDlg(aed.dataset.areaedit);return}
   const aar=e.target.closest('[data-areaarch]');if(aar){archiveArea(aar.dataset.areaarch,true);return}
   const aun=e.target.closest('[data-areaunarch]');if(aun){archiveArea(aun.dataset.areaunarch,false);return}
+  const ned=e.target.closest('[data-nodeedit]');if(ned){e.stopPropagation();if(!readOnly){const [ak,nk]=ned.dataset.nodeedit.split('/');openNodeEdit(ak,nk)}return}
+  const narc=e.target.closest('[data-nodearch]');if(narc){e.stopPropagation();const [ak,nk]=narc.dataset.nodearch.split('/');archiveNode(ak,nk,true);return}
   const nun=e.target.closest('[data-nodeunarch]');if(nun){const [ak,nk]=nun.dataset.nodeunarch.split('/');archiveNode(ak,nk,false);return}
   const qa=e.target.closest('[data-qarch]');if(qa){e.preventDefault();e.stopPropagation();setArchived(qa.dataset.qarch,true);return}
   const nw=e.target.closest('[data-nextwho]');if(nw){nextWho=nw.dataset.nextwho;store('opora.nextWho',nextWho);renderNext();return}

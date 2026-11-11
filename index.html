@@ -457,6 +457,37 @@ svg .mm-addarea text{fill:var(--muted);font:500 11px var(--f-body)}
 .pend{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--muted);white-space:nowrap}
 .au.sm{font-size:11.5px;padding:0 7px 0 2px}.au.sm b{width:14px;height:14px;font-size:9px}
 .who .pend{display:flex;margin-top:3px}
+/* library */
+.lib-head{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.lib-head input[type=search]{flex:1 1 280px;min-width:0;max-width:520px;background:var(--surface);border:1px solid var(--line-2);border-radius:9px;padding:8px 12px}
+#lib-cats{margin-bottom:6px}
+.lcat{margin-top:22px}
+.lcat h3{font-size:16px;font-weight:700;display:flex;gap:8px;align-items:baseline}
+.lcat .lcd{margin:2px 0 10px;font-size:13px}
+.lrow{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:start;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:8px}
+.lrow .ic{font-family:var(--f-mono);font-size:10.5px;font-weight:500;letter-spacing:.04em;padding:3px 6px;border-radius:5px;background:var(--accent-soft);color:var(--accent);text-transform:uppercase;min-width:42px;text-align:center;margin-top:2px}
+.lrow .lt{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:15px}
+.lrow .ld{font-size:13.5px;color:var(--muted);margin-top:2px}
+.lrow .lm{display:flex;gap:10px;flex-wrap:wrap;align-items:center;font-size:12.5px;color:var(--muted);margin-top:6px}
+.lrow .acts{flex-wrap:wrap;justify-content:flex-end;max-width:330px}
+.lhist{list-style:none;margin:10px 0 0;padding:8px 0 0;border-top:1px dashed var(--line);display:flex;flex-direction:column;gap:4px}
+.lhist li{display:flex;gap:10px;flex-wrap:wrap;align-items:center;font-size:12.5px;color:var(--muted)}
+@media (max-width:700px){.lrow{grid-template-columns:auto minmax(0,1fr)}.lrow .acts{grid-column:1/-1;justify-content:flex-start;max-width:none}}
+.ls{background:var(--surface);border:1px solid var(--accent);border-radius:12px;padding:14px 16px;margin:10px 0 14px}
+.ls-head{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-start}
+.ls-g{margin-top:14px}
+.ls-g h4,.ls-g summary{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700;margin:0 0 6px;cursor:default}
+.ls-g summary{cursor:pointer}
+.ls-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.ls-row{display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:var(--bg)}
+.ls-row input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent)}
+.ls-t{font-weight:600;font-size:14px}
+.ls-m{display:flex;flex-direction:column;gap:2px;font-size:12.5px;color:var(--muted);margin-top:2px}
+.ls-m b{font-weight:600;color:var(--fg)}
+.ls-row select{background:var(--surface);border:1px solid var(--line-2);border-radius:7px;padding:4px 6px;font-size:12.5px}
+@media (max-width:700px){.ls-row{grid-template-columns:22px minmax(0,1fr)}.ls-row .acts{grid-column:2;justify-content:flex-start}}
+.old-docs{margin-top:28px;border-top:1px solid var(--line);padding-top:12px}
+.old-docs>summary{cursor:pointer;color:var(--muted);font-weight:600;font-size:14px}
 /* kanban: три столбца по статусу, фильтры по участнику и этапам */
 .kb-filters{display:flex;flex-direction:column;gap:10px;margin-bottom:12px}
 .kb-frow{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
@@ -538,7 +569,7 @@ svg .mm-addarea text{fill:var(--muted);font:500 11px var(--f-body)}
     <button class="tab" role="tab" id="tab-map" data-tab="map" aria-selected="false">Mind-карта</button>
     <button class="tab" role="tab" id="tab-kanban" data-tab="kanban" aria-selected="false">Канбан</button>
     <button class="tab" role="tab" id="tab-notes" data-tab="notes" aria-selected="false">Заметки <span class="tab-c mono" id="notes-n"></span></button>
-    <button class="tab" role="tab" id="tab-docs" data-tab="docs" aria-selected="false">Документы</button>
+    <button class="tab" role="tab" id="tab-docs" data-tab="docs" aria-selected="false">Библиотека</button>
     <button class="tab" role="tab" id="tab-archive" data-tab="archive" aria-selected="false">Архив <span class="tab-c mono" id="arch-n"></span></button>
     <button class="tab tab-link" id="tab-site" type="button" title="Открыть актуальную версию сайта в новом окне">Сайт проекта <span aria-hidden="true">↗</span></button>
     <button class="tab tab-link" id="tab-dash" type="button" title="Открыть актуальный дашборд в новом окне">Дашборд <span aria-hidden="true">↗</span></button>
@@ -619,8 +650,12 @@ svg .mm-addarea text{fill:var(--muted);font:500 11px var(--f-body)}
   </section>
 
   <section id="view-docs" role="tabpanel" aria-labelledby="tab-docs" hidden>
-    <div id="docs"></div>
-    <p class="share-note">Документы — копии файлов из папки проекта на 29 сентября. Их можно прочитать прямо здесь или скачать оригинал. Ссылки на другие материалы добавляются в карточке задачи. Ссылки на другие материалы (Яндекс Диск, Google Docs) добавляются в карточке задачи.</p>
+    <div class="lib-head"><input id="lib-q" type="search" placeholder="Поиск по названию, описанию, имени файла" aria-label="Поиск по библиотеке"><div class="seg" id="lib-aud" role="group" aria-label="Для кого"></div><span class="spacer"></span><button class="btn" id="lib-add" type="button">+ Документ</button><button class="btn primary" id="lib-sync" type="button" title="Сравнить файлы в папке «Консалтинг» на этом компьютере с библиотекой">Сверить с папкой</button></div>
+    <div class="kb-chips" id="lib-cats" role="group" aria-label="Разделы"></div>
+    <div id="lib-syncbox" class="ls" hidden></div>
+    <div id="lib-list"></div>
+    <details class="old-docs"><summary>Старые копии документов от 29 сентября</summary><div id="docs"></div><p class="share-note">Копии, сделанные при запуске дорожной карты. Актуальные версии — в разделах библиотеки выше.</p></details>
+    <input type="file" id="lib-file" hidden>
   </section>
 
   <section id="view-archive" role="tabpanel" aria-labelledby="tab-archive" hidden><div id="arch"></div></section>
@@ -1007,7 +1042,7 @@ function openNodeDlg(k){const a=ALLAREAS.find(x=>x.k===k);if(!a)return;
 
 // ---------- documents tab
 function docActs(d){return `${d.read?`<button class="mini" data-read="${d.id}" type="button">Читать</button>`:''}${d.file?`<button class="mini" data-dl="${d.id}" type="button">Скачать .${esc(ext(d))}</button>`:''}`}
-function renderDocs(){
+function renderDocs(){renderLib();
   const used=id=>items.filter(i=>(i.docs||[]).includes(id));
   const card=d=>{const u=used(d.id);return `<article class="dcard"><h3>${esc(d.t)}</h3><p>${esc(d.d)}</p><div class="used">${u.length?`Прикреплён к ${u.length} ${u.length===1?'задаче':'задачам'}: ${u.slice(0,3).map(i=>`<a href="#" data-open="${esc(i.id)}" style="color:var(--accent)">${esc(i.title.length>48?i.title.slice(0,46)+'…':i.title)}</a>`).join(', ')}${u.length>3?' и ещё '+(u.length-3):''}`:'Пока не прикреплён к задачам'}</div><div class="acts">${docActs(d)}</div></article>`};
   $('docs').innerHTML=`<h2 class="sec-h">Рабочие документы</h2><div class="docs-grid">${DOCS.filter(d=>d.g==='work').map(card).join('')}</div>
@@ -1255,7 +1290,7 @@ async function refresh(silent){
   if(!token)return false;
   try{const res=await loadRemote(!!DB);lastSync=new Date();
     if(!res.notModified){DB=res.db;SHA=res.sha;ETAG=res.etag;applyDB()}
-    setSync('ok');return true}
+    setSync('ok');loadLib(true);return true}
   catch(e){if(e.status===401){lockScreen('Ключ больше не действует. Попросите новый у Александра.');return false}
     setSync('err',e.status===403&&e.limit==='0'?'Превышен лимит запросов GitHub, подождите несколько минут':undefined);if(!silent)toast('Не удалось загрузить данные. Проверьте интернет.');return false}
 }
@@ -1454,6 +1489,211 @@ function openCreate(pre){pre=pre||{};
     $('c-save').disabled=true;const id=newId('u');const ok=await commit(`${author()}: новая задача «${title}»`,d=>{d.items[id]=body},'Задача добавлена');if(ok){close();}else $('c-save').disabled=false};
 }
 
+// ---------- library: all project documents, latest version + history (data/library.json, files in lib/<id>/)
+// Sync with a local folder (File System Access API, Chrome/Edge): compare by SHA-256, offer download/upload; nothing is changed without a click.
+const LIB_PATH='data/library.json';
+const LIB_CATS0=[
+ {k:'services',name:'Услуги и цены',desc:'Линейка услуг, калькулятор услуг, логика цен'},
+ {k:'method',name:'Методологии',desc:'Как проводим экспресс-аудит, полный аудит, диагностику'},
+ {k:'sales',name:'Продажи и договоры',desc:'Сценарии, карточки, NDA, оферта, порядок приёма клиента'},
+ {k:'forms',name:'Формы для клиента',desc:'Что клиент заполняет и присылает: чек-листы, формы, инструкции по ключам'},
+ {k:'tools',name:'Инструменты',desc:'Калькуляторы, дашборд, программа выгрузки и её описание'},
+ {k:'reports',name:'Шаблоны и примеры отчётов',desc:'Отчёты экспресс- и полного аудита, обезличенные примеры'},
+ {k:'refs',name:'Справочники',desc:'Глоссарии, статьи удержаний, нормы выкупа, наборы выгрузки'},
+ {k:'marketing',name:'Маркетинг и сайт',desc:'Лид-магниты, резюме, тексты партнёров, структура сайта'}];
+let LIB=null,LIB_SHA=null,LIB_ETAG=null,libQ='',libCat=store('opora.libCat')||'',libAud=store('opora.libAud')||'',libOpen=new Set();
+let libQueue=Promise.resolve(),libScan=null,libBusy=false;
+const libCats=()=>LIB&&Array.isArray(LIB.cats)&&LIB.cats.length?LIB.cats:LIB_CATS0;
+const libDocs=()=>LIB&&LIB.docs?Object.entries(LIB.docs).map(([id,v])=>Object.assign({id},v)):[];
+const lastV=d=>d&&Array.isArray(d.versions)&&d.versions.length?d.versions[d.versions.length-1]:null;
+const fmtSize=b=>b==null?'':b<1024?b+' Б':b<1048576?Math.round(b/1024)+' КБ':(b/1048576).toFixed(1).replace('.',',')+' МБ';
+const extOf=n=>{const m=String(n||'').match(/\.([^.\/]+)$/);return m?m[1].toLowerCase():''};
+// family key: file name without version mark (v6, -v3) and with extension; generic names keep their folder
+function nameInfo(path){const parts=String(path).split('/');const name=parts.pop();const dir=parts.join('/');const ext=extOf(name);let stem=ext?name.slice(0,-(ext.length+1)):name;
+  let v=null;const m=stem.match(/(^|[\s_\-])v(\d+(?:\.\d+)?)(?=$|[\s_\-—])/i);if(m){v=parseFloat(m[2]);stem=(stem.slice(0,m.index)+(m.index?' ':'')+stem.slice(m.index+m[0].length)).replace(/\s+/g,' ').replace(/\s*([—-])\s*$/,'').trim()}
+  let key=(stem+'.'+ext).toLowerCase().replace(/ё/g,'е').replace(/[–—]/g,'-').replace(/\s+/g,' ').trim();
+  if(/^(readme|index|config|requirements)\b/i.test(stem))key=dir.toLowerCase()+'/'+key;
+  return{name,dir,ext,stem,v,key}}
+function suggestCat(path){const p=path.toLowerCase();
+  if(/калькулятор услуг|цены на услуги|линейк/.test(p))return'services';
+  if(/лид-магнит|lead-magnet|резюме|структура и контент сайта|кейс|seller-rx/.test(p))return'marketing';
+  if(/глоссари|справк|статьи удержаний|статьи_удержаний|нормы|нормы_выкупа|категории|\/ref\//.test(p))return'refs';
+  if(/чек-лист данных|себестоимость и накладные|форма|инструкц.*ключ|ключ.*api/.test(p))return'forms';
+  if(/соглашение|nda|оферт|договор|карточка диагностики|порядок при[её]ма|письм|кп/.test(p))return'sales';
+  if(/отч[её]т|пример/.test(p))return'reports';
+  if(/методик|методолог|диагностика 40/.test(p))return'method';
+  return'tools'}
+const suggestAud=c=>['forms','marketing','reports'].includes(c)?'client':'internal';
+const LIB_EXT=/\.(docx?|xlsx|xlsm|xls|pdf|pptx?|md|html?|csv|txt)$/i;
+// what is never synced: client data (152-ФЗ, NDA), lead registry, keys, code environment, deploy package, temp files
+function libSkip(path){const p=path.toLowerCase().replace(/ё/g,'е');const n=p.split('/').pop();
+  if(/(^|\/)(\.venv|venv|__pycache__|node_modules|\.git|github|claude outputs|для сервера|логи|csv|exports?)(\/|$)/.test(p))return true;
+  if(/^клиенты\//.test(p)&&!/^клиенты\/_шаблоны\//.test(p))return true;
+  if(n.startsWith('~$')||n.startsWith('_')||n.startsWith('.'))return true;
+  if(/лиды/.test(n))return true;
+  if(/(ключ|key|token|токен|пароль|password|secret)/.test(n)&&/(github|токен|token|пароль|password|secret|pat)/.test(n))return true;
+  return!LIB_EXT.test(n)}
+async function sha256(buf){const h=await crypto.subtle.digest('SHA-256',buf);return Array.from(new Uint8Array(h)).map(b=>b.toString(16).padStart(2,'0')).join('')}
+const bufB64=buf=>{const by=new Uint8Array(buf);let bin='';for(let i=0;i<by.length;i+=0x8000)bin+=String.fromCharCode.apply(null,by.subarray(i,i+0x8000));return btoa(bin)};
+async function loadLib(useEtag){if(!token)return;try{
+  const r=await gh(contentsUrl(LIB_PATH)+'?ref='+GH.branch,{headers:useEtag&&LIB_ETAG?{'If-None-Match':LIB_ETAG}:{}});
+  if(r.status===304)return;if(r.status===404){LIB={schema:1,docs:{}};LIB_SHA=null;LIB_ETAG=null;applyLib();return}
+  if(!r.ok)return;LIB_ETAG=r.headers.get('ETag');const j=await r.json();let text=j.content?b64dec(j.content):'';if(!text)text=await ghRaw(LIB_PATH,'text');
+  LIB=JSON.parse(text);LIB.docs=LIB.docs||{};LIB_SHA=j.sha;applyLib()}catch(e){}}
+// task attachments: library documents can be attached like the old ones (id L_<id>)
+function applyLib(){DOCS.splice(0,DOCS.length,...DOCS.filter(d=>!d.lib));Object.keys(DOC).forEach(k=>{if(DOC[k].lib)delete DOC[k]});
+  libDocs().filter(d=>!d.archived).forEach(d=>{const lv=lastV(d);if(!lv)return;const x={id:'L_'+d.id,lib:d.id,g:'lib',t:d.title,d:d.desc||'',file:lv.file,name:lv.name};DOCS.push(x);DOC[x.id]=x});
+  if(loaded){renderDocs();if(openTask)renderDrawer()}}
+// one change of library.json, applied to the fresh copy (same rules as tasks)
+function libCommit(msg,mutate,okMsg){if(readOnly)return Promise.resolve(false);
+  const job=libQueue.then(async()=>{setSync('busy');
+    for(let a=0;a<5;a++){if(a)await new Promise(r=>setTimeout(r,400*a+Math.random()*300));
+      const r=await gh(contentsUrl(LIB_PATH)+'?ref='+GH.branch);let lib={schema:1,docs:{}},sha=null;
+      if(r.ok){const j=await r.json();sha=j.sha;let t=j.content?b64dec(j.content):'';if(!t)t=await ghRaw(LIB_PATH,'text');lib=JSON.parse(t);lib.docs=lib.docs||{}}else if(r.status!==404){const e=new Error('HTTP '+r.status);e.status=r.status;throw e}
+      mutate(lib);lib.updatedAt=new Date().toISOString();
+      const body={message:msg,content:b64enc(JSON.stringify(lib,null,1)),branch:GH.branch};if(sha)body.sha=sha;
+      const p=await gh(contentsUrl(LIB_PATH),{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+      if(p.ok){const j=await p.json();LIB=lib;LIB_SHA=j.content&&j.content.sha;LIB_ETAG=null;applyLib();setSync('ok');if(okMsg)toast(okMsg);return true}
+      if(p.status===409||p.status===422)continue;const e=new Error('HTTP '+p.status);e.status=p.status;throw e}
+    throw new Error('conflict')}).catch(e=>{if(e&&e.conflict){toast(e.message,9000)}else toast('Не сохранилось в библиотеке: нет связи с GitHub. Попробуйте ещё раз.',6000);setSync('err');LIB_ETAG=null;loadLib(false);return false});
+  libQueue=job.then(()=>{},()=>{});return job}
+// upload a file as a new version (new path, never overwrites), then record it in library.json
+async function libUploadFile(file,docId,meta){
+  if(file.size>40*1048576){toast(`«${file.name}» больше 40 МБ — такие файлы через сайт не загружаем.`,7000);return false}
+  const buf=await file.arrayBuffer();const sha=await sha256(buf);const now=new Date().toISOString();const me=author();
+  const d0=LIB&&LIB.docs&&LIB.docs[docId];const lv=lastV(d0);if(lv&&lv.sha===sha){toast(`«${file.name}» не отличается от последней версии на сайте.`,5000);return false}
+  const stamp=now.replace(/[-:T]/g,'').slice(0,14);const path=`lib/${docId}/${stamp}__${file.name}`;
+  setSync('busy','Загружаю «'+file.name+'»…');
+  const p=await gh(contentsUrl(path),{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:`${me}: файл «${file.name}» в библиотеку`,content:bufB64(buf),branch:GH.branch})});
+  if(!p.ok){setSync('err');toast(p.status===403?'Нет права записи: нужен ключ с Contents: Read and write.':'Файл не загрузился (GitHub ответил '+p.status+'). Попробуйте ещё раз.',7000);return false}
+  const info=nameInfo((meta&&meta.dir?meta.dir+'/':'')+file.name);
+  return libCommit(`${me}: «${(meta&&meta.title)||(d0&&d0.title)||file.name}» — ${d0?'новая версия':'новый документ'} (${file.name})`,lib=>{
+    let d=lib.docs[docId];if(!d){d=lib.docs[docId]=Object.assign({title:info.stem,cat:suggestCat(file.name),desc:'',aud:'internal',dir:info.dir,key:info.key,versions:[],created:now,createdBy:me},meta||{})}
+    if(meta&&meta.dir!=null&&!d.dir)d.dir=meta.dir;d.key=d.key||info.key;delete d.archived;
+    d.versions=Array.isArray(d.versions)?d.versions:[];d.versions.push({n:d.versions.length+1,v:info.v,name:file.name,file:path,size:file.size,sha,at:now,by:me,mtime:file.lastModified||null})},
+    d0?`Загружена новая версия «${d0.title}»`:'Документ добавлен в библиотеку')}
+// ---- local folder (Chrome/Edge): handle kept in IndexedDB of this browser
+const idb=(()=>{let p;const open=()=>p||(p=new Promise((res,rej)=>{const r=indexedDB.open('opora-lib',1);r.onupgradeneeded=()=>r.result.createObjectStore('kv');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}));
+  return{get:k=>open().then(db=>new Promise((res,rej)=>{const t=db.transaction('kv').objectStore('kv').get(k);t.onsuccess=()=>res(t.result);t.onerror=()=>rej(t.error)})),
+         set:(k,v)=>open().then(db=>new Promise((res,rej)=>{const t=db.transaction('kv','readwrite').objectStore('kv').put(v,k);t.onsuccess=()=>res();t.onerror=()=>rej(t.error)}))}})();
+let libRoot=null;
+async function libDir(pick){if(!window.showDirectoryPicker){toast('Сверка с папкой работает в Chrome или Edge на компьютере.',7000);return null}
+  let h=null;if(!pick){h=libRoot;if(!h){try{h=await idb.get('dir')}catch(e){}}}
+  if(h&&typeof h.queryPermission==='function'){try{let st=await h.queryPermission({mode:'readwrite'});if(st!=='granted')st=await h.requestPermission({mode:'readwrite'});if(st==='granted'){libRoot=h;return h}}catch(e){}}h=null
+  try{h=await window.showDirectoryPicker({id:'opora-lib',mode:'readwrite'})}catch(e){return null}
+  libRoot=h;try{await idb.set('dir',h)}catch(e){}return h}
+async function scanDir(root){const out=[];
+  async function walk(dir,prefix,depth){if(depth>6)return;for await(const [name,h] of dir.entries()){const path=prefix?prefix+'/'+name:name;
+      if(h.kind==='directory'){if(!libSkip(path+'/x.docx')||/^клиенты$/i.test(path))await walk(h,path,depth+1)}
+      else if(!libSkip(path)){const f=await h.getFile();out.push(Object.assign(nameInfo(path),{path,size:f.size,mtime:f.lastModified,handle:h,file:f}))}}}
+  await walk(root,'',0);
+  for(const x of out){x.sha=await sha256(await x.file.arrayBuffer())}
+  return out}
+async function writeLocal(root,dir,name,blob){let d=root;for(const part of String(dir||'').split('/').filter(Boolean))d=await d.getDirectoryHandle(part,{create:true});
+  let nm=name;try{const ex=await d.getFileHandle(nm);const f=await ex.getFile();const s=await sha256(await f.arrayBuffer());const b=await sha256(await blob.arrayBuffer());if(s===b)return nm;
+    const e=extOf(nm);nm=(e?nm.slice(0,-(e.length+1)):nm)+' (с сайта '+todayISO()+')'+(e?'.'+e:'')}catch(_){}
+  const fh=await d.getFileHandle(nm,{create:true});const w=await fh.createWritable();await w.write(blob);await w.close();return nm}
+// compare a folder with the library
+function libCompare(files){const docs=libDocs().filter(d=>!d.archived);const byKey={};files.forEach(f=>{(byKey[f.key]=byKey[f.key]||[]).push(f)});
+  const rows=[];const used=new Set();
+  docs.forEach(d=>{const lv=lastV(d);
+    // prepared entry without a file yet: the first matching local file becomes version 1
+    if(!lv){if(!d.key)return;const loc0=(byKey[d.key]||[]).slice().sort((a,b)=>(b.v??-1)-(a.v??-1)||b.mtime-a.mtime);used.add(d.key);if(loc0.length)rows.push({kind:'upload',doc:d,lv:null,loc:loc0[0],first:true});return}
+    const key=d.key||nameInfo((d.dir?d.dir+'/':'')+lv.name).key;const loc=(byKey[key]||[]).slice().sort((a,b)=>(b.v??-1)-(a.v??-1)||b.mtime-a.mtime);used.add(key);
+    const svInfo=nameInfo(lv.name);const sv=lv.v??svInfo.v;
+    if(!loc.length){rows.push({kind:'missing',doc:d,lv});return}
+    const top=loc[0];const hasSite=loc.find(f=>f.sha===lv.sha);const inHist=f=>d.versions.slice(0,-1).some(x=>x.sha===f.sha);
+    if(top.sha===lv.sha){rows.push({kind:'ok',doc:d,lv,loc:top,copies:loc.length});return}
+    if(top.v!=null&&sv!=null){if(top.v>sv){rows.push({kind:'upload',doc:d,lv,loc:top});return}
+      if(top.v<sv){rows.push({kind:'download',doc:d,lv,loc:top});return}}
+    if(hasSite&&hasSite!==top&&top.v==null){rows.push({kind:'conflict',doc:d,lv,loc:top});return}
+    if(inHist(top)){rows.push({kind:'download',doc:d,lv,loc:top});return}
+    rows.push({kind:top.mtime>Date.parse(lv.at)?'upload':'conflict',doc:d,lv,loc:top})});
+  Object.entries(byKey).forEach(([k,fs])=>{if(used.has(k))return;const top=fs.slice().sort((a,b)=>(b.v??-1)-(a.v??-1)||b.mtime-a.mtime)[0];rows.push({kind:'new',loc:top,copies:fs.length,cat:suggestCat(top.path)})});
+  return rows}
+const LIB_KIND={download:['На сайте новее — скачать к себе',true],missing:['Нет у вас — скачать к себе',true],upload:['У вас новее — загрузить на сайт',true],new:['Есть только у вас — добавить в библиотеку',false],conflict:['Отличаются, версия не ясна — решите вручную',false],ok:['Совпадают',false]};
+async function runLibSync(pick){if(libBusy)return;const root=await libDir(pick);if(!root)return;libBusy=true;const box=$('lib-syncbox');box.hidden=false;box.innerHTML='<div class="empty">Читаю папку «'+esc(root.name)+'» и сравниваю файлы…</div>';
+  try{await loadLib(false);const files=await scanDir(root);libScan={root,rows:libCompare(files),n:files.length};renderLibSync()}
+  catch(e){box.innerHTML='<div class="empty">Не получилось прочитать папку: '+esc(e.message||e)+'</div>'}finally{libBusy=false}}
+function renderLibSync(){const box=$('lib-syncbox');if(!box||!libScan)return;const {root,rows,n}=libScan;
+  const cnt=k=>rows.filter(r=>r.kind===k).length;const cats=libCats();
+  const row=(r,i)=>{const d=r.doc,lv=r.lv,l=r.loc;const chk=!readOnly&&LIB_KIND[r.kind][1];
+    const site=lv?`<span>на сайте: <b>${esc(lv.name)}</b> · ${esc(fmtDate(lv.at))} · ${auChip(lv.by)}</span>`:'';const loc=l?`<span>у вас: <b>${esc(l.path)}</b> · ${esc(fmtDate(new Date(l.mtime).toISOString()))}${r.copies>1?` · копий: ${r.copies}`:''}</span>`:'';
+    const act=r.kind==='new'?`<select data-lsc="${i}" aria-label="Раздел">${cats.map(c=>`<option value="${c.k}" ${c.k===r.cat?'selected':''}>${esc(c.name)}</option>`).join('')}</select><button class="mini" data-lsrun="${i}" data-how="up">Добавить</button>`
+      :r.kind==='conflict'?`<button class="mini" data-lsrun="${i}" data-how="down">Скачать с сайта</button><button class="mini" data-lsrun="${i}" data-how="up">Загрузить мою</button>`
+      :r.kind==='ok'?'':`<button class="mini" data-lsrun="${i}" data-how="${r.kind==='upload'?'up':'down'}">${r.kind==='upload'?'Загрузить':'Скачать'}</button>`;
+    return `<li class="ls-row" data-lsi="${i}">${r.kind==='ok'||readOnly?'<span></span>':`<input type="checkbox" data-lsck="${i}" ${chk?'checked':''} aria-label="Выполнить">`}<div><div class="ls-t">${esc(d?d.title:l.stem)}</div><div class="ls-m">${site}${loc}</div></div><div class="acts">${act}</div></li>`};
+  const grp=k=>{const rs=rows.map((r,i)=>[r,i]).filter(([r])=>r.kind===k);if(!rs.length)return'';
+    return k==='ok'?`<details class="ls-g"><summary>${LIB_KIND[k][0]}: ${rs.length}</summary><ul class="ls-list">${rs.map(([r,i])=>row(r,i)).join('')}</ul></details>`:`<section class="ls-g"><h4>${LIB_KIND[k][0]}: ${rs.length}</h4><ul class="ls-list">${rs.map(([r,i])=>row(r,i)).join('')}</ul></section>`};
+  const todo=rows.filter(r=>r.kind!=='ok').length;
+  box.innerHTML=`<div class="ls-head"><div><b>Сверка с папкой «${esc(root.name)}»</b><div class="muted" style="font-size:13px">Файлов документов: ${n}. ${todo?`Требуют решения: ${todo}.`:'Всё совпадает с библиотекой.'} Данные клиентов, реестр лидов, ключи и программный код не сверяются.</div></div>
+    <div class="acts">${readOnly||!todo?'':'<button class="btn primary" id="ls-all" type="button">Выполнить отмеченное</button>'}<button class="btn" id="ls-again" type="button">Сверить ещё раз</button><button class="btn" id="ls-other" type="button">Другая папка</button><button class="btn" id="ls-close" type="button">Закрыть</button></div></div>
+    ${['download','missing','upload','new','conflict','ok'].map(grp).join('')}`;
+  $('ls-again').onclick=()=>runLibSync(false);$('ls-other').onclick=()=>runLibSync(true);$('ls-close').onclick=()=>{box.hidden=true};
+  if($('ls-all'))$('ls-all').onclick=async()=>{const idx=[...box.querySelectorAll('[data-lsck]:checked')].map(c=>+c.dataset.lsck);if(!idx.length){toast('Ничего не отмечено');return}
+    $('ls-all').disabled=true;let ok=0;for(const i of idx){const r=libScan.rows[i];const how=r.kind==='upload'||r.kind==='new'?'up':'down';if(await libDo(i,how,true))ok++}
+    toast(`Готово: ${ok} из ${idx.length}`,5000);runLibSync(false)}}
+async function libDo(i,how,quiet){const r=libScan&&libScan.rows[i];if(!r||readOnly)return false;const root=libScan.root;
+  try{if(how==='down'){const lv=r.lv;const blob=await ghRaw(lv.file,'blob');const dir=r.loc?r.loc.dir:(r.doc.dir||'');const nm=await writeLocal(root,dir,lv.name,blob);if(!quiet){toast(`Сохранено в папку: ${dir?dir+'/':''}${nm}`,5000);runLibSync(false)}return true}
+    const l=r.loc;const sel=document.querySelector(`[data-lsc="${i}"]`);const cat=sel?sel.value:(r.cat||suggestCat(l.path));
+    const docId=r.doc?r.doc.id:newKey('d');const meta=r.doc?{dir:r.doc.dir}:{title:/^(readme|index|config|requirements)\b/i.test(l.stem)&&l.dir?l.dir.split('/').pop()+' — '+l.stem:l.stem,cat,aud:suggestAud(cat),dir:l.dir,key:l.key,desc:''};
+    const ok=await libUploadFile(l.file,docId,meta);if(ok&&!quiet)runLibSync(false);return ok}
+  catch(e){toast('Не получилось: '+(e.message||e),6000);return false}}
+// ---- library tab
+function renderLib(){const el=$('lib-list');if(!el)return;const cats=libCats();const docs=libDocs().filter(d=>!d.archived);
+  const q=libQ.trim().toLowerCase();const fq=d=>!q||[d.title,d.desc,...(d.versions||[]).map(v=>v.name)].join(' ').toLowerCase().includes(q);const fa=d=>!libAud||d.aud===libAud;
+  $('lib-cats').innerHTML=`<button type="button" class="kb-chip" data-libcat="" aria-pressed="${!libCat}">Все разделы <span class="mono">${docs.filter(d=>fq(d)&&fa(d)).length}</span></button>`+cats.map(c=>`<button type="button" class="kb-chip" data-libcat="${c.k}" aria-pressed="${libCat===c.k}" title="${esc(c.desc||'')}">${esc(c.name)} <span class="mono">${docs.filter(d=>d.cat===c.k&&fq(d)&&fa(d)).length}</span></button>`).join('');
+  $('lib-aud').innerHTML=[['','Все'],['client','Для клиента'],['internal','Внутренние']].map(([v,l])=>`<button type="button" class="seg-b" data-libaud="${v}" aria-pressed="${libAud===v}">${l}</button>`).join('');
+  $('lib-add').hidden=readOnly;
+  if(!LIB){el.innerHTML='<div class="empty">Загружаю библиотеку…</div>';return}
+  const used=id=>items.filter(i=>(i.docs||[]).includes('L_'+id)).length;
+  const docRow=d=>{const lv=lastV(d);const op=libOpen.has(d.id);const vs=(d.versions||[]).slice().reverse();
+    return `<article class="lrow"><span class="ic">${esc(extOf(lv&&lv.name)||'doc')}</span><div class="lmain"><div class="lt"><b>${esc(d.title)}</b>${d.aud==='client'?'<span class="chip">для клиента</span>':''}${used(d.id)?`<span class="bdg">в задачах: ${used(d.id)}</span>`:''}</div>${d.desc?`<div class="ld">${esc(d.desc)}</div>`:''}
+      <div class="lm">${lv?`<span>${esc(lv.name)}</span><span>загружено ${esc(fmtDate(lv.at))}</span>${auChip(lv.by)}<span>${fmtSize(lv.size)}</span>${d.dir?`<span title="Папка на компьютере">📁 ${esc(d.dir)}</span>`:''}`:'<span>файл ещё не загружен — появится после «Сверить с папкой» на компьютере, где он есть</span>'}</div>
+      ${op?`<ul class="lhist">${vs.map(v=>`<li><span class="mono">№${v.n}</span><span>${esc(v.name)}</span><span>${esc(fmtDate(v.at))}</span>${auChip(v.by)}<span>${fmtSize(v.size)}</span><button class="mini ghost" data-libget="${esc(d.id)}|${v.n}" type="button">Скачать</button></li>`).join('')}</ul>`:''}</div>
+      <div class="acts">${lv?`<button class="mini" data-libget="${esc(d.id)}|${lv.n}" type="button">Скачать</button>`:''}${readOnly?'':`<button class="mini" data-libup="${esc(d.id)}" type="button">Новая версия</button>`}<button class="mini ghost" data-libhist="${esc(d.id)}" type="button">${op?'Скрыть историю':'История ('+(d.versions||[]).length+')'}</button>${readOnly?'':`<button class="mini ghost" data-libedit="${esc(d.id)}" type="button">Изменить</button>`}</div></article>`};
+  const list=cats.filter(c=>!libCat||c.k===libCat).map(c=>{const ds=docs.filter(d=>d.cat===c.k&&fq(d)&&fa(d)).sort((a,b)=>a.title.localeCompare(b.title,'ru'));if(!ds.length&&(q||libAud))return'';
+    return `<section class="lcat"><h3>${esc(c.name)} <span class="muted mono">${ds.length}</span></h3><p class="muted lcd">${esc(c.desc||'')}</p>${ds.length?ds.map(docRow).join(''):'<div class="empty">В разделе пока нет документов.</div>'}</section>`}).join('');
+  const other=docs.filter(d=>!cats.some(c=>c.k===d.cat)&&fq(d)&&fa(d));
+  el.innerHTML=(docs.length?'':`<div class="empty">Библиотека пустая. Нажмите «Сверить с папкой» и выберите папку «Консалтинг» на компьютере — страница найдёт документы и предложит добавить их по разделам.</div>`)+list+(other.length?`<section class="lcat"><h3>Без раздела</h3>${other.map(docRow).join('')}</section>`:'');
+}
+function openLibDlg(id,file){const d=id?libDocs().find(x=>x.id===id):null;const cats=libCats();const info=file?nameInfo(file.name):null;const cat=d?d.cat:suggestCat(file?file.name:'');
+  $('dlg-root').innerHTML=`<div class="overlay" id="ov"><div class="dlg" role="dialog" aria-modal="true" aria-labelledby="dlg-h">
+    <h3 id="dlg-h">${d?'Документ «'+esc(d.title)+'»':'Новый документ в библиотеку'}</h3>
+    ${file?`<p class="muted" style="margin:0;font-size:13px">Файл: ${esc(file.name)} · ${fmtSize(file.size)}</p>`:''}
+    <div class="field"><label for="ld-t">Название</label><input id="ld-t" value="${esc(d?d.title:info?info.stem:'')}"></div>
+    <div class="row"><div class="field"><label for="ld-c">Раздел</label><select id="ld-c">${cats.map(c=>`<option value="${c.k}" ${c.k===cat?'selected':''}>${esc(c.name)}</option>`).join('')}</select></div>
+      <div class="field"><label for="ld-a">Для кого</label><select id="ld-a"><option value="internal" ${(d?d.aud:suggestAud(cat))==='internal'?'selected':''}>Внутренний</option><option value="client" ${(d?d.aud:suggestAud(cat))==='client'?'selected':''}>Для клиента</option></select></div></div>
+    <div class="field"><label for="ld-d">Коротко, что это</label><textarea id="ld-d" style="min-height:60px">${esc(d?d.desc||'':'')}</textarea></div>
+    <div class="field"><label for="ld-p">Папка на компьютере (внутри «Консалтинг»; пусто — корень)</label><input id="ld-p" value="${esc(d?d.dir||'':'')}" placeholder="Например: Калькулятор МП"></div>
+    <div class="actions"><button class="btn primary" id="ld-save" type="button">${d?'Сохранить':'Загрузить'}</button>${d?`<button class="btn" id="ld-arch" type="button">Убрать из библиотеки</button>`:''}<button class="btn" id="ld-cancel" type="button">Отмена</button></div></div></div>`;
+  const close=()=>{$('dlg-root').innerHTML=''};$('ov').addEventListener('click',e=>{if(e.target.id==='ov')close()});$('ld-cancel').onclick=close;$('ov').addEventListener('keydown',e=>{if(e.key==='Escape')close()});$('ld-t').focus();
+  $('ld-save').onclick=async()=>{const m={title:$('ld-t').value.trim()||(info?info.stem:'Документ'),cat:$('ld-c').value,aud:$('ld-a').value,desc:$('ld-d').value.trim(),dir:$('ld-p').value.trim().replace(/\\/g,'/').replace(/^\/+|\/+$/g,'')};$('ld-save').disabled=true;let ok;
+    if(d)ok=await libCommit(`${author()}: описание документа «${d.title}»`,lib=>{const x=lib.docs[d.id];if(!x)throw conflictErr('Документ уже убрали.');Object.assign(x,m)},'Сохранено');
+    else ok=await libUploadFile(file,newKey('d'),Object.assign(m,{key:nameInfo((m.dir?m.dir+'/':'')+file.name).key}));
+    if(ok)close();else{const b=$('ld-save');if(b)b.disabled=false}};
+  if(d)$('ld-arch').onclick=async()=>{if(await libCommit(`${author()}: «${d.title}» убран из библиотеки`,lib=>{const x=lib.docs[d.id];if(x)x.archived=new Date().toISOString()},'Документ убран (файлы и история сохранены)'))close()};
+}
+let libPending=null;
+document.addEventListener('click',async e=>{const t=e.target.closest&&e.target.closest('[data-libcat],[data-libaud],[data-libget],[data-libup],[data-libhist],[data-libedit],[data-lsrun],#lib-sync,#lib-add');if(!t)return;
+  if(t.id==='lib-sync'){runLibSync(false);return}
+  if(t.id==='lib-add'){libPending={add:true};$('lib-file').value='';$('lib-file').click();return}
+  if(t.dataset.libcat!==undefined){libCat=t.dataset.libcat;store('opora.libCat',libCat);renderLib();return}
+  if(t.dataset.libaud!==undefined){libAud=t.dataset.libaud;store('opora.libAud',libAud);renderLib();return}
+  if(t.dataset.libhist){const id=t.dataset.libhist;libOpen.has(id)?libOpen.delete(id):libOpen.add(id);renderLib();return}
+  if(t.dataset.libedit){openLibDlg(t.dataset.libedit,null);return}
+  if(t.dataset.libup){libPending={doc:t.dataset.libup};$('lib-file').value='';$('lib-file').click();return}
+  if(t.dataset.libget){const [id,n]=t.dataset.libget.split('|');const d=libDocs().find(x=>x.id===id);const v=d&&(d.versions||[]).find(x=>String(x.n)===n);if(!v)return;toast('Скачиваю «'+v.name+'»…');
+    try{const blob=await ghRaw(v.file,'blob');const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=v.name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000)}catch(_){toast('Файл не скачался.')}return}
+  if(t.dataset.lsrun){libDo(+t.dataset.lsrun,t.dataset.how,false);return}});
+document.addEventListener('change',async e=>{if(e.target.id!=='lib-file'||!libPending)return;const f=e.target.files&&e.target.files[0];const p=libPending;libPending=null;if(!f)return;
+  if(p.add){openLibDlg(null,f);return}
+  const d=libDocs().find(x=>x.id===p.doc);if(!d)return;const lv=lastV(d);
+  if(lv&&nameInfo(f.name).key!==nameInfo(lv.name).key&&!confirmName(f.name,lv.name))return;
+  await libUploadFile(f,d.id,{dir:d.dir})});
+function confirmName(a,b){toast(`Имя файла «${a}» не похоже на «${b}». Загружаю как новую версию этого документа.`,6000);return true}
+
+document.addEventListener('input',e=>{if(e.target.id==='lib-q'){libQ=e.target.value;renderLib()}});
 // ---------- events (delegated)
 document.addEventListener('click',e=>{
   const c=e.target.closest('[data-cycle]');if(c){e.preventDefault();e.stopPropagation();cycle(c.dataset.cycle);return}
@@ -1539,6 +1779,8 @@ window.opora={
   setDue:(id,due)=>{const it=(DB.items||{})[id];return commit(`Claude: срок «${it?it.title:id}» → ${due}`,d=>{if(d.items[id])d.items[id].due=due})},
   archive:(id,on)=>setArchived(id,on!==false,'Claude'),
   areas:()=>JSON.parse(JSON.stringify(ALLAREAS)),
+  library:()=>JSON.parse(JSON.stringify(LIB||{})),
+  libRefresh:()=>{LIB_ETAG=null;return loadLib(false)},
   addSub:(id,t,who,due)=>{const now=new Date().toISOString();const sid=newId('s');return commit(`Claude: подзадача к ${id}`,d=>{const x=d.items[id];if(!x)throw conflictErr('Нет задачи '+id);x.subs=Array.isArray(x.subs)?x.subs:[];x.subs.push({id:sid,t,done:false,who:who||'',due:due||null,at:now,by:'Claude'});x.updatedAt=now;x.updatedBy='Claude'})},
   whoami:()=>({author:author(),personalKey:!!boundName()}),
   toggleNote:(nid,done)=>{const now=new Date().toISOString();return commit(`Claude: заметка ${done?'сделано':'открыта'}`,d=>{if(d.notes&&d.notes[nid]){d.notes[nid].done=!!done;d.notes[nid].doneAt=done?now:null}})},
@@ -1564,7 +1806,7 @@ $('lk-form').addEventListener('submit',async e=>{
     const res=await loadRemote(false);
     store('opora.key',k);keyFp=await fpOf(k);const bound=res.db.people&&res.db.people[keyFp];store('opora.author',bound&&AUTHORS.includes(bound.name)?bound.name:who);
     DB=res.db;SHA=res.sha;ETAG=res.etag;lastSync=new Date();readOnly=false;notice('');
-    $('lock').hidden=true;applyDB();setSync('ok');renderWho();startPolling();
+    $('lock').hidden=true;applyDB();setSync('ok');renderWho();startPolling();loadLib(false);
     if(bound&&bound.name!==who)toast('Этот ключ закреплён за: '+bound.name+'. Подпись — '+bound.name+'.',6000);
     if(!bound&&$('lk-own').checked&&keyFp){const now=new Date().toISOString();await commit(`${who}: подключён личный ключ`,d=>{d.people=d.people||{};if(!d.people[keyFp])d.people[keyFp]={name:who,at:now}},'Личный ключ закреплён за: '+who);renderWho()}
   }catch(ex){

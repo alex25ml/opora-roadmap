@@ -445,6 +445,9 @@ svg .mm-addarea text{fill:var(--muted);font:500 11px var(--f-body)}
 .kb-chip{border:1px solid var(--line-2);background:var(--surface);border-radius:99px;padding:6px 12px;cursor:pointer;font-weight:600;font-size:13px;color:var(--muted);white-space:nowrap}
 .kb-chip:hover{border-color:var(--accent);color:var(--fg)}
 .kb-chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+@media (min-width:601px){.kb-frow{flex-wrap:nowrap;align-items:flex-start}.kb-flabel{padding-top:7px;flex:none;min-width:96px}.kb-chips{flex:1;min-width:0}}
+.kb-chip[aria-pressed="true"] .dot{box-shadow:0 0 0 2px var(--on-accent)}
+.kb-chip .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:0}
 .kb-chip .mono{font-weight:500;opacity:.85;margin-left:2px}
 .kb{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(272px,1fr);gap:12px;overflow-x:auto;align-items:start;padding-bottom:6px;scroll-snap-type:x proximity}
 .kb-col{background:var(--surface-2);border:1px solid var(--line);border-radius:var(--r);padding:10px;display:flex;flex-direction:column;gap:8px;min-width:0;scroll-snap-align:start}
@@ -578,6 +581,8 @@ svg .mm-addarea text{fill:var(--muted);font:500 11px var(--f-body)}
     <div class="kb-filters">
       <div class="kb-frow"><span class="kb-flabel" id="kb-who-l">Кто ведёт</span><div class="seg" id="kb-who" role="group" aria-labelledby="kb-who-l"></div></div>
       <div class="kb-frow"><span class="kb-flabel" id="kb-ph-l">Этапы</span><div class="kb-chips" id="kb-ph" role="group" aria-labelledby="kb-ph-l"></div></div>
+      <div class="kb-frow"><span class="kb-flabel" id="kb-dir-l">Направления</span><div class="kb-chips" id="kb-dir" role="group" aria-labelledby="kb-dir-l"></div></div>
+      <div class="kb-frow" id="kb-node-row" hidden><span class="kb-flabel" id="kb-node-l">Узлы</span><div class="kb-chips" id="kb-node" role="group" aria-labelledby="kb-node-l"></div></div>
       <div class="kb-frow"><span class="kb-flabel" id="kb-ar-l">Задачи</span><div class="seg" id="kb-ar" role="group" aria-labelledby="kb-ar-l"></div></div>
       <div class="kb-frow" id="kb-hid-row" hidden><span class="kb-flabel">Скрыты</span><div class="kb-chips" id="kb-hid"></div></div>
     </div>
@@ -1010,6 +1015,8 @@ function renderArchive(){const el=$('arch');if(!el)return;$('arch-n').textConten
 let kbWho=store('opora.kbWho')||'';
 let kbPh=store('opora.kbPh');if(!Array.isArray(kbPh))kbPh=[];
 let kbHide=store('opora.kbHide');if(!Array.isArray(kbHide))kbHide=[];
+let kbDir=store('opora.kbDir');if(!Array.isArray(kbDir))kbDir=[];
+let kbNode=store('opora.kbNode');if(!Array.isArray(kbNode))kbNode=[];
 let kbArch=false;let kbDoneAll=false;const KB_DONE_MAX=8;
 const KB_DEF=[{id:'todo',name:'Не начато',st:'todo'},{id:'doing',name:'В работе',st:'doing'},{id:'done',name:'Готово',st:'done'}];
 const colsOf=d=>{const c=d&&d.kanban&&Array.isArray(d.kanban.cols)?d.kanban.cols.filter(x=>x&&x.id&&STATUS[x.st]):[];return c.length?c:KB_DEF.map(x=>Object.assign({},x))};
@@ -1029,20 +1036,27 @@ function renderKanban(){
   kbPh=kbPh.filter(k=>PH[k]);
   const cols=kbCols();kbHide=kbHide.filter(id=>cols.some(c=>c.id===id));
   const src=kbArch?archItems:items;
-  const byWho=src.filter(i=>kbMine(i,kbWho));
-  const byPh=src.filter(i=>!kbPh.length||kbPh.includes(i.phase));
-  const cntWho=w=>byPh.filter(i=>kbMine(i,w)).length;
-  $('kb-who').innerHTML=[['','Все'],['Александр','Александр'],['Татьяна','Татьяна']].map(([v,l])=>`<button type="button" class="seg-b" data-kbwho="${v}" aria-pressed="${kbWho===v}">${l} <span class="mono">${loaded?cntWho(v):''}</span></button>`).join('');
-  $('kb-ph').innerHTML=`<button type="button" class="kb-chip" data-kbph="" aria-pressed="${!kbPh.length}">Все задачи <span class="mono">${loaded?byWho.length:''}</span></button>`+
-    PHASES.map(p=>`<button type="button" class="kb-chip" data-kbph="${esc(p.k)}" aria-pressed="${kbPh.includes(p.k)}" title="${esc(p.goal||'')}${p.when?' · '+esc(p.when):''}">${p.k==='bl'?'':esc(p.n)+'. '}${esc(p.name)} <span class="mono">${loaded?byWho.filter(i=>i.phase===p.k).length:''}</span></button>`).join('');
+  const dirs=kbArch?ALLAREAS:ALLAREAS.filter(a=>!a.archived);
+  kbDir=kbDir.filter(k=>dirs.some(a=>a.k===k));kbNode=kbNode.filter(v=>kbDir.includes(v.split('/')[0]));
+  const fW=i=>kbMine(i,kbWho),fP=i=>!kbPh.length||kbPh.includes(i.phase),fD=i=>!kbDir.length||kbDir.includes(i.area),fN=i=>{const sel=kbNode.filter(v=>v.split('/')[0]===i.area);return !sel.length||sel.includes(i.area+'/'+i.node)};
+  const cnt=(...fs)=>src.filter(i=>fs.every(f=>f(i))).length;
+  $('kb-who').innerHTML=[['','Все'],['Александр','Александр'],['Татьяна','Татьяна']].map(([v,l])=>`<button type="button" class="seg-b" data-kbwho="${v}" aria-pressed="${kbWho===v}">${l} <span class="mono">${loaded?cnt(fP,fD,fN,i=>kbMine(i,v)):''}</span></button>`).join('');
+  $('kb-ph').innerHTML=`<button type="button" class="kb-chip" data-kbph="" aria-pressed="${!kbPh.length}">Все задачи <span class="mono">${loaded?cnt(fW,fD,fN):''}</span></button>`+
+    PHASES.map(p=>`<button type="button" class="kb-chip" data-kbph="${esc(p.k)}" aria-pressed="${kbPh.includes(p.k)}" title="${esc(p.goal||'')}${p.when?' · '+esc(p.when):''}">${p.k==='bl'?'':esc(p.n)+'. '}${esc(p.name)} <span class="mono">${loaded?cnt(fW,fD,fN,i=>i.phase===p.k):''}</span></button>`).join('');
+  $('kb-dir').innerHTML=`<button type="button" class="kb-chip" data-kbdir="" aria-pressed="${!kbDir.length}">Все направления <span class="mono">${loaded?cnt(fW,fP):''}</span></button>`+
+    dirs.map(a=>`<button type="button" class="kb-chip" data-kbdir="${esc(a.k)}" aria-pressed="${kbDir.includes(a.k)}"><span class="dot" style="background:${acol(a)}"></span>${esc(a.name)}${a.archived?' (архив)':''} <span class="mono">${loaded?cnt(fW,fP,i=>i.area===a.k):''}</span></button>`).join('');
+  const nodes=dirs.filter(a=>kbDir.includes(a.k)).flatMap(a=>a.nodes.filter(n=>kbArch||!n.archived).map(n=>({v:a.k+'/'+n.k,a,n})));
+  $('kb-node-row').hidden=!kbDir.length;
+  $('kb-node').innerHTML=kbDir.length?`<button type="button" class="kb-chip" data-kbnode="" aria-pressed="${!kbNode.length}">Все узлы <span class="mono">${loaded?cnt(fW,fP,fD):''}</span></button>`+
+    nodes.map(({v,a,n})=>`<button type="button" class="kb-chip" data-kbnode="${esc(v)}" aria-pressed="${kbNode.includes(v)}">${kbDir.length>1?`<span class="dot" style="background:${acol(a)}"></span>`:''}${esc(n.name)} <span class="mono">${loaded?cnt(fW,fP,i=>i.area+'/'+i.node===v):''}</span></button>`).join(''):'';
   $('kb-ar').innerHTML=[[false,'Активные',items.length],[true,'Архив',archItems.length]].map(([v,l,c])=>`<button type="button" class="seg-b" data-kbarch="${v?1:0}" aria-pressed="${kbArch===v}">${l} <span class="mono">${loaded?c:''}</span></button>`).join('');
   const hid=cols.filter(c=>kbHide.includes(c.id));
   $('kb-hid-row').hidden=!hid.length;
   $('kb-hid').innerHTML=hid.map(c=>`<button type="button" class="kb-chip" data-kbshow="${esc(c.id)}" title="Показать столбец">${esc(c.name)} · показать</button>`).join('');
   if(!loaded){el.innerHTML='<p class="muted">Загружаю задачи…</p>';$('kb-count').textContent='';return}
-  const list=byWho.filter(i=>!kbPh.length||kbPh.includes(i.phase));
+  const list=src.filter(i=>fW(i)&&fP(i)&&fD(i)&&fN(i));
   const who=kbWho?(kbWho==='Татьяна'?'Татьяны':'Александра')+' и общие':'обоих партнёров';
-  $('kb-count').textContent=`${kbArch?'Архив: показано':'Показано'} ${list.length} из ${src.length} ${plural(src.length,'задачи','задач','задач')}: задачи ${who}, ${kbPh.length?'этапы: '+PHASES.filter(p=>kbPh.includes(p.k)).map(p=>p.name).join(', '):'все этапы и бэклог'}.`;
+  $('kb-count').textContent=`${kbArch?'Архив: показано':'Показано'} ${list.length} из ${src.length} ${plural(src.length,'задачи','задач','задач')}: задачи ${who}, ${kbPh.length?'этапы: '+PHASES.filter(p=>kbPh.includes(p.k)).map(p=>p.name).join(', '):'все этапы и бэклог'}${kbDir.length?', направления: '+kbDir.map(k=>AREA[k]?.name||k).join(', '):''}${kbNode.length?', узлы: '+kbNode.map(v=>NODE[v]||v).join(', '):''}.`;
   const po=k=>PHASES.findIndex(p=>p.k===k);
   const vis=cols.filter(c=>!kbHide.includes(c.id));
   el.innerHTML=vis.map(c=>{
@@ -1421,6 +1435,8 @@ document.addEventListener('click',e=>{
   const ak=e.target.closest('[data-ack]');if(ak){e.stopPropagation();toggleAck(ak.dataset.ack);return}
   const ho=e.target.closest('[data-hotowner]');if(ho){hotOwner=ho.dataset.hotowner;store('opora.hotOwner',hotOwner);renderHot();return}
   const kw=e.target.closest('[data-kbwho]');if(kw){kbWho=kw.dataset.kbwho;store('opora.kbWho',kbWho);renderKanban();return}
+  const kdr=e.target.closest('[data-kbdir]');if(kdr){const k=kdr.dataset.kbdir;if(!k){kbDir=[];kbNode=[]}else{const i=kbDir.indexOf(k);if(i>=0)kbDir.splice(i,1);else kbDir.push(k)}store('opora.kbDir',kbDir);store('opora.kbNode',kbNode);renderKanban();return}
+  const knd=e.target.closest('[data-kbnode]');if(knd){const v=knd.dataset.kbnode;if(!v)kbNode=[];else{const i=kbNode.indexOf(v);if(i>=0)kbNode.splice(i,1);else kbNode.push(v)}store('opora.kbNode',kbNode);renderKanban();return}
   const kp=e.target.closest('[data-kbph]');if(kp){const k=kp.dataset.kbph;if(!k)kbPh=[];else{const i=kbPh.indexOf(k);if(i>=0)kbPh.splice(i,1);else kbPh.push(k)}store('opora.kbPh',kbPh);renderKanban();return}
   const km=e.target.closest('[data-kbmore]');if(km){kbDoneAll=km.dataset.kbmore==='1';renderKanban();return}
   const rd=e.target.closest('[data-read]');if(rd){openReader(rd.dataset.read);return}

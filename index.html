@@ -389,6 +389,54 @@ svg .mm-add:focus{outline:none}
 .kb-add:hover{border-color:var(--accent);color:var(--accent)}
 .kb-card.is-arch{opacity:.75;border-style:dashed}
 .chip.arch{border-color:var(--line-2);color:var(--dim)}
+/* stage 3: kanban add button, editable directions, subtasks, grouped archive */
+.kb-cline{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 12px}
+.kb-cline .count{margin:0}
+.kb-cline .btn{padding:6px 12px;font-size:13px}
+svg .mm-ctl{cursor:pointer;opacity:.55}
+svg .mm-area:hover .mm-ctl,svg .mm-ctl:focus,svg .mm-ctl.main{opacity:1}
+svg .mm-ctl circle{fill:var(--surface-2);stroke:var(--line-2);stroke-width:1}
+svg .mm-ctl path{stroke:var(--muted);stroke-width:1.5;fill:none;stroke-linecap:round;stroke-linejoin:round}
+svg .mm-ctl:hover circle,svg .mm-ctl:focus circle{stroke:var(--accent);fill:var(--accent-soft)}
+svg .mm-ctl:hover path,svg .mm-ctl:focus path{stroke:var(--accent)}
+svg .mm-ctl:focus{outline:none}
+svg .mm-addarea text{fill:var(--muted);font:500 11px var(--f-body)}
+.swatches{display:flex;gap:8px;flex-wrap:wrap}
+.swatches label{width:30px;height:30px;border-radius:50%;cursor:pointer;display:grid;place-items:center;border:2px solid transparent}
+.swatches input{position:absolute;opacity:0;pointer-events:none}
+.swatches label:has(input:checked){border-color:var(--fg)}
+.swatches i{width:20px;height:20px;border-radius:50%;display:block}
+.nlist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.nlist li{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:6px;align-items:center}
+.nlist li.is-arch input{opacity:.6;text-decoration:line-through}
+.nlist input{background:var(--surface);border:1px solid var(--line-2);border-radius:8px;padding:6px 9px;width:100%;min-width:0}
+.nlist .mv{grid-column:1/-1;display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+.nlist .mv select{background:var(--surface);border:1px solid var(--line-2);border-radius:8px;padding:5px 8px;max-width:100%}
+.dlg h4{margin:6px 0 0;font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.subs{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.subs li{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 10px;border-bottom:1px solid var(--line)}
+.subs li:last-child{border-bottom:0}
+.subs li.empty{display:block;border:0}
+.subs .st-t{font-size:14.5px;overflow-wrap:anywhere;cursor:text}
+.subs li.is-done .st-t{color:var(--muted);text-decoration:line-through}
+.subs .st-m{font-size:12px;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap;margin-top:2px}
+.subs .st-a{display:flex;gap:2px}
+.subs .st-a button{width:26px;height:26px;border:0;background:none;color:var(--dim);border-radius:6px;cursor:pointer;font-size:14px;line-height:1}
+.subs .st-a button:hover{color:var(--accent);background:var(--surface-2)}
+.subs .st-a button.del:hover{color:var(--crit)}
+.subs .st-a button[disabled]{opacity:.3;cursor:default}
+.subs input.st-in{width:100%;background:var(--surface);border:1px solid var(--accent);border-radius:7px;padding:4px 8px}
+.sub-form{display:grid;grid-template-columns:minmax(0,1fr) auto auto auto;gap:8px;margin-top:10px}
+.sub-form input,.sub-form select{background:var(--surface);border:1px solid var(--line-2);border-radius:8px;padding:8px 10px;min-width:0}
+@media (max-width:600px){.sub-form{grid-template-columns:1fr 1fr}.sub-form input#sf-t{grid-column:1/-1}}
+.arch-g{margin-top:22px}
+.arch-g:first-of-type{margin-top:6px}
+.arch-gh{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding-bottom:8px;border-bottom:1px solid var(--line)}
+.arch-gh b{font-size:15px}
+.arch-gh i{width:9px;height:9px;border-radius:50%;flex:none}
+.arch-gh .muted{font-size:13px}
+.arch-gh .mini{margin-left:auto}
+.arch-nl{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:13px;color:var(--muted);padding:6px 0}
 /* kanban: три столбца по статусу, фильтры по участнику и этапам */
 .kb-filters{display:flex;flex-direction:column;gap:10px;margin-bottom:12px}
 .kb-frow{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
@@ -533,7 +581,7 @@ svg .mm-add:focus{outline:none}
       <div class="kb-frow"><span class="kb-flabel" id="kb-ar-l">Задачи</span><div class="seg" id="kb-ar" role="group" aria-labelledby="kb-ar-l"></div></div>
       <div class="kb-frow" id="kb-hid-row" hidden><span class="kb-flabel">Скрыты</span><div class="kb-chips" id="kb-hid"></div></div>
     </div>
-    <p class="count" id="kb-count" style="margin:0 0 12px"></p>
+    <div class="kb-cline"><p class="count" id="kb-count"></p><button type="button" class="btn" id="kb-newcol" data-kbnew="1">+ Столбец</button></div>
     <div class="kb" id="kb"></div>
     <p class="muted" id="kb-hint" style="font-size:13px;margin-top:14px">Перетащите карточку в другой столбец, чтобы перенести задачу. Столбцы перетаскиваются за заголовок; кнопки в заголовке — переименовать, скрыть у себя, удалить. Каждый столбец относится к статусу «Не начато», «В работе» или «Готово» — по нему считаются проценты. На телефоне статус меняет кружок на карточке.</p>
   </section>
@@ -554,7 +602,7 @@ svg .mm-add:focus{outline:none}
 <script>
 
 (function(){
-const AREAS=[
+const AREAS0=[
  {k:'strat',name:'Стратегия и продукт',side:'R',nodes:[['pos','Позиционирование'],['seg','Сегменты'],['offer','Линейка услуг'],['price','Цены и гарантии']]},
  {k:'legal',name:'Юридическое и деньги',side:'R',nodes:[['entity','Форма партнёрства'],['contract','Договор, NDA, ПДн'],['security','Данные клиентов']]},
  {k:'funnel',name:'Маркетинг',side:'R',nodes:[['site','Сайт'],['lead','Лид-магниты'],['bot','Telegram-бот'],['content','Кейсы и контент']]},
@@ -595,8 +643,20 @@ const NEXT_ST={todo:'doing',doing:'done',done:'todo'};
 const PRIO={P1:'P1 · критично',P2:'P2 · важно',P3:'P3 · потом'};
 const OWNERS=['Александр','Татьяна','Оба'];
 const AUTHORS=['Александр','Татьяна'];
-const AREA=Object.fromEntries(AREAS.map(a=>[a.k,a]));
-const NODE={};AREAS.forEach(a=>a.nodes.forEach(([k,n])=>NODE[a.k+'/'+k]=n));
+// directions/nodes: db.areas (editable on the mind map) or the built-in list
+// ALLAREAS — all, with archived; AREAS — active, nodes as [k,name]; AREA/NODE — lookups incl. archived
+let AREAS=[],ALLAREAS=[],AREA={},NODE={},AREAS_SIG='';
+const BUILTIN_C=new Set(['strat','legal','funnel','sales','audit','data','support']);
+const PALETTE=['#E07A3F','#2FA5A0','#C060C8','#7D9F3A','#D85A7F','#4C7FE0','#B08D2E','#8C6BE0','#3E9C6A','#C9564B'];
+const acol=a=>a&&a.color?a.color:a&&BUILTIN_C.has(a.k)?`var(--c-${a.k})`:'var(--muted)';
+function normAreas(list){const L=Array.isArray(list)&&list.length?list:AREAS0;
+  return L.filter(a=>a&&a.k).map(a=>({k:a.k,name:a.name||a.k,side:a.side==='L'?'L':'R',color:a.color||'',archived:a.archived||null,
+    nodes:(a.nodes||[]).map(n=>Array.isArray(n)?{k:n[0],name:n[1],archived:null}:{k:n.k,name:n.name||n.k,archived:n.archived||null}).filter(n=>n.k)}))}
+function setAreas(list){ALLAREAS=normAreas(list);
+  AREAS=ALLAREAS.filter(a=>!a.archived).map(a=>({k:a.k,name:a.name,side:a.side,color:a.color,nodes:a.nodes.filter(n=>!n.archived).map(n=>[n.k,n.name])}));
+  AREA=Object.fromEntries(ALLAREAS.map(a=>[a.k,{k:a.k,name:a.name,side:a.side,color:a.color,archived:a.archived,nodes:a.nodes.map(n=>[n.k,n.name])}]));
+  NODE={};ALLAREAS.forEach(a=>a.nodes.forEach(n=>NODE[a.k+'/'+n.k]=n.name))}
+setAreas(null);
 let PH=Object.fromEntries(PHASES.map(p=>[p.k,p]));
 const iso=t=>t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');
 const todayISO=()=>iso(new Date());
@@ -647,10 +707,11 @@ function qArch(it){if(readOnly)return'';return it.archived?`<button type="button
 function stc(it){return `<div class="stc">${stBtn(it)}${qArch(it)}</div>`}
 const CHECK='<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 function stBtn(it){return `<button class="st ${esc(it.status)}" data-cycle="${esc(it.id)}" type="button" ${readOnly||it.archived?'disabled':''} title="${STATUS[it.status]||''}${readOnly||it.archived?'':' — нажмите, чтобы сменить'}" aria-label="Статус: ${STATUS[it.status]||''}">${it.status==='done'?CHECK:''}</button>`}
-function areaChip(it){const a=AREA[it.area];if(!a)return'';return `<span class="chip"><span class="dot" style="background:var(--c-${a.k})"></span>${esc(NODE[it.area+'/'+it.node]||a.name)}</span>`}
+function areaChip(it){const a=AREA[it.area];if(!a)return'';return `<span class="chip"><span class="dot" style="background:${acol(a)}"></span>${esc(NODE[it.area+'/'+it.node]||a.name)}</span>`}
 const taskNotes=id=>notes.filter(n=>n.task===id).sort((a,b)=>String(a.at).localeCompare(String(b.at)));
 const attCount=it=>(Array.isArray(it.docs)?it.docs.filter(d=>DOC[d]).length:0)+(Array.isArray(it.links)?it.links.length:0);
 function badges(it){const a=attCount(it),ns=taskNotes(it.id),open=ns.filter(n=>!n.done).length;let h='';
+  const sb=Array.isArray(it.subs)?it.subs:[];if(sb.length){const sd=sb.filter(x=>x.done).length;h+=`<span class="bdg${sd===sb.length?'':' open'}" title="Подзадачи: сделано ${sd} из ${sb.length}">подзадачи ${sd}/${sb.length}</span>`}
   if(a)h+=`<span class="bdg" title="Документы и ссылки">док ${a}</span>`;
   if(ns.length)h+=`<span class="bdg ${open?'open':''}" title="Заметки: всего ${ns.length}, не отмечено «сделано» ${open}">заметки ${ns.length}${open?' · '+open+' откр.':''}</span>`;
   return h?`<span class="badges">${h}</span>`:''}
@@ -663,7 +724,7 @@ function renderHeader(){
   $('ov-doing').textContent=loaded&&s.g?`в работе: ${s.g}`:'';
   $('ov-bar').innerHTML=bar(s);
   $('area-cards').innerHTML=loaded?AREAS.map(a=>{const as=stats(items.filter(i=>i.area===a.k));
-    return `<button type="button" class="acard" data-area="${a.k}" title="Открыть задачи направления в бэклоге"><span class="an"><i style="background:var(--c-${a.k})"></i><span>${esc(a.name)}</span></span>
+    return `<button type="button" class="acard" data-area="${a.k}" title="Открыть задачи направления в бэклоге"><span class="an"><i style="background:${acol(a)}"></i><span>${esc(a.name)}</span></span>
       <span class="ap"><b class="mono">${as.t?as.pct+'%':'—'}</b><span>${as.t?`готово ${as.d} из ${as.t}${as.g?' · в работе '+as.g:''}`:'задач нет'}</span></span><span class="bar">${bar(as)}</span></button>`}).join(''):'';
   renderNext();renderNotesV();
 }
@@ -711,8 +772,7 @@ function renderPlan(){
 // ---------- backlog
 function opts(sel,list,all){sel.innerHTML=`<option value="">${all}</option>`+list.map(([v,l])=>`<option value="${esc(v)}">${esc(l)}</option>`).join('')}
 function initFilters(){
-  const area=[];AREAS.forEach(a=>{area.push([a.k,a.name]);a.nodes.forEach(([k,n])=>area.push([a.k+'/'+k,'  · '+n]))});
-  opts($('f-area'),area,'Все направления');
+  fillAreaFilter();
   opts($('f-phase'),PHASES.map(p=>[p.k,p.n+'. '+p.name]),'Все этапы');
   opts($('f-status'),[['open','Не готово'],...Object.entries(STATUS),['notes-open','Есть открытые заметки'],['arch','В архиве']],'Любой статус');
   opts($('f-owner'),OWNERS.map(o=>[o,o]),'Все');
@@ -720,6 +780,8 @@ function initFilters(){
   ['f-q','f-area','f-phase','f-status','f-owner'].forEach(id=>$(id).addEventListener(id==='f-q'?'input':'change',()=>{filt[id.slice(2)]=$(id).value;store('opora.filt',filt);renderBacklog()}));
   $('bl-reset').onclick=()=>{Object.assign(filt,{q:'',area:'',phase:'',status:'',owner:''});['f-q','f-area','f-phase','f-status','f-owner'].forEach(id=>$(id).value='');store('opora.filt',filt);renderBacklog()};
 }
+function fillAreaFilter(){const sel=$('f-area');if(!sel)return;const v=sel.value||filt.area;const area=[];ALLAREAS.forEach(a=>{const ar=a.archived?' (в архиве)':'';area.push([a.k,a.name+ar]);a.nodes.forEach(n=>area.push([a.k+'/'+n.k,'  · '+n.name+(n.archived&&!a.archived?' (в архиве)':'')]))});
+  opts(sel,area,'Все направления');sel.value=area.some(x=>x[0]===v)?v:''}
 function refreshPhaseFilter(){const sel=$('f-phase');if(!sel)return;const v=sel.value;opts(sel,PHASES.map(p=>[p.k,p.n+'. '+p.name]),'Все этапы');sel.value=v}
 function renderBacklog(){
   if(!loaded)return;
@@ -733,7 +795,7 @@ function renderBacklog(){
     else if(filt.status==='notes-open'){if(!taskNotes(it.id).some(n=>!n.done))return false}
     else if(filt.status&&it.status!==filt.status)return false;
     if(filt.owner&&it.owner!==filt.owner)return false;
-    if(q){const hay=[it.title,it.note,...taskNotes(it.id).map(n=>n.text),...(it.docs||[]).map(d=>DOC[d]?.t),...(it.links||[]).map(l=>l.t)].join(' ').toLowerCase();if(!hay.includes(q))return false}
+    if(q){const hay=[it.title,it.note,...(it.subs||[]).map(x=>x.t),...taskNotes(it.id).map(n=>n.text),...(it.docs||[]).map(d=>DOC[d]?.t),...(it.links||[]).map(l=>l.t)].join(' ').toLowerCase();if(!hay.includes(q))return false}
     return true});
   $('bl-count').textContent=filt.status==='arch'?`В архиве: показано ${list.length} из ${archItems.length}`:`Показано ${list.length} из ${items.length}`;
   $('bl-body').innerHTML=list.length?list.map(it=>`<tr${it.archived?' class="is-arch"':''}><td>${stc(it)}</td><td class="t" data-open="${esc(it.id)}"><div>${esc(it.title)}${badges(it)}</div>${it.note?`<div class="note">${esc(it.note)}</div>`:''}</td><td>${areaChip(it)}<div class="muted" style="font-size:12px;margin-top:3px">${esc(AREA[it.area]?.name||'')}</div></td><td class="mono" style="font-size:13px">${esc(PH[it.phase]?.n)}. ${esc(PH[it.phase]?.name||'')}<div>${dueChip(it)}</div></td><td><span class="pr ${esc(it.prio)}">${esc(it.prio)}</span></td><td class="who">${esc(it.owner||'')}<div style="margin-top:4px">${ackMarks(it)}</div></td></tr>`).join(''):
@@ -747,48 +809,152 @@ const MMF=[['all','Все задачи'],['done','Готово'],['doing','В р
 const mmPool=f=>f==='arch'?archItems:f==='all'?items:items.filter(i=>(i.status||'todo')===f);
 const mmSt=()=>mmF==='all'?'':mmF==='arch'?'arch':mmF;
 function renderMap(){
-  const W=1240,H=760,cx=620,cy=H/2;const svg=$('map');
+  const svg=$('map');
   if(!MMF.some(x=>x[0]===mmF))mmF='all';
   $('mm-seg').innerHTML=MMF.map(([v,l])=>`<button type="button" class="seg-b" data-mmf="${v}" aria-pressed="${mmF===v}">${l} <span class="mono">${loaded?mmPool(v).length:''}</span></button>`).join('');
-  $('mm-legend').textContent=mmF==='all'?'Цифры — готово / всего задач (без архива). Нажмите на узел, чтобы открыть его задачи в бэклоге, «+» — чтобы создать задачу в этом узле.':`Цифры — сколько задач «${MMF.find(x=>x[0]===mmF)[1]}» в узле. Нажмите на узел, чтобы открыть их в бэклоге, «+» — чтобы создать задачу в этом узле.`;
-  const pool=mmPool(mmF);const ALL=mmF==='all';
+  const AR=mmF==='arch',ALL=mmF==='all';
+  $('mm-legend').textContent=(ALL?'Цифры — готово / всего задач (без архива).':`Цифры — сколько задач «${MMF.find(x=>x[0]===mmF)[1]}» в узле.`)+' Нажмите на узел — его задачи в бэклоге; «+» у узла — новая задача; «+» под направлением — новый узел; «+» под центром — новое направление; карандаш — переименовать, узлы, архив.';
+  const pool=mmPool(mmF);
   const fCol={done:'var(--ok)',doing:'var(--warn)',todo:'var(--muted)',arch:'var(--dim)'}[mmF];
-  const side=s=>AREAS.filter(a=>a.side===s);
+  const list=(AR?ALLAREAS:ALLAREAS.filter(a=>!a.archived)).map(a=>({a,nodes:AR?a.nodes:a.nodes.filter(n=>!n.archived)}));
+  const STEP=42,GAP=0.8,TOP=40;
+  const slotsOf=arr=>arr.reduce((n,x)=>n+Math.max(1,x.nodes.length),0)+GAP*Math.max(0,arr.length-1);
+  const sideL=list.filter(x=>x.a.side==='L'),sideR=list.filter(x=>x.a.side!=='L');
+  const H=Math.max(620,Math.ceil(Math.max(slotsOf(sideL),slotsOf(sideR))*STEP+TOP*2+20));
+  const W=1240,cx=620,cy=H/2;
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
   const out=[];
-  function layout(areas){const gap=0.7;const slots=areas.reduce((n,a)=>n+a.nodes.length,0)+gap*(areas.length-1);const step=(H-70)/Math.max(1,slots-1);let y=35;const res=[];
-    areas.forEach(a=>{const ys=a.nodes.map(()=>{const v=y;y+=step;return v});y+=step*gap;res.push({a,ys,ay:(ys[0]+ys[ys.length-1])/2})});return res}
   const tone=s=>!s.t?'none':s.d===s.t?'ok':(s.d||s.g)?'warn':'todo';
   const all=stats(items);
-  ['R','L'].forEach(sd=>{
+  const ctl=(x,y,attr,label,path,main)=>`<g class="mm-ctl${main?' main':''}" tabindex="0" role="button" ${attr} aria-label="${esc(label)}"><title>${esc(label)}</title><circle cx="${x}" cy="${y}" r="8"/><path d="${path(x,y)}"/></g>`;
+  const P_PLUS=(x,y)=>`M${x-3.5},${y}h7M${x},${y-3.5}v7`;
+  const P_EDIT=(x,y)=>`M${x-3},${y+3}l.5-2 4.5-4.5 1.5 1.5-4.5 4.5z`;
+  const P_ARCH=(x,y)=>`M${x-4},${y-3.5}h8v2.5h-8zM${x-3.2},${y-1}v4.5h6.4v-4.5M${x-1.2},${y+1}h2.4`;
+  const P_BACK=(x,y)=>`M${x-1.5},${y-3.5}l-2.5,2.5 2.5,2.5M${x-4},${y-1}h5a2.5 2.5 0 0 1 0 5h-1.5`;
+  [[sideR,'R'],[sideL,'L']].forEach(([arr,sd])=>{
     const R=sd==='R';const ax=R?835:405;const lx=R?975:35;const LW=230;
-    layout(side(sd)).forEach(({a,ys,ay})=>{
-      const col=`var(--c-${a.k})`;const as=stats(pool.filter(i=>i.area===a.k));
-      const ax0=R?ax-105:ax+105;
-      out.push(`<path d="M${cx+(R?80:-80)},${cy} C${(cx+ax0)/2},${cy} ${(cx+ax0)/2},${ay} ${ax0},${ay}" fill="none" stroke="${col}" stroke-width="2.5" opacity=".75"/>`);
-      ys.forEach((y,i)=>{const [nk,nn]=a.nodes[i];const ls=stats(pool.filter(it=>it.area===a.k&&it.node===nk));const t=tone(ls);
+    const total=slotsOf(arr);let y=cy-((total-1)*STEP)/2;if(y<TOP)y=TOP;
+    arr.forEach(({a,nodes},ai)=>{
+      const n=Math.max(1,nodes.length);const ys=[];for(let k=0;k<n;k++){ys.push(y);y+=STEP}y+=STEP*GAP;
+      const ay=(ys[0]+ys[ys.length-1])/2;
+      const col=acol(a);const as=stats(pool.filter(i=>i.area===a.k));
+      const ax0=R?ax-105:ax+105;const dim=a.archived?' opacity=".6"':'';
+      out.push(`<path d="M${cx+(R?80:-80)},${cy} C${(cx+ax0)/2},${cy} ${(cx+ax0)/2},${ay} ${ax0},${ay}" fill="none" stroke="${col}" stroke-width="2.5" opacity=".75"${a.archived?' stroke-dasharray="5 5"':''}/>`);
+      nodes.forEach((nd,i)=>{const yy=ys[i];const nk=nd.k,nn=nd.name;const ls=stats(pool.filter(it=>it.area===a.k&&it.node===nk));const t=tone(ls);
         const ex=R?ax+105:ax-105;const lx0=R?lx:lx+LW;
-        out.push(`<path d="M${ex},${ay} C${(ex+lx0)/2},${ay} ${(ex+lx0)/2},${y} ${lx0},${y}" fill="none" stroke="${col}" stroke-width="1.5" opacity=".55"/>`);
+        out.push(`<path d="M${ex},${ay} C${(ex+lx0)/2},${ay} ${(ex+lx0)/2},${yy} ${lx0},${yy}" fill="none" stroke="${col}" stroke-width="1.5" opacity=".55"${nd.archived||a.archived?' stroke-dasharray="4 4"':''}/>`);
         let dotFill,dotStroke,label,lbl;
         if(ALL){dotFill=t==='ok'?'var(--ok)':t==='warn'?'var(--warn)':'var(--surface)';dotStroke=t==='ok'?'var(--ok)':t==='warn'?'var(--warn)':'var(--line-2)';label=ls.t?ls.d+'/'+ls.t:'—';lbl=`готово ${ls.d} из ${ls.t}`}
         else{dotFill=ls.t&&mmF!=='todo'?fCol:'var(--surface)';dotStroke=ls.t?fCol:'var(--line-2)';label=ls.t?String(ls.t):'—';lbl=`${ls.t} ${plural(ls.t,'задача','задачи','задач')}`}
-        out.push(`<g class="leaf" tabindex="0" role="button" data-node="${a.k}/${nk}" aria-label="${esc(nn)}: ${lbl}" ${!ALL&&!ls.t?'opacity=".55"':''}>
-          <rect class="box" x="${lx}" y="${y-16}" width="${LW}" height="32" rx="8" fill="var(--surface)" stroke="var(--line-2)" stroke-width="1.2"/>
-          <circle cx="${lx+16}" cy="${y}" r="6" fill="${dotFill}" stroke="${dotStroke}" stroke-width="2"/>
-          <text x="${lx+30}" y="${y+4.5}" font-size="13" fill="var(--fg)" font-family="var(--f-body)">${esc(nn)}</text>
-          <text x="${lx+LW-12}" y="${y+4.5}" font-size="12" text-anchor="end" fill="${ls.t?'var(--muted)':'var(--dim)'}" font-family="var(--f-mono)">${label}</text></g>`);
-        if(!readOnly){const px=R?lx+LW+16:lx-16;
-          out.push(`<g class="mm-add" tabindex="0" role="button" data-addnode="${a.k}/${nk}" aria-label="Новая задача в узле «${esc(nn)}»"><title>Новая задача: ${esc(nn)}</title><circle cx="${px}" cy="${y}" r="10"/><path d="M${px-4},${y}h8M${px},${y-4}v8" fill="none"/></g>`)}
+        const narch=nd.archived||a.archived;
+        out.push(`<g class="leaf" tabindex="0" role="button" data-node="${esc(a.k)}/${esc(nk)}" aria-label="${esc(nn)}: ${lbl}" ${(!ALL&&!ls.t)||narch?'opacity=".6"':''}>
+          <rect class="box" x="${lx}" y="${yy-16}" width="${LW}" height="32" rx="8" fill="var(--surface)" stroke="var(--line-2)" stroke-width="1.2"${narch?' stroke-dasharray="4 3"':''}/>
+          <circle cx="${lx+16}" cy="${yy}" r="6" fill="${dotFill}" stroke="${dotStroke}" stroke-width="2"/>
+          <text x="${lx+30}" y="${yy+4.5}" font-size="13" fill="var(--fg)" font-family="var(--f-body)">${esc((m=>nn.length>m?nn.slice(0,m-1)+'…':nn)(narch?16:label.length>3?20:23))}${narch?' · архив':''}</text>
+          <text x="${lx+LW-12}" y="${yy+4.5}" font-size="12" text-anchor="end" fill="${ls.t?'var(--muted)':'var(--dim)'}" font-family="var(--f-mono)">${label}</text></g>`);
+        if(!readOnly&&!narch){const px=R?lx+LW+16:lx-16;
+          out.push(`<g class="mm-add" tabindex="0" role="button" data-addnode="${esc(a.k)}/${esc(nk)}" aria-label="Новая задача в узле «${esc(nn)}»"><title>Новая задача: ${esc(nn)}</title><circle cx="${px}" cy="${yy}" r="10"/><path d="M${px-4},${yy}h8M${px},${yy-4}v8" fill="none"/></g>`)}
       });
-      out.push(`<g><rect x="${ax-105}" y="${ay-24}" width="210" height="48" rx="12" fill="var(--surface)" stroke="${col}" stroke-width="2"/>
-        <text x="${ax}" y="${ay-3}" font-size="13" font-weight="700" text-anchor="middle" fill="var(--fg)" font-family="var(--f-body)">${esc(a.name)}</text>
-        <text x="${ax}" y="${ay+14}" font-size="11.5" text-anchor="middle" fill="var(--muted)" font-family="var(--f-mono)">${ALL?`${as.d}/${as.t} готово`:`${as.t} ${plural(as.t,'задача','задачи','задач')}`}</text></g>`);
+      const ctls=readOnly?'':a.archived?
+          ctl(ax-12,ay+19,`data-areaunarch="${esc(a.k)}"`,`Вернуть направление «${a.name}» из архива`,P_BACK,true)+ctl(ax+12,ay+19,`data-areaedit="${esc(a.k)}"`,`Изменить направление «${a.name}»`,P_EDIT)
+         :ctl(ax-24,ay+19,`data-newnode="${esc(a.k)}"`,`Новый узел в «${a.name}»`,P_PLUS,true)+ctl(ax,ay+19,`data-areaedit="${esc(a.k)}"`,`Изменить направление «${a.name}»: название, узлы, удаление`,P_EDIT)+ctl(ax+24,ay+19,`data-areaarch="${esc(a.k)}"`,`Направление «${a.name}» целиком в архив`,P_ARCH);
+      out.push(`<g class="mm-area"${dim}><rect x="${ax-105}" y="${ay-30}" width="210" height="60" rx="12" fill="var(--surface)" stroke="${col}" stroke-width="2"${a.archived?' stroke-dasharray="6 4"':''}/>
+        <text x="${ax}" y="${ay-11}" font-size="13" font-weight="700" text-anchor="middle" fill="var(--fg)" font-family="var(--f-body)">${esc(a.name.length>26?a.name.slice(0,25)+'…':a.name)}</text>
+        <text x="${ax}" y="${ay+4}" font-size="11.5" text-anchor="middle" fill="var(--muted)" font-family="var(--f-mono)">${a.archived?'в архиве · ':''}${ALL?`${as.d}/${as.t} готово`:`${as.t} ${plural(as.t,'задача','задачи','задач')}`}</text>${ctls}</g>`);
     });
   });
   out.push(`<g><rect x="${cx-80}" y="${cy-54}" width="160" height="108" rx="18" fill="var(--accent)"/>
     <text x="${cx}" y="${cy-14}" font-size="21" font-weight="700" text-anchor="middle" fill="var(--on-accent)" font-family="var(--f-display)">Seller RX</text>
     <text x="${cx}" y="${cy+8}" font-size="11.5" text-anchor="middle" fill="var(--on-accent)" font-family="var(--f-body)" opacity=".9">${ALL?'выполнено':esc(MMF.find(x=>x[0]===mmF)[1].toLowerCase())}</text>
     <text x="${cx}" y="${cy+32}" font-size="15" text-anchor="middle" fill="var(--on-accent)" font-family="var(--f-mono)">${!loaded?'…':ALL?all.pct+'%':pool.length+' '+plural(pool.length,'задача','задачи','задач')}</text></g>`);
+  if(!readOnly&&!AR)out.push(`<g class="mm-ctl main mm-addarea" tabindex="0" role="button" data-newarea="1" aria-label="Новое направление"><title>Новое направление</title><circle cx="${cx}" cy="${cy+80}" r="12"/><path d="M${cx-5},${cy+80}h10M${cx},${cy+75}v10"/><text x="${cx}" y="${cy+108}" text-anchor="middle">направление</text></g>`);
   svg.innerHTML=out.join('');
+}
+// ---------- directions/nodes editing (one commit each, applied to the fresh copy)
+const newKey=p=>p+Date.now().toString(36).slice(-4)+Math.random().toString(36).slice(2,5);
+function saveAreas(msg,fn,okMsg){const me=author();return commit(`${me}: ${msg}`,d=>{const L=normAreas(d.areas);fn(L,d);d.areas=L},okMsg)}
+const findA=(L,k)=>{const a=L.find(x=>x.k===k);if(!a)throw conflictErr('Это направление уже удалили.');return a};
+function archTasks(d,pred,tag,me,now){Object.values(d.items||{}).forEach(x=>{if(pred(x)&&!x.archived){x.archived=now;x.archivedBy=me;x.archivedWith=tag;x.updatedAt=now;x.updatedBy=me}})}
+function unarchTasks(d,tag,me,now){Object.values(d.items||{}).forEach(x=>{if(x.archivedWith===tag){delete x.archived;delete x.archivedBy;delete x.archivedWith;x.updatedAt=now;x.updatedBy=me}})}
+function archiveArea(k,on){const a=ALLAREAS.find(x=>x.k===k);if(!a||readOnly)return Promise.resolve(false);const me=author(),now=new Date().toISOString();
+  if(on&&ALLAREAS.filter(x=>!x.archived).length<2){toast('Это последнее активное направление — его нельзя убрать в архив.',6000);return Promise.resolve(false)}
+  const n=allItems.filter(x=>x.area===k&&!x.archived).length;
+  return saveAreas(`направление «${a.name}» ${on?'в архив':'возвращено из архива'}`,(L,d)=>{const x=findA(L,k);
+    if(on){x.archived=now;archTasks(d,t=>t.area===k,'area:'+k,me,now)}else{x.archived=null;unarchTasks(d,'area:'+k,me,now)}}).then(ok=>{
+    if(ok){if(on)toastAct(`Направление «${a.name}» в архиве (${n} ${plural(n,'задача','задачи','задач')})`,'Отменить',()=>archiveArea(k,false));else toast(`Направление «${a.name}» возвращено`)}return ok})}
+function archiveNode(k,nk,on){const a=ALLAREAS.find(x=>x.k===k);const nd=a&&a.nodes.find(z=>z.k===nk);if(!nd||readOnly)return Promise.resolve(false);const me=author(),now=new Date().toISOString();
+  if(on&&a.nodes.filter(z=>!z.archived).length<2){toast('Это последний активный узел направления — уберите в архив направление целиком.',6000);return Promise.resolve(false)}
+  return saveAreas(`узел «${nd.name}» ${on?'в архив':'возвращён из архива'}`,(L,d)=>{const x=findA(L,k);const y=x.nodes.find(z=>z.k===nk);if(!y)throw conflictErr('Этот узел уже удалили.');
+    const tag='node:'+k+'/'+nk;if(on){y.archived=now;archTasks(d,t=>t.area===k&&t.node===nk,tag,me,now)}else{y.archived=null;unarchTasks(d,tag,me,now)}}).then(ok=>{
+    if(ok){if(on)toastAct(`Узел «${nd.name}» в архиве`,'Отменить',()=>archiveNode(k,nk,false));else toast(`Узел «${nd.name}» возвращён`)}return ok})}
+function openAreaDlg(k){const a=k?ALLAREAS.find(x=>x.k===k):null;if(k&&!a)return;
+  const used=new Set(ALLAREAS.map(x=>x.color).filter(Boolean));
+  const cnt=sd=>ALLAREAS.filter(x=>!x.archived&&x.side===sd).reduce((n,x)=>n+x.nodes.filter(z=>!z.archived).length,0);
+  const side=a?a.side:(cnt('L')<=cnt('R')?'L':'R');
+  const cur=a?(a.color||(BUILTIN_C.has(a.k)?'':PALETTE[0])):(PALETTE.find(c=>!used.has(c))||PALETTE[0]);
+  const sw=(a&&BUILTIN_C.has(a.k)?[['',`var(--c-${a.k})`]]:[]).concat(PALETTE.map(c=>[c,c]));
+  const nodes=a?a.nodes:[];
+  const others=n=>ALLAREAS.filter(x=>!x.archived).flatMap(x=>x.nodes.filter(z=>!z.archived&&!(x.k===k&&z.k===n)).map(z=>[x.k+'/'+z.k,x.name+' · '+z.name]));
+  const tcount=(ak,nk)=>allItems.filter(t=>t.area===ak&&(!nk||t.node===nk)).length;
+  $('dlg-root').innerHTML=`<div class="overlay" id="ov"><div class="dlg" role="dialog" aria-modal="true" aria-labelledby="dlg-h">
+    <h3 id="dlg-h">${a?'Направление «'+esc(a.name)+'»'+(a.archived?' · в архиве':''):'Новое направление'}</h3>
+    <div class="field"><label for="ad-name">Название</label><input id="ad-name" value="${a?esc(a.name):''}" placeholder="Например: Дорожная карта"></div>
+    <div class="row"><div class="field"><label for="ad-side">Сторона карты</label><select id="ad-side"><option value="R" ${side==='R'?'selected':''}>Справа</option><option value="L" ${side==='L'?'selected':''}>Слева</option></select></div>
+      <div class="field"><label>Цвет</label><div class="swatches">${sw.map(([v,c])=>`<label title="${v?esc(v):'как было'}"><input type="radio" name="ad-col" value="${esc(v)}" ${v===cur?'checked':''}><i style="background:${c}"></i></label>`).join('')}</div></div></div>
+    ${a?`<h4>Узлы</h4><ul class="nlist" id="ad-nodes">${nodes.map(n=>{const tc=tcount(a.k,n.k);return `<li class="${n.archived?'is-arch':''}" data-nrow="${esc(n.k)}"><input data-nname="${esc(n.k)}" value="${esc(n.name)}" aria-label="Название узла"><button type="button" class="mini" data-${n.archived?'nunarch':'narch'}="${esc(n.k)}">${n.archived?'Вернуть':'В архив'}</button><button type="button" class="mini ghost" data-ndelq="${esc(n.k)}" title="${tc} ${plural(tc,'задача','задачи','задач')}">Удалить</button></li>`}).join('')}</ul>
+      <div class="addrow two" style="margin-top:6px"><div class="field"><label for="ad-nn">Новый узел</label><input id="ad-nn" placeholder="Например: Справочники"></div><button class="btn" id="ad-nadd" type="button">Добавить узел</button></div>`
+     :`<div class="field"><label for="ad-first">Первый узел</label><input id="ad-first" value="Общее"></div><p class="muted" style="margin:0;font-size:13px">Задачи живут в узлах. Остальные узлы добавите кнопкой «+» под направлением на карте.</p>`}
+    <p id="ad-err" style="margin:0;color:var(--crit)" hidden></p>
+    <div id="ad-delbox" hidden></div>
+    <div class="actions"><button class="btn primary" id="ad-save" type="button">${a?'Сохранить':'Создать направление'}</button>${a?`<button class="btn" id="ad-arch" type="button">${a.archived?'Вернуть из архива':'В архив целиком'}</button><button class="btn danger" id="ad-del" type="button">Удалить</button>`:''}<button class="btn" id="ad-cancel" type="button">Закрыть</button></div>
+  </div></div>`;
+  const close=()=>{$('dlg-root').innerHTML=''};const err=m=>{$('ad-err').textContent=m;$('ad-err').hidden=!m};
+  const reopen=()=>setTimeout(()=>{if($('ov'))openAreaDlg(k)},50);
+  $('ov').addEventListener('click',e=>{if(e.target.id==='ov')close()});$('ad-cancel').onclick=close;
+  $('ov').addEventListener('keydown',e=>{if(e.key==='Escape')close()});$('ad-name').focus();
+  $('ad-save').onclick=async()=>{const name=$('ad-name').value.trim();if(!name){err('Напишите название направления.');return}
+    const sideV=$('ad-side').value;const colV=(document.querySelector('input[name="ad-col"]:checked')||{}).value||'';
+    $('ad-save').disabled=true;let ok;
+    if(!a){const first=($('ad-first').value||'').trim()||'Общее';const ak=newKey('a');
+      ok=await saveAreas(`новое направление «${name}»`,L=>{L.push({k:ak,name,side:sideV,color:colV,archived:null,nodes:[{k:newKey('n'),name:first,archived:null}]})},'Направление создано');
+      if(ok){close();setTab('map')}}
+    else{const ren={};document.querySelectorAll('[data-nname]').forEach(inp=>{const v=inp.value.trim();const n0=a.nodes.find(z=>z.k===inp.dataset.nname);if(v&&n0&&v!==n0.name)ren[n0.k]=v});
+      ok=await saveAreas(`направление «${a.name}» изменено`,L=>{const x=findA(L,k);x.name=name;x.side=sideV;x.color=colV;Object.entries(ren).forEach(([nk,v])=>{const y=x.nodes.find(z=>z.k===nk);if(y)y.name=v})},'Сохранено');
+      if(ok)close()}
+    const b=$('ad-save');if(b)b.disabled=false};
+  if(!a)return;
+  $('ad-nadd').onclick=async()=>{const v=$('ad-nn').value.trim();if(!v){$('ad-nn').focus();return}
+    if(await saveAreas(`новый узел «${v}» в «${a.name}»`,L=>{findA(L,k).nodes.push({k:newKey('n'),name:v,archived:null})},'Узел добавлен'))reopen()};
+  document.querySelectorAll('#ad-nodes [data-narch]').forEach(b=>b.onclick=async()=>{if(await archiveNode(k,b.dataset.narch,true))reopen()});
+  document.querySelectorAll('#ad-nodes [data-nunarch]').forEach(b=>b.onclick=async()=>{if(await archiveNode(k,b.dataset.nunarch,false))reopen()});
+  document.querySelectorAll('#ad-nodes [data-ndelq]').forEach(b=>b.onclick=()=>{const nk=b.dataset.ndelq;const row=b.closest('li');if(row.querySelector('.mv'))return;
+    if(a.nodes.length<2){err('Это единственный узел направления — удалите направление целиком.');return}
+    const tc=tcount(k,nk);const opt=others(nk);
+    const box=document.createElement('div');box.className='mv';
+    box.innerHTML=tc?`${tc} ${plural(tc,'задача','задачи','задач')} перенести в <select>${opt.map(([v,l])=>`<option value="${esc(v)}">${esc(l)}</option>`).join('')}</select><button type="button" class="mini">Удалить узел</button>`:`Узел пустой. <button type="button" class="mini">Удалить узел</button>`;
+    row.appendChild(box);
+    box.querySelector('button').onclick=async()=>{const to=tc?box.querySelector('select').value:null;const [ta,tn]=to?to.split('/'):[null,null];const me=author(),now=new Date().toISOString();
+      if(await saveAreas(`удалён узел «${NODE[k+'/'+nk]||nk}»`,(L,d)=>{const x=findA(L,k);x.nodes=x.nodes.filter(z=>z.k!==nk);
+        Object.values(d.items||{}).forEach(t=>{if(t.area===k&&t.node===nk){t.area=ta;t.node=tn;t.updatedAt=now;t.updatedBy=me}})},'Узел удалён'))reopen()}});
+  $('ad-arch').onclick=async()=>{if(await archiveArea(k,!a.archived))close()};
+  $('ad-del').onclick=()=>{const box=$('ad-delbox');if(!box.hidden)return;
+    if(ALLAREAS.length<2){err('Это единственное направление.');return}
+    const tc=tcount(k);const opt=ALLAREAS.filter(x=>!x.archived&&x.k!==k).flatMap(x=>x.nodes.filter(z=>!z.archived).map(z=>[x.k+'/'+z.k,x.name+' · '+z.name]));
+    if(tc&&!opt.length){err('Некуда перенести задачи: нет другого активного направления.');return}
+    box.hidden=false;box.innerHTML=`<p style="margin:0">${tc?`В направлении ${tc} ${plural(tc,'задача','задачи','задач')} (вместе с архивными). Перенести их в: <select id="ad-to">${opt.map(([v,l])=>`<option value="${esc(v)}">${esc(l)}</option>`).join('')}</select>`:'Направление пустое.'}</p><div class="actions"><button class="btn danger" id="ad-delgo" type="button">Удалить направление «${esc(a.name)}»</button></div>`;
+    $('ad-delgo').onclick=async()=>{const to=tc?$('ad-to').value:null;const [ta,tn]=to?to.split('/'):[null,null];const me=author(),now=new Date().toISOString();
+      if(await saveAreas(`удалено направление «${a.name}»`,(L,d)=>{const i=L.findIndex(z=>z.k===k);if(i<0)return;L.splice(i,1);
+        Object.values(d.items||{}).forEach(t=>{if(t.area===k){t.area=ta;t.node=tn;t.updatedAt=now;t.updatedBy=me;if(t.archivedWith&&t.archivedWith.indexOf(':'+k)>0)delete t.archivedWith}})},'Направление удалено'))close()}};
+}
+function openNodeDlg(k){const a=ALLAREAS.find(x=>x.k===k);if(!a)return;
+  $('dlg-root').innerHTML=`<div class="overlay" id="ov"><div class="dlg" role="dialog" aria-modal="true" aria-labelledby="dlg-h">
+    <h3 id="dlg-h">Новый узел в «${esc(a.name)}»</h3>
+    <div class="field"><label for="nd-name">Название узла</label><input id="nd-name" placeholder="Например: Справочники"></div>
+    <div class="actions"><button class="btn primary" id="nd-save" type="button">Добавить узел</button><button class="btn" id="nd-cancel" type="button">Отмена</button></div></div></div>`;
+  const close=()=>{$('dlg-root').innerHTML=''};
+  $('ov').addEventListener('click',e=>{if(e.target.id==='ov')close()});$('nd-cancel').onclick=close;$('ov').addEventListener('keydown',e=>{if(e.key==='Escape')close();if(e.key==='Enter')$('nd-save').click()});$('nd-name').focus();
+  $('nd-save').onclick=async()=>{const v=$('nd-name').value.trim();if(!v){$('nd-name').focus();return}$('nd-save').disabled=true;
+    if(await saveAreas(`новый узел «${v}» в «${a.name}»`,L=>{findA(L,k).nodes.push({k:newKey('n'),name:v,archived:null})},'Узел добавлен'))close();else{const b=$('nd-save');if(b)b.disabled=false}};
 }
 
 // ---------- documents tab
@@ -823,13 +989,20 @@ function renderHot(){
   if(doneWeek.length)h+=`<p class="muted" style="font-size:13px;margin-top:18px">Уже сделано из задач этой недели: ${doneWeek.length}.</p>`;
   el.innerHTML=h;
 }
-// ---------- archive
+// ---------- archive (grouped by direction; whole directions/nodes can be returned)
 function renderArchive(){const el=$('arch');if(!el)return;$('arch-n').textContent=loaded&&archItems.length?String(archItems.length):'';
   if(!loaded){el.innerHTML='<p class="muted">Загружаю задачи…</p>';return}
-  const l=archItems.slice().sort((a,b)=>String(b.archived).localeCompare(String(a.archived)));
-  el.innerHTML=l.length?`<p class="count" style="margin:0 0 12px">В архиве ${l.length} ${plural(l.length,'задача','задачи','задач')}. Их нет в плане, бэклоге, канбане и сводке, но они хранятся вместе с заметками и документами. Вернуть можно в любой момент.</p>
-   <ul class="items arch-list">${l.map(it=>`<li class="item ${it.status==='done'?'is-done':''}">${stBtn(it)}<div><div class="title" data-open="${esc(it.id)}">${esc(it.title)}${badges(it)}</div><div class="note">В архиве с ${esc(fmtDate(it.archived))}${it.archivedBy?' · '+esc(it.archivedBy):''} · ${it.phase==='bl'?'бэклог':'этап '+esc(PH[it.phase]?.n||'')} · ${esc(STATUS[it.status]||'')}</div></div><div class="tags"><span class="who">${esc(it.owner||'')}</span>${readOnly?'':`<button type="button" class="mini" data-unarch="${esc(it.id)}">Вернуть</button>`}</div></li>`).join('')}</ul>`
-   :'<div class="empty">Архив пуст. Убрать задачу в архив можно из её карточки — кнопка «В архив» вверху.</div>';
+  const keys=[...ALLAREAS.map(a=>a.k),...new Set(archItems.map(t=>t.area).filter(k=>!AREA[k]))];
+  const row=it=>`<li class="item ${it.status==='done'?'is-done':''}">${stBtn(it)}<div><div class="title" data-open="${esc(it.id)}">${esc(it.title)}${badges(it)}</div><div class="note">В архиве с ${esc(fmtDate(it.archived))}${it.archivedBy?' · '+esc(it.archivedBy):''} · ${esc(NODE[it.area+'/'+it.node]||'')} · ${it.phase==='bl'?'бэклог':'этап '+esc(PH[it.phase]?.n||'')} · ${esc(STATUS[it.status]||'')}</div></div><div class="tags"><span class="who">${esc(it.owner||'')}</span>${readOnly?'':`<button type="button" class="mini" data-unarch="${esc(it.id)}">Вернуть</button>`}</div></li>`;
+  let h='',total=0;
+  keys.forEach(k=>{const a=ALLAREAS.find(x=>x.k===k);const l=archItems.filter(t=>t.area===k).sort((p,q)=>String(q.archived).localeCompare(String(p.archived)));
+    const an=a?a.nodes.filter(n=>n.archived&&!a.archived):[];
+    if(!l.length&&!(a&&a.archived)&&!an.length)return;total+=l.length;
+    h+=`<section class="arch-g"><div class="arch-gh"><i style="background:${acol(a||{k})}"></i><b>${esc(a?a.name:'Без направления')}</b><span class="muted">${l.length} ${plural(l.length,'задача','задачи','задач')}${a&&a.archived?' · направление в архиве с '+esc(fmtDate(a.archived)):''}</span>${a&&a.archived&&!readOnly?`<button type="button" class="mini" data-areaunarch="${esc(k)}">Вернуть направление</button>`:''}</div>
+      ${an.map(n=>`<div class="arch-nl">Узел «${esc(n.name)}» в архиве с ${esc(fmtDate(n.archived))}${readOnly?'':` <button type="button" class="mini" data-nodeunarch="${esc(k)}/${esc(n.k)}">Вернуть узел</button>`}</div>`).join('')}
+      <ul class="items arch-list">${l.map(row).join('')}</ul></section>`});
+  el.innerHTML=h?`<p class="count" style="margin:0 0 6px">В архиве ${total} ${plural(total,'задача','задачи','задач')}. Их нет в плане, бэклоге, канбане и сводке, но они хранятся вместе с заметками, подзадачами и документами. Вернуть можно по одной или целым направлением.</p>${h}`
+   :'<div class="empty">Архив пуст. Задачу можно убрать в архив кнопкой под кружком статуса, а направление или узел — на mind-карте.</div>';
 }
 // ---------- kanban
 // Столбцы общие (db.kanban.cols: [{id,name,st}]), каждый относится к статусу todo|doing|done. Скрытие — у каждого своё (opora.kbHide).
@@ -883,8 +1056,8 @@ function renderKanban(){
       <ul class="kb-list">${shown.map(kbCard).join('')||`<li class="kb-empty">Нет задач</li>`}</ul>
       ${cut?`<button type="button" class="mini kb-more" data-kbmore="1">Показать ещё ${cut}</button>`:c.st==='done'&&kbDoneAll&&l.length>KB_DONE_MAX?'<button type="button" class="mini kb-more" data-kbmore="0">Свернуть</button>':''}</section>`}).join('')
     +(vis.length?'':'<div class="empty">Все столбцы скрыты — нажмите «показать» над доской.</div>')
-    +(readOnly?'':'<button type="button" class="kb-add" data-kbnew="1">+ Столбец</button>');
-  $('kb-hint').hidden=readOnly;
+    ;
+  $('kb-hint').hidden=readOnly;$('kb-newcol').hidden=readOnly;
 }
 // move a card into a column: status follows the column
 function kbMove(id,colId){const it=findIt(id);const cols=kbCols();const c=cols.find(x=>x.id===colId);if(!it||!c||readOnly||it.archived)return;if(colIdOf(it,cols)===colId)return;
@@ -1007,6 +1180,7 @@ async function loadRemote(useEtag){
 function applyDB(){
   if(Array.isArray(DB.phases)&&DB.phases.length){const same=JSON.stringify(DB.phases)===JSON.stringify(PHASES);PHASES=DB.phases;PH=Object.fromEntries(PHASES.map(p=>[p.k,p]));if(!same)refreshPhaseFilter()}
   if(DB.meta)META=Object.assign({},META,DB.meta);
+  {const sig=JSON.stringify(DB.areas||null);if(sig!==AREAS_SIG){AREAS_SIG=sig;setAreas(DB.areas);fillAreaFilter()}}
   if(DB.docMeta)Object.entries(DB.docMeta).forEach(([id,v])=>{if(!v)return;if(DOC[id])Object.assign(DOC[id],v);else if(v.t){const d=Object.assign({id,g:'work',d:''},v);DOCS.push(d);DOC[id]=d}});
   allItems=Object.entries(DB.items||{}).map(([id,v])=>Object.assign({id},v));items=allItems.filter(i=>!i.archived);archItems=allItems.filter(i=>i.archived);
   notes=Object.entries(DB.notes||{}).map(([id,v])=>Object.assign({id},v));
@@ -1060,7 +1234,8 @@ const editItem=(id,label,fn,msg)=>{const now=new Date().toISOString();const it=f
   return commit(`${me}: ${label} «${it?it.title:id}»`,d=>{const x=d.items[id];if(!x)throw conflictErr('Задачу удалили, пока вы её редактировали.');fn(x);x.updatedAt=now;x.updatedBy=me},msg)};
 function setArchived(id,on,by){const it=findIt(id);if(!it||readOnly)return Promise.resolve(false);const now=new Date().toISOString();const me=by||author();
   return commit(`${me}: «${it.title}» — ${on?'в архив':'возвращена из архива'}`,d=>{const x=d.items[id];if(!x)throw conflictErr('Задачу уже удалили.');
-    if(on){if(!x.archived){x.archived=now;x.archivedBy=me}}else{delete x.archived;delete x.archivedBy}x.updatedAt=now;x.updatedBy=me}).then(ok=>{
+    if(on){if(!x.archived){x.archived=now;x.archivedBy=me}}else{delete x.archived;delete x.archivedBy;delete x.archivedWith;
+      if(Array.isArray(d.areas)){const A=d.areas.find(z=>z.k===x.area);if(A){if(A.archived)A.archived=null;const N=(A.nodes||[]).find(z=>!Array.isArray(z)&&z.k===x.node);if(N&&N.archived)N.archived=null}}}x.updatedAt=now;x.updatedBy=me}).then(ok=>{
     if(ok){const t=it.title.length>48?it.title.slice(0,46)+'…':it.title;if(on&&!by)toastAct(`«${t}» — в архиве`,'Отменить',()=>setArchived(id,false));else if(!by)toast(on?'Задача перенесена в архив':'Задача возвращена из архива')}return ok})}
 
 // ---------- downloads & reader
@@ -1090,7 +1265,8 @@ function boundName(){const p=DB&&DB.people&&keyFp&&DB.people[keyFp];return p&&AU
 function author(){const b=boundName();if(b)return b;const a=store('opora.author');return AUTHORS.includes(a)?a:'Александр'}
 function openDrawer(id){const it=findIt(id);if(!it)return;openTask=id;
   formBase={title:it.title,note:it.note||'',area:it.area,node:it.node,phase:it.phase,owner:it.owner,prio:it.prio,due:it.due||null};drawerSeen=it.updatedAt||'';
-  const nodeOpts=AREAS.map(a=>`<optgroup label="${esc(a.name)}">${a.nodes.map(([k,n])=>`<option value="${a.k}/${k}" ${it.area===a.k&&it.node===k?'selected':''}>${esc(n)}</option>`).join('')}</optgroup>`).join('');
+  const curIn=AREAS.some(a=>a.k===it.area&&a.nodes.some(n=>n[0]===it.node));
+  const nodeOpts=(curIn?'':`<option value="${esc(it.area)}/${esc(it.node)}" selected>${esc(NODE[it.area+'/'+it.node]||it.node||'—')} (в архиве)</option>`)+AREAS.map(a=>`<optgroup label="${esc(a.name)}">${a.nodes.map(([k,n])=>`<option value="${a.k}/${k}" ${it.area===a.k&&it.node===k?'selected':''}>${esc(n)}</option>`).join('')}</optgroup>`).join('');
   const sel=(sid,list,v)=>`<select id="${sid}">${list.map(([k,l])=>`<option value="${esc(k)}" ${k===v?'selected':''}>${esc(l)}</option>`).join('')}</select>`;
   const libOpts=DOCS.map(d=>`<option value="${d.id}">${esc(d.t)}</option>`).join('');
   $('drawer-root').innerHTML=`<div class="drawer-ov" id="dov"><aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="dr-title">
@@ -1099,6 +1275,9 @@ function openDrawer(id){const it=findIt(id);if(!it)return;openTask=id;
       <div class="dr-flags" id="dr-flags"></div>
       <div id="dr-desc"></div>
       <section class="dr-sec"><h4><span>Отработано с каждой стороны</span></h4><div class="ackp" id="dr-ack"></div></section>
+      <section class="dr-sec"><h4><span>Подзадачи</span><span id="dr-scount" class="mono" style="text-transform:none;letter-spacing:0;font-weight:500"></span></h4><ul class="subs" id="dr-subs"></ul>
+        <form class="sub-form" id="sf" ${readOnly?'hidden':''}><input id="sf-t" placeholder="Новая подзадача" aria-label="Новая подзадача"><select id="sf-who" aria-label="Кто делает"><option value="">кто делает</option>${OWNERS.map(o=>`<option>${o}</option>`).join('')}</select><input id="sf-due" type="date" aria-label="Срок"><button class="btn" type="submit" id="sf-add">Добавить</button></form>
+      </section>
       <section class="dr-sec"><h4><span>Документы и ссылки</span></h4><div id="dr-att"></div>
         <div ${readOnly?'hidden':''}>
           <div class="addrow two"><div class="field"><label for="att-lib">Прикрепить документ из библиотеки</label><select id="att-lib"><option value="">Выберите документ…</option>${libOpts}</select></div><button class="btn" id="att-lib-add" type="button">Прикрепить</button></div>
@@ -1128,6 +1307,9 @@ function openDrawer(id){const it=findIt(id);if(!it)return;openTask=id;
   renderDrawer();
   $('dr-x')&&$('dr-x').focus();
   if(readOnly)return;
+  $('sf').onsubmit=async e=>{e.preventDefault();const t=$('sf-t').value.trim();if(!t){$('sf-t').focus();return}const who=$('sf-who').value,due=$('sf-due').value||null;const sid=newId('s');const now=new Date().toISOString();const me=author();
+    $('sf-add').disabled=true;const ok=await editItem(openTask,'подзадача к',x=>{x.subs=Array.isArray(x.subs)?x.subs:[];x.subs.push({id:sid,t,done:false,who,due,at:now,by:me})},'Подзадача добавлена');
+    const b=$('sf-add');if(b)b.disabled=false;if(ok){$('sf-t').value='';$('sf-due').value='';$('sf-t').focus()}};
   if($('nf-author'))$('nf-author').onchange=()=>store('opora.author',$('nf-author').value);
   $('nf').onsubmit=async e=>{e.preventDefault();const text=$('nf-text').value.trim();if(!text){$('nf-text').focus();return}
     const a=$('nf-author')?$('nf-author').value:author();if($('nf-author'))store('opora.author',a);const done=$('nf-done').checked;const now=new Date().toISOString();
@@ -1168,6 +1350,10 @@ function renderDrawer(){
   $('dr-flags').innerHTML=fl.join('');
   const da=$('d-arch');if(da)da.textContent=it.archived?'Вернуть из архива':'В архив';
   $('dr-ack').innerHTML=ackPanel(it);
+  const sb=Array.isArray(it.subs)?it.subs:[];const sdn=sb.filter(x=>x.done).length;
+  $('dr-scount').textContent=sb.length?`${sdn} из ${sb.length}`:'';
+  if(!(document.activeElement&&document.activeElement.classList.contains('st-in')))
+  $('dr-subs').innerHTML=sb.length?sb.map((x,i)=>`<li class="${x.done?'is-done':''}" data-sid="${esc(x.id)}"><label class="chk"><input type="checkbox" data-subdone="${esc(x.id)}" ${x.done?'checked':''} ${readOnly?'disabled':''} aria-label="Сделано"></label><div><div class="st-t" ${readOnly?'':`data-subedit="${esc(x.id)}" title="Нажмите, чтобы изменить текст"`}>${esc(x.t)}</div>${x.who||x.due||x.done?`<div class="st-m">${x.who?`<span>${esc(x.who)}</span>`:''}${x.due?(x.done?`<span>до ${shortDate(x.due)}</span>`:dueChip({due:x.due,status:'todo'})):''}${x.done&&x.doneBy?`<span>сделано · ${esc(x.doneBy)}</span>`:''}</div>`:''}</div>${readOnly?'<span></span>':`<div class="st-a"><button type="button" data-subup="${esc(x.id)}" ${i?'':'disabled'} title="Выше" aria-label="Выше">↑</button><button type="button" data-subdown="${esc(x.id)}" ${i<sb.length-1?'':'disabled'} title="Ниже" aria-label="Ниже">↓</button><button type="button" class="del" data-subdel="${esc(x.id)}" title="Удалить" aria-label="Удалить подзадачу">✕</button></div>`}</li>`).join(''):'<li class="empty muted" style="font-size:14px;padding:10px 12px">Подзадач нет. Разбейте задачу на шаги — у каждого своя отметка «сделано».</li>';
   $('dr-desc').innerHTML=it.note?`<p class="desc">${esc(it.note)}</p>`:'';
   const docs=(Array.isArray(it.docs)?it.docs:[]).filter(d=>DOC[d]).map(id=>DOC[id]);
   const links=Array.isArray(it.links)?it.links:[];
@@ -1204,6 +1390,21 @@ function openCreate(pre){pre=pre||{};
 // ---------- events (delegated)
 document.addEventListener('click',e=>{
   const c=e.target.closest('[data-cycle]');if(c){e.preventDefault();e.stopPropagation();cycle(c.dataset.cycle);return}
+  const sup=e.target.closest('[data-subup],[data-subdown]');if(sup&&openTask){const sid=sup.dataset.subup||sup.dataset.subdown;const dir=sup.dataset.subup?-1:1;
+    editItem(openTask,'порядок подзадач',x=>{const a=(x.subs||[]).slice();const i=a.findIndex(z=>z.id===sid);const j=i+dir;if(i<0||j<0||j>=a.length)return;[a[i],a[j]]=[a[j],a[i]];x.subs=a});return}
+  const sdl=e.target.closest('[data-subdel]');if(sdl&&openTask){if(sdl.dataset.armed){const sid=sdl.dataset.subdel;editItem(openTask,'удалена подзадача в',x=>{x.subs=(x.subs||[]).filter(z=>z.id!==sid)},'Подзадача удалена');return}
+    sdl.dataset.armed='1';sdl.textContent='?';sdl.title='Нажмите ещё раз, чтобы удалить';setTimeout(()=>{if(sdl.isConnected){delete sdl.dataset.armed;sdl.textContent='✕'}},3000);return}
+  const sed=e.target.closest('[data-subedit]');if(sed&&openTask&&!sed.querySelector('input')){const sid=sed.dataset.subedit;const it=findIt(openTask);const sub=it&&(it.subs||[]).find(z=>z.id===sid);if(!sub)return;
+    const old=sub.t;const inp=document.createElement('input');inp.className='st-in';inp.value=old;sed.textContent='';sed.appendChild(inp);inp.focus();inp.select();let done=false;
+    const fin=async save=>{if(done)return;done=true;const v=inp.value.trim();if(save&&v&&v!==old){await editItem(openTask,'подзадача изменена в',x=>{const z=(x.subs||[]).find(q=>q.id===sid);if(!z)throw conflictErr('Подзадачу уже удалили.');
+        if(z.t!==old&&z.t!==v)throw conflictErr(`Не сохранено: ${verb(x.updatedBy)} эту подзадачу раньше вас — сейчас «${z.t}».`);z.t=v},'Сохранено')}renderDrawer()};
+    inp.addEventListener('keydown',ev=>{if(ev.key==='Enter'){ev.preventDefault();fin(true)}if(ev.key==='Escape'){ev.stopPropagation();fin(false)}});inp.addEventListener('blur',()=>fin(true));return}
+  const nar=e.target.closest('[data-newarea]');if(nar){if(!readOnly)openAreaDlg(null);return}
+  const nno=e.target.closest('[data-newnode]');if(nno){if(!readOnly)openNodeDlg(nno.dataset.newnode);return}
+  const aed=e.target.closest('[data-areaedit]');if(aed){if(!readOnly)openAreaDlg(aed.dataset.areaedit);return}
+  const aar=e.target.closest('[data-areaarch]');if(aar){archiveArea(aar.dataset.areaarch,true);return}
+  const aun=e.target.closest('[data-areaunarch]');if(aun){archiveArea(aun.dataset.areaunarch,false);return}
+  const nun=e.target.closest('[data-nodeunarch]');if(nun){const [ak,nk]=nun.dataset.nodeunarch.split('/');archiveNode(ak,nk,false);return}
   const qa=e.target.closest('[data-qarch]');if(qa){e.preventDefault();e.stopPropagation();setArchived(qa.dataset.qarch,true);return}
   const nw=e.target.closest('[data-nextwho]');if(nw){nextWho=nw.dataset.nextwho;store('opora.nextWho',nextWho);renderNext();return}
   const ns=e.target.closest('[data-nfst]');if(ns){nfSt=ns.dataset.nfst;store('opora.nfSt',nfSt);renderNotesV();return}
@@ -1233,14 +1434,15 @@ document.addEventListener('click',e=>{
   const ro=e.target.closest('[data-reopen]');if(ro){if(openTask)openDrawer(openTask);return}
   const nd=e.target.closest('[data-ndel]');if(nd){if(nd.dataset.armed){const nid=nd.dataset.ndel;commit(`${author()}: удалена заметка`,d=>{if(d.notes)delete d.notes[nid]},'Заметка удалена');return}nd.dataset.armed='1';nd.textContent='Точно?';setTimeout(()=>{if(nd.isConnected){delete nd.dataset.armed;nd.textContent='Удалить'}},3500);return}
 });
-document.addEventListener('change',e=>{const t=e.target;if(t.matches&&t.matches('[data-ackchk]')){toggleAck(t.dataset.ackchk);return}if(t.matches&&t.matches('[data-ndone]')){const id=t.dataset.ndone;const done=t.checked;const n=notes.find(x=>x.id===id);const now=new Date().toISOString();
+document.addEventListener('change',e=>{const t=e.target;if(t.matches&&t.matches('[data-subdone]')&&openTask){const sid=t.dataset.subdone;const on=t.checked;const now=new Date().toISOString();const me=author();
+  editItem(openTask,`подзадача ${on?'сделана':'снова открыта'} в`,x=>{const z=(x.subs||[]).find(q=>q.id===sid);if(!z)throw conflictErr('Подзадачу уже удалили.');z.done=on;z.doneAt=on?now:null;z.doneBy=on?me:null},on?'Подзадача сделана':'Подзадача снова открыта');return}if(t.matches&&t.matches('[data-ackchk]')){toggleAck(t.dataset.ackchk);return}if(t.matches&&t.matches('[data-ndone]')){const id=t.dataset.ndone;const done=t.checked;const n=notes.find(x=>x.id===id);const now=new Date().toISOString();
   commit(`${author()}: заметка ${done?'отмечена «сделано»':'снова открыта'}${n?' — '+n.text.slice(0,50):''}`,d=>{if(d.notes&&d.notes[id]){d.notes[id].done=done;d.notes[id].doneAt=done?now:null}},done?'Отмечено «сделано»':'Отметка снята')}});
-document.addEventListener('keydown',e=>{if(e.key!=='Enter'&&e.key!==' ')return;const ad=e.target.closest&&e.target.closest('[data-addnode]');if(ad){e.preventDefault();if(!readOnly)openCreate({nodeKey:ad.dataset.addnode});return}
+document.addEventListener('keydown',e=>{if(e.key!=='Enter'&&e.key!==' ')return;const mc=e.target.closest&&e.target.closest('svg .mm-ctl');if(mc){e.preventDefault();mc.dispatchEvent(new MouseEvent('click',{bubbles:true}));return}const ad=e.target.closest&&e.target.closest('[data-addnode]');if(ad){e.preventDefault();if(!readOnly)openCreate({nodeKey:ad.dataset.addnode});return}
   const lf=e.target.closest&&e.target.closest('[data-node]');if(lf){e.preventDefault();goNode(lf.dataset.node,lf.closest('#map')?mmSt():'')}});
 function goNode(v,st){st=st||'';Object.assign(filt,{q:'',area:v,phase:'',status:st,owner:''});$('f-q').value='';$('f-area').value=v;$('f-phase').value='';$('f-status').value=st;$('f-owner').value='';store('opora.filt',filt);renderBacklog();setTab('backlog');window.scrollTo({top:$('view-backlog').offsetTop-80})}
 document.addEventListener('toggle',e=>{const d=e.target;if(d.classList&&d.classList.contains('phase')){d.open?openPhases.add(d.dataset.phase):openPhases.delete(d.dataset.phase);store('opora.open',[...openPhases])}},true);
 // new task from the backlog takes direction/node, stage and owner from the active filters
-function prefFromFilt(){const p={};if(filt.area){const [a,n]=filt.area.split('/');const A=AREA[a];if(A)p.nodeKey=a+'/'+(n&&A.nodes.some(x=>x[0]===n)?n:A.nodes[0][0])}if(filt.phase&&PH[filt.phase])p.phase=filt.phase;if(filt.owner)p.owner=filt.owner;return p}
+function prefFromFilt(){const p={};if(filt.area){const [a,n]=filt.area.split('/');const A=AREAS.find(x=>x.k===a);if(A&&A.nodes.length)p.nodeKey=a+'/'+(n&&A.nodes.some(x=>x[0]===n)?n:A.nodes[0][0])}if(filt.phase&&PH[filt.phase])p.phase=filt.phase;if(filt.owner)p.owner=filt.owner;return p}
 $('bl-add').onclick=()=>openCreate(prefFromFilt());
 
 // ---------- boot
@@ -1260,6 +1462,8 @@ window.opora={
   setAck:(id,name,on)=>{const now=new Date().toISOString();return commit(`${name}: отметка «отработано» ${on?'поставлена':'снята'} (${id})`,d=>{if(d.items[id])d.items[id].acks=Object.assign({},d.items[id].acks||{},{[name]:on?now:null})})},
   setDue:(id,due)=>{const it=(DB.items||{})[id];return commit(`Claude: срок «${it?it.title:id}» → ${due}`,d=>{if(d.items[id])d.items[id].due=due})},
   archive:(id,on)=>setArchived(id,on!==false,'Claude'),
+  areas:()=>JSON.parse(JSON.stringify(ALLAREAS)),
+  addSub:(id,t,who,due)=>{const now=new Date().toISOString();const sid=newId('s');return commit(`Claude: подзадача к ${id}`,d=>{const x=d.items[id];if(!x)throw conflictErr('Нет задачи '+id);x.subs=Array.isArray(x.subs)?x.subs:[];x.subs.push({id:sid,t,done:false,who:who||'',due:due||null,at:now,by:'Claude'});x.updatedAt=now;x.updatedBy='Claude'})},
   whoami:()=>({author:author(),personalKey:!!boundName()}),
   toggleNote:(nid,done)=>{const now=new Date().toISOString();return commit(`Claude: заметка ${done?'сделано':'открыта'}`,d=>{if(d.notes&&d.notes[nid]){d.notes[nid].done=!!done;d.notes[nid].doneAt=done?now:null}})},
 };

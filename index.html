@@ -168,7 +168,7 @@ svg .leaf:focus{outline:none}
 .dlg .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 @media (max-width:480px){.dlg .row{grid-template-columns:1fr}}
 .dlg .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
-.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--fg);color:var(--bg);padding:9px 16px;border-radius:9px;font-size:14px;z-index:60}
+.toast{max-width:min(620px,calc(100% - 32px));text-align:center;line-height:1.4;position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--fg);color:var(--bg);padding:9px 16px;border-radius:9px;font-size:14px;z-index:60}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 
 /* v2: badges, drawer, notes, reader, documents */
@@ -326,6 +326,21 @@ button.ack:hover{border-color:var(--ok);color:var(--ok)}
 .syncbar .dotst.err{background:var(--crit)}
 .linkbtn{background:none;border:0;padding:0;color:var(--accent);cursor:pointer;font:inherit;text-decoration:underline;text-underline-offset:2px}
 
+/* stage 1: archive, conflict banners, personal keys */
+.dr-btns{display:flex;gap:8px;align-items:center}
+.dr-flags:empty{display:none}
+.dr-flags{display:flex;flex-direction:column;gap:8px}
+.dr-flag{font-size:13.5px;padding:10px 12px;border-radius:10px;background:var(--surface-2);color:var(--fg);border:1px solid var(--line);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.dr-flag.warn{background:var(--warn-soft);border-color:var(--warn)}
+.dr-flag .mini{margin-left:auto}
+.arch-list{padding-left:0!important}
+.arch-list .item{grid-template-columns:28px minmax(0,1fr) auto}
+.keytag{font-size:11.5px;padding:1px 7px;border-radius:99px;border:1px solid var(--line-2);color:var(--muted);margin-left:4px}
+.keytag.own{border-color:var(--ok);color:var(--ok)}
+.lk-own{font-size:14px;color:var(--fg)}
+.lk-hint{font-size:12.5px!important}
+.tab-c{font-size:12px;color:var(--muted);margin-left:2px}
+.tab-c:empty{display:none}
 /* kanban: три столбца по статусу, фильтры по участнику и этапам */
 .kb-filters{display:flex;flex-direction:column;gap:10px;margin-bottom:12px}
 .kb-frow{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
@@ -363,17 +378,19 @@ button.ack:hover{border-color:var(--ok);color:var(--ok)}
 <body>
 <div class="lock" id="lock" hidden>
   <form class="lock-card" id="lk-form" autocomplete="off">
-    <div class="brand">ОПОРА</div>
+    <div class="brand">SELLER RX</div>
     <h1>Дорожная карта проекта</h1>
     <p>Задачи, документы и общие заметки партнёров. Для входа нужен ключ доступа — его выдаёт Александр. Вводится один раз, браузер его запомнит.</p>
     <div class="field"><label>Кто вы</label><div class="who-pick"><label><input type="radio" name="lk-who" value="Татьяна"> Татьяна</label><label><input type="radio" name="lk-who" value="Александр"> Александр</label></div></div>
     <div class="field"><label for="lk-key">Ключ доступа</label><input id="lk-key" type="password" placeholder="github_pat_…" spellcheck="false"></div>
+    <label class="chk lk-own"><input type="checkbox" id="lk-own"> Это мой личный ключ — он выдан только мне</label>
+    <p class="lk-hint">Личный ключ закрепляет подпись: изменения и заметки с этого ключа всегда будут от вашего имени. Общий ключ партнёров так не отмечайте.</p>
     <p id="lk-err" class="lock-err" hidden></p>
     <button class="btn primary" id="lk-go" type="submit">Войти</button>
   </form>
 </div>
 <div class="wrap">
-  <div class="syncbar"><span><span class="dotst" id="sync-dot"></span><span id="sync-txt">Подключаюсь…</span></span><span>· вы: <b id="sync-who"></b> <button class="linkbtn" id="sync-switch" type="button">сменить</button></span><span>· <button class="linkbtn" id="sync-refresh" type="button">Обновить</button></span><span>· <button class="linkbtn" id="sync-out" type="button">Выйти</button></span></div>
+  <div class="syncbar"><span><span class="dotst" id="sync-dot"></span><span id="sync-txt">Подключаюсь…</span></span><span>· вы: <b id="sync-who"></b><span class="keytag" id="sync-key"></span> <button class="linkbtn" id="sync-switch" type="button">сменить</button></span><span>· <button class="linkbtn" id="sync-refresh" type="button">Обновить</button></span><span>· <button class="linkbtn" id="sync-out" type="button">Выйти</button></span></div>
   <header class="top">
     <div class="top-l">
       <div class="eyebrow">Консалтинг Seller RX · Татьяна Кочерова и Александр Оленович</div>
@@ -406,6 +423,7 @@ button.ack:hover{border-color:var(--ok);color:var(--ok)}
     <button class="tab tab-link" id="tab-site" type="button" title="Открыть актуальную версию сайта в новом окне">Сайт проекта <span aria-hidden="true">↗</span></button>
     <button class="tab tab-link" id="tab-dash" type="button" title="Открыть актуальный дашборд в новом окне">Дашборд <span aria-hidden="true">↗</span></button>
 <button class="tab" role="tab" id="tab-docs" data-tab="docs" aria-selected="false">Документы</button>
+    <button class="tab" role="tab" id="tab-archive" data-tab="archive" aria-selected="false">Архив <span class="tab-c mono" id="arch-n"></span></button>
   </nav>
 
   <div id="notice" class="notice" hidden></div>
@@ -466,6 +484,8 @@ button.ack:hover{border-color:var(--ok);color:var(--ok)}
     <div id="docs"></div>
     <p class="share-note">Документы — копии файлов из папки проекта на 29 сентября. Их можно прочитать прямо здесь или скачать оригинал. Ссылки на другие материалы добавляются в карточке задачи. Ссылки на другие материалы (Яндекс Диск, Google Docs) добавляются в карточке задачи.</p>
   </section>
+
+  <section id="view-archive" role="tabpanel" aria-labelledby="tab-archive" hidden><div id="arch"></div></section>
 </div>
 
 <div id="dlg-root"></div>
@@ -540,7 +560,15 @@ function ackMarks(it,big){return `<span class="acks${big?' big':''}">${ackWho(it
 const plural=(n,a,b,c)=>{const m=Math.abs(n)%100,k=m%10;return m>10&&m<20?c:k===1?a:k>=2&&k<=4?b:c};
 const byDue=(a,b)=>(a.due||'9999').localeCompare(b.due||'9999');
 
-let items=[],notes=[];let loaded=false;let readOnly=false;
+let items=[],notes=[],allItems=[],archItems=[];let loaded=false;let readOnly=false;
+const findIt=id=>allItems.find(i=>i.id===id);
+let formBase=null,drawerSeen=null,keyFp='';
+// conflict: a partner changed the same thing first; the save is cancelled with an explanation
+function conflictErr(m){const e=new Error(m);e.conflict=true;return e}
+const verb=n=>n==='Татьяна'?'Татьяна изменила':(n||'партнёр')+' изменил';
+const nv=v=>v==null?'':String(v);
+const FIELD={title:'название',note:'описание',area:'направление',node:'узел mind-карты',phase:'этап',owner:'кто ведёт',prio:'приоритет',due:'срок'};
+function showVal(k,v){if(v==null||v==='')return'пусто';if(k==='phase')return(PH[v]?.n?PH[v].n+'. ':'')+(PH[v]?.name||v);if(k==='area')return AREA[v]?.name||v;if(k==='due')return shortDate(v);if(k==='note'||k==='title'){const t=String(v);return t.length>60?t.slice(0,58)+'…':t}if(k==='node')return Object.entries(NODE).find(([kk])=>kk.endsWith('/'+v))?.[1]||v;return String(v)}
 let openTask=null;let nextWho=store('opora.nextWho')||'Оба';
 const busy=new Set();
 const $=id=>document.getElementById(id);
@@ -555,7 +583,7 @@ function stats(list){const t=list.length,d=list.filter(i=>i.status==='done').len
 function bar(s){if(!s.t)return'';return `<i class="b-done" style="width:${s.d/s.t*100}%"></i><i class="b-doing" style="width:${s.g/s.t*100}%"></i>`}
 function sorted(list){const po=k=>PHASES.findIndex(p=>p.k===k);return list.slice().sort((a,b)=>po(a.phase)-po(b.phase)||(a.order??0)-(b.order??0))}
 const CHECK='<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-function stBtn(it){return `<button class="st ${esc(it.status)}" data-cycle="${esc(it.id)}" type="button" ${readOnly?'disabled':''} title="${STATUS[it.status]||''}${readOnly?'':' — нажмите, чтобы сменить'}" aria-label="Статус: ${STATUS[it.status]||''}">${it.status==='done'?CHECK:''}</button>`}
+function stBtn(it){return `<button class="st ${esc(it.status)}" data-cycle="${esc(it.id)}" type="button" ${readOnly||it.archived?'disabled':''} title="${STATUS[it.status]||''}${readOnly||it.archived?'':' — нажмите, чтобы сменить'}" aria-label="Статус: ${STATUS[it.status]||''}">${it.status==='done'?CHECK:''}</button>`}
 function areaChip(it){const a=AREA[it.area];if(!a)return'';return `<span class="chip"><span class="dot" style="background:var(--c-${a.k})"></span>${esc(NODE[it.area+'/'+it.node]||a.name)}</span>`}
 const taskNotes=id=>notes.filter(n=>n.task===id).sort((a,b)=>String(a.at).localeCompare(String(b.at)));
 const attCount=it=>(Array.isArray(it.docs)?it.docs.filter(d=>DOC[d]).length:0)+(Array.isArray(it.links)?it.links.length:0);
@@ -584,7 +612,7 @@ function renderHeader(){
    `<li><span></span><span class="muted">${nextWho==='Оба'?'Все задачи плана закрыты.':'У '+(nextWho==='Татьяна'?'Татьяны':'Александра')+' открытых задач нет.'}</span></li>`;
   const recent=notes.slice().sort((a,b)=>String(b.at).localeCompare(String(a.at))).slice(0,50);
   $('feed-n').textContent=notes.length?`всего ${notes.length}`:'';
-  $('feed').innerHTML=recent.length?recent.map(n=>{const it=items.find(i=>i.id===n.task);return `<li data-open="${esc(n.task)}"><div class="ft">${n.done?'<span class="done-tag">сделано</span> ':''}${esc(n.text)}</div><div class="fm">${esc(n.author||'')} · ${esc(fmtDate(n.at))} · ${esc(it?it.title:'задача удалена')}</div></li>`}).join(''):'<li class="muted" style="cursor:default">Пока нет заметок. Откройте задачу, чтобы оставить первую.</li>';
+  $('feed').innerHTML=recent.length?recent.map(n=>{const it=findIt(n.task);return `<li data-open="${esc(n.task)}"><div class="ft">${n.done?'<span class="done-tag">сделано</span> ':''}${esc(n.text)}</div><div class="fm">${esc(n.author||'')} · ${esc(fmtDate(n.at))} · ${esc(it?it.title+(it.archived?' · в архиве':''):'задача удалена')}</div></li>`}).join(''):'<li class="muted" style="cursor:default">Пока нет заметок. Откройте задачу, чтобы оставить первую.</li>';
 }
 
 // ---------- plan
@@ -700,6 +728,14 @@ function renderHot(){
   if(doneWeek.length)h+=`<p class="muted" style="font-size:13px;margin-top:18px">Уже сделано из задач этой недели: ${doneWeek.length}.</p>`;
   el.innerHTML=h;
 }
+// ---------- archive
+function renderArchive(){const el=$('arch');if(!el)return;$('arch-n').textContent=loaded&&archItems.length?String(archItems.length):'';
+  if(!loaded){el.innerHTML='<p class="muted">Загружаю задачи…</p>';return}
+  const l=archItems.slice().sort((a,b)=>String(b.archived).localeCompare(String(a.archived)));
+  el.innerHTML=l.length?`<p class="count" style="margin:0 0 12px">В архиве ${l.length} ${plural(l.length,'задача','задачи','задач')}. Их нет в плане, бэклоге, канбане и сводке, но они хранятся вместе с заметками и документами. Вернуть можно в любой момент.</p>
+   <ul class="items arch-list">${l.map(it=>`<li class="item ${it.status==='done'?'is-done':''}">${stBtn(it)}<div><div class="title" data-open="${esc(it.id)}">${esc(it.title)}${badges(it)}</div><div class="note">В архиве с ${esc(fmtDate(it.archived))}${it.archivedBy?' · '+esc(it.archivedBy):''} · ${it.phase==='bl'?'бэклог':'этап '+esc(PH[it.phase]?.n||'')} · ${esc(STATUS[it.status]||'')}</div></div><div class="tags"><span class="who">${esc(it.owner||'')}</span>${readOnly?'':`<button type="button" class="mini" data-unarch="${esc(it.id)}">Вернуть</button>`}</div></li>`).join('')}</ul>`
+   :'<div class="empty">Архив пуст. Убрать задачу в архив можно из её карточки — кнопка «В архив» вверху.</div>';
+}
 // ---------- kanban
 // Фильтр «кто»: задачи участника + общие («Оба»). Фильтр «этапы»: пусто = все задачи, иначе только выбранные этапы.
 let kbWho=store('opora.kbWho')||'';
@@ -736,8 +772,7 @@ function renderKanban(){
       ${cut?`<button type="button" class="mini kb-more" data-kbmore="1">Показать ещё ${cut}</button>`:st==='done'&&kbDoneAll&&l.length>KB_DONE_MAX?'<button type="button" class="mini kb-more" data-kbmore="0">Свернуть</button>':''}</section>`}).join('');
   $('kb-hint').hidden=readOnly;
 }
-function kbSetStatus(id,st){const it=items.find(i=>i.id===id);if(!it||readOnly||!STATUS[st]||it.status===st)return;const now=new Date().toISOString();
-  commit(`${author()}: «${it.title}» → ${STATUS[st]}`,d=>{if(d.items[id]){d.items[id].status=st;d.items[id].updatedAt=now}},'Статус: '+STATUS[st])}
+function kbSetStatus(id,st){const it=findIt(id);if(!it||readOnly||!STATUS[st]||it.status===st||it.archived)return;setSt(id,it.status,st,'Статус: '+STATUS[st])}
 let kbDrag=null;
 const kbClear=()=>document.querySelectorAll('.kb-col.over').forEach(c=>c.classList.remove('over'));
 document.addEventListener('dragstart',e=>{const c=e.target.closest&&e.target.closest('[data-kb]');if(!c||readOnly)return;kbDrag=c.dataset.kb;try{e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',kbDrag)}catch(_){}setTimeout(()=>c.classList.add('drag'),0)});
@@ -745,10 +780,10 @@ document.addEventListener('dragend',()=>{kbDrag=null;kbClear();document.querySel
 document.addEventListener('dragover',e=>{if(!kbDrag)return;const col=e.target.closest&&e.target.closest('[data-kbcol]');kbClear();if(!col)return;e.preventDefault();try{e.dataTransfer.dropEffect='move'}catch(_){}col.classList.add('over')});
 document.addEventListener('drop',e=>{if(!kbDrag)return;const col=e.target.closest&&e.target.closest('[data-kbcol]');if(!col)return;e.preventDefault();const id=kbDrag;kbDrag=null;kbClear();kbSetStatus(id,col.dataset.kbcol)});
 
-function renderAll(){renderHot();renderHeader();renderPlan();renderBacklog();renderMap();renderKanban();renderDocs();if(openTask)renderDrawer()}
+function renderAll(){renderHot();renderHeader();renderPlan();renderBacklog();renderMap();renderKanban();renderDocs();renderArchive();if(openTask)renderDrawer()}
 
 // ---------- tabs
-const TABS=['hot','plan','backlog','map','kanban','docs'];
+const TABS=['hot','plan','backlog','map','kanban','docs','archive'];
 function setTab(t){if(!TABS.includes(t))t='hot';document.querySelectorAll('.tab[data-tab]').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===t));TABS.forEach(k=>$('view-'+k).hidden=k!==t);store('opora.tab2',t)}
 document.querySelectorAll('.tab[data-tab]').forEach(b=>b.onclick=()=>setTab(b.dataset.tab));
 // «Сайт проекта»: актуальный прототип из хранилища открывается в новом окне
@@ -764,7 +799,7 @@ $('tab-site').onclick=()=>{
 };
 
 // ---------- toast / notice
-let tt;function toast(m){const el=$('toast');el.textContent=m;el.hidden=false;clearTimeout(tt);tt=setTimeout(()=>el.hidden=true,2600)}
+let tt;function toast(m,ms){const el=$('toast');el.textContent=m;el.hidden=false;clearTimeout(tt);tt=setTimeout(()=>el.hidden=true,ms||2600)}
 function notice(m){const el=$('notice');el.textContent=m||'';el.hidden=!m}
 
 // ---------- GitHub storage: data/db.json in the private repo
@@ -794,9 +829,9 @@ function applyDB(){
   if(Array.isArray(DB.phases)&&DB.phases.length){const same=JSON.stringify(DB.phases)===JSON.stringify(PHASES);PHASES=DB.phases;PH=Object.fromEntries(PHASES.map(p=>[p.k,p]));if(!same)refreshPhaseFilter()}
   if(DB.meta)META=Object.assign({},META,DB.meta);
   if(DB.docMeta)Object.entries(DB.docMeta).forEach(([id,v])=>{if(!v)return;if(DOC[id])Object.assign(DOC[id],v);else if(v.t){const d=Object.assign({id,g:'work',d:''},v);DOCS.push(d);DOC[id]=d}});
-  items=Object.entries(DB.items||{}).map(([id,v])=>Object.assign({id},v));
+  allItems=Object.entries(DB.items||{}).map(([id,v])=>Object.assign({id},v));items=allItems.filter(i=>!i.archived);archItems=allItems.filter(i=>i.archived);
   notes=Object.entries(DB.notes||{}).map(([id,v])=>Object.assign({id},v));
-  loaded=true;renderAll();
+  loaded=true;renderWho();renderAll();
 }
 function setSync(state,msg){const d=$('sync-dot'),t=$('sync-txt');if(!d)return;d.className='dotst'+(state==='busy'?' busy':state==='err'?' err':'');
   t.textContent=msg||(state==='busy'?'Сохраняю…':state==='err'?'Нет связи с хранилищем':lastSync?'Сохранено и синхронизировано в '+lastSync.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}):'')}
@@ -826,6 +861,7 @@ function commit(msg,mutate,okMsg){
     }
     throw new Error('conflict');
   }).catch(e=>{
+    if(e&&e.conflict){toast(e.message,10000);setSync('ok');ETAG=null;refresh(true);return false}
     if(e&&e.status===403){readOnly=true;notice('Этот ключ даёт только просмотр: изменения не сохраняются. Нужен ключ с правом записи (Contents: Read and write).')}
     else if(e&&e.status===401){lockScreen('Ключ больше не действует. Попросите новый у Александра.')}
     else toast('Не сохранилось: нет связи с GitHub. Изменение отменено, попробуйте ещё раз.');
@@ -833,13 +869,19 @@ function commit(msg,mutate,okMsg){
   queue=job.then(()=>{},()=>{});
   return job;
 }
-async function cycle(id){const it=items.find(i=>i.id===id);if(!it||readOnly)return;const ns=NEXT_ST[it.status]||'doing';const now=new Date().toISOString();
-  await commit(`${author()}: «${it.title}» → ${STATUS[ns]}`,d=>{if(d.items[id]){d.items[id].status=ns;d.items[id].updatedAt=now}});
-}
-function toggleAck(id){const it=items.find(i=>i.id===id);const n=author();if(!it||readOnly)return;const on=!acked(it,n);const now=new Date().toISOString();
-  commit(`${n}: «${it.title}» — ${on?'отработано с моей стороны':'отметка «отработано» снята'}`,d=>{if(!d.items[id])return;d.items[id].acks=Object.assign({},d.items[id].acks||{},{[n]:on?now:null})},on?'Отмечено: с вашей стороны отработано':'Отметка снята')}
-const updItem=(id,data,msg)=>{const now=new Date().toISOString();const it=items.find(i=>i.id===id);
-  return commit(`${author()}: изменена задача «${it?it.title:id}»`,d=>{if(d.items[id])Object.assign(d.items[id],data,{updatedAt:now})},msg)};
+async function cycle(id){const it=findIt(id);if(!it||readOnly||it.archived)return;const seen=it.status;const ns=NEXT_ST[seen]||'doing';await setSt(id,seen,ns)}
+function setSt(id,seen,ns,okMsg){const it=findIt(id);const now=new Date().toISOString();const me=author();
+  return commit(`${me}: «${it?it.title:id}» → ${STATUS[ns]}`,d=>{const x=d.items[id];if(!x)throw conflictErr('Задачу уже удалили.');
+    if(x.status!==seen&&x.status!==ns)throw conflictErr(`Статус не изменён: ${verb((x.fieldBy&&x.fieldBy.status)||x.updatedBy)} его раньше вас — сейчас «${STATUS[x.status]||x.status}». Если нужно, поменяйте ещё раз.`);
+    x.status=ns;x.updatedAt=now;x.updatedBy=me;x.fieldBy=Object.assign({},x.fieldBy||{},{status:me})},okMsg)}
+function toggleAck(id){const it=findIt(id);const n=author();if(!it||readOnly)return;const on=!acked(it,n);const now=new Date().toISOString();
+  commit(`${n}: «${it.title}» — ${on?'отработано с моей стороны':'отметка «отработано» снята'}`,d=>{if(!d.items[id])throw conflictErr('Задачу уже удалили.');d.items[id].acks=Object.assign({},d.items[id].acks||{},{[n]:on?now:null})},on?'Отмечено: с вашей стороны отработано':'Отметка снята')}
+// edit one task: fn(x) changes the fresh remote copy; updatedBy shows who changed it last
+const editItem=(id,label,fn,msg)=>{const now=new Date().toISOString();const it=findIt(id);const me=author();
+  return commit(`${me}: ${label} «${it?it.title:id}»`,d=>{const x=d.items[id];if(!x)throw conflictErr('Задачу удалили, пока вы её редактировали.');fn(x);x.updatedAt=now;x.updatedBy=me},msg)};
+function setArchived(id,on,by){const it=findIt(id);if(!it||readOnly)return Promise.resolve(false);const now=new Date().toISOString();const me=by||author();
+  return commit(`${me}: «${it.title}» — ${on?'в архив':'возвращена из архива'}`,d=>{const x=d.items[id];if(!x)throw conflictErr('Задачу уже удалили.');
+    if(on){if(!x.archived){x.archived=now;x.archivedBy=me}}else{delete x.archived;delete x.archivedBy}x.updatedAt=now;x.updatedBy=me},on?'Задача перенесена в архив':'Задача возвращена из архива')}
 
 // ---------- downloads & reader
 async function download(id){const d=DOC[id];if(!d||!d.file)return;
@@ -862,14 +904,19 @@ async function openReader(id){const d=DOC[id];if(!d||!d.read)return;
 }
 
 // ---------- task drawer
-function author(){const a=store('opora.author');return AUTHORS.includes(a)?a:'Александр'}
-function openDrawer(id){const it=items.find(i=>i.id===id);if(!it)return;openTask=id;
+// personal key: db.people maps a short SHA-256 fingerprint of the key (never the key) to a partner
+async function fpOf(k){try{const h=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(k));return Array.from(new Uint8Array(h)).slice(0,8).map(b=>b.toString(16).padStart(2,'0')).join('')}catch(e){return''}}
+function boundName(){const p=DB&&DB.people&&keyFp&&DB.people[keyFp];return p&&AUTHORS.includes(p.name)?p.name:''}
+function author(){const b=boundName();if(b)return b;const a=store('opora.author');return AUTHORS.includes(a)?a:'Александр'}
+function openDrawer(id){const it=findIt(id);if(!it)return;openTask=id;
+  formBase={title:it.title,note:it.note||'',area:it.area,node:it.node,phase:it.phase,owner:it.owner,prio:it.prio,due:it.due||null};drawerSeen=it.updatedAt||'';
   const nodeOpts=AREAS.map(a=>`<optgroup label="${esc(a.name)}">${a.nodes.map(([k,n])=>`<option value="${a.k}/${k}" ${it.area===a.k&&it.node===k?'selected':''}>${esc(n)}</option>`).join('')}</optgroup>`).join('');
   const sel=(sid,list,v)=>`<select id="${sid}">${list.map(([k,l])=>`<option value="${esc(k)}" ${k===v?'selected':''}>${esc(l)}</option>`).join('')}</select>`;
   const libOpts=DOCS.map(d=>`<option value="${d.id}">${esc(d.t)}</option>`).join('');
   $('drawer-root').innerHTML=`<div class="drawer-ov" id="dov"><aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="dr-title">
     <div class="dr-top" id="dr-top"></div>
     <div class="dr-body">
+      <div class="dr-flags" id="dr-flags"></div>
       <div id="dr-desc"></div>
       <section class="dr-sec"><h4><span>Отработано с каждой стороны</span></h4><div class="ackp" id="dr-ack"></div></section>
       <section class="dr-sec"><h4><span>Документы и ссылки</span></h4><div id="dr-att"></div>
@@ -881,7 +928,7 @@ function openDrawer(id){const it=items.find(i=>i.id===id);if(!it)return;openTask
       <section class="dr-sec"><h4><span>Заметки</span><span id="dr-ncount" class="mono" style="text-transform:none;letter-spacing:0;font-weight:500"></span></h4><ul class="notes" id="dr-notes"></ul>
         <form class="note-form" id="nf" ${readOnly?'hidden':''}>
           <div class="field"><label for="nf-text">Новая заметка</label><textarea id="nf-text" placeholder="Вопрос, решение, результат или что осталось сделать"></textarea></div>
-          <div class="row3"><label class="chk" for="nf-author">Автор <select id="nf-author">${AUTHORS.map(a=>`<option ${a===author()?'selected':''}>${a}</option>`).join('')}</select></label>
+          <div class="row3">${boundName()?`<span class="chk">Автор: <b>${esc(author())}</b></span>`:`<label class="chk" for="nf-author">Автор <select id="nf-author">${AUTHORS.map(a=>`<option ${a===author()?'selected':''}>${a}</option>`).join('')}</select></label>`}
             <label class="chk"><input type="checkbox" id="nf-done"> Сразу отметить «сделано»</label><span class="spacer"></span>
             <button class="btn primary" type="submit" id="nf-add">Добавить заметку</button></div>
         </form>
@@ -901,35 +948,50 @@ function openDrawer(id){const it=items.find(i=>i.id===id);if(!it)return;openTask
   renderDrawer();
   $('dr-x')&&$('dr-x').focus();
   if(readOnly)return;
-  $('nf-author').onchange=()=>store('opora.author',$('nf-author').value);
+  if($('nf-author'))$('nf-author').onchange=()=>store('opora.author',$('nf-author').value);
   $('nf').onsubmit=async e=>{e.preventDefault();const text=$('nf-text').value.trim();if(!text){$('nf-text').focus();return}
-    const a=$('nf-author').value;store('opora.author',a);const done=$('nf-done').checked;const now=new Date().toISOString();
+    const a=$('nf-author')?$('nf-author').value:author();if($('nf-author'))store('opora.author',a);const done=$('nf-done').checked;const now=new Date().toISOString();
     $('nf-add').disabled=true;
-    const nid=newId('n');const tid=openTask;const it0=items.find(i=>i.id===tid);const ok=await commit(`${a}: заметка к «${it0?it0.title:tid}»`,d=>{d.notes=d.notes||{};d.notes[nid]={task:tid,text,author:a,at:now,done,doneAt:done?now:null}},'Заметка добавлена');
+    const nid=newId('n');const tid=openTask;const it0=findIt(tid);const ok=await commit(`${a}: заметка к «${it0?it0.title:tid}»`,d=>{if(!d.items[tid])throw conflictErr('Задачу удалили — заметка не сохранена.');d.notes=d.notes||{};d.notes[nid]={task:tid,text,author:a,at:now,done,doneAt:done?now:null}},'Заметка добавлена');
     const b=$('nf-add');if(b)b.disabled=false;if(ok){$('nf-text').value='';$('nf-done').checked=false}};
-  $('att-lib-add').onclick=async()=>{const v=$('att-lib').value;const cur=items.find(i=>i.id===openTask);if(!v||!cur)return;const docs=Array.isArray(cur.docs)?cur.docs.slice():[];
-    if(docs.includes(v)){toast('Этот документ уже прикреплён');return}docs.push(v);if(await updItem(cur.id,{docs},'Документ прикреплён'))$('att-lib').value=''};
-  $('lnk-add').onclick=async()=>{const t=$('lnk-t').value.trim(),u=$('lnk-u').value.trim();const cur=items.find(i=>i.id===openTask);if(!cur)return;
+  $('att-lib-add').onclick=async()=>{const v=$('att-lib').value;const cur=findIt(openTask);if(!v||!cur)return;const docs=Array.isArray(cur.docs)?cur.docs.slice():[];
+    if(docs.includes(v)){toast('Этот документ уже прикреплён');return}if(await editItem(cur.id,'документ прикреплён к',x=>{const a=Array.isArray(x.docs)?x.docs:[];if(!a.includes(v))a.push(v);x.docs=a},'Документ прикреплён'))$('att-lib').value=''};
+  $('lnk-add').onclick=async()=>{const t=$('lnk-t').value.trim(),u=$('lnk-u').value.trim();const cur=findIt(openTask);if(!cur)return;
     if(!/^https?:\/\/\S+$/i.test(u)){toast('Вставьте адрес, который начинается с https://');$('lnk-u').focus();return}
-    const links=Array.isArray(cur.links)?cur.links.slice():[];links.push({t:t||u.replace(/^https?:\/\//,'').slice(0,60),u});
-    if(await updItem(cur.id,{links},'Ссылка добавлена')){$('lnk-t').value='';$('lnk-u').value=''}};
+    const l={t:t||u.replace(/^https?:\/\//,'').slice(0,60),u};
+    if(await editItem(cur.id,'ссылка добавлена к',x=>{const a=Array.isArray(x.links)?x.links:[];if(!a.some(z=>z.u===u))a.push(l);x.links=a},'Ссылка добавлена')){$('lnk-t').value='';$('lnk-u').value=''}};
   $('d-save').onclick=async()=>{const title=$('d-title').value.trim();if(!title){$('d-title').focus();return}const [area,node]=$('d-node').value.split('/');
-    await updItem(openTask,{title,note:$('d-note').value.trim(),area,node,phase:$('d-phase').value,owner:$('d-owner').value,prio:$('d-prio').value,due:$('d-due').value||null},'Сохранено')};
-  $('d-del').onclick=()=>{const b=$('d-del');if(b.dataset.armed){const id=openTask;const t0=(items.find(i=>i.id===id)||{}).title||id;closeDrawer();commit(`${author()}: удалена задача «${t0}»`,d=>{delete d.items[id];Object.keys(d.notes||{}).forEach(k=>{if(d.notes[k].task===id)delete d.notes[k]})},'Задача удалена');return}
+    const val={title,note:$('d-note').value.trim(),area,node,phase:$('d-phase').value,owner:$('d-owner').value,prio:$('d-prio').value,due:$('d-due').value||null};
+    const base=Object.assign({},formBase||{});const ch=Object.keys(val).filter(k=>nv(val[k])!==nv(base[k]));
+    if(!ch.length){toast('Изменений нет');return}
+    const id=openTask;
+    // only the fields changed in the form are written; if the partner changed the same field meanwhile, nothing is overwritten silently
+    const ok=await editItem(id,'изменена задача',x=>{const bad=ch.filter(k=>nv(x[k])!==nv(base[k])&&nv(x[k])!==nv(val[k]));
+      if(bad.length){if(formBase&&openTask===id)bad.forEach(k=>formBase[k]=x[k]);
+        const byW=[...new Set(bad.map(k=>(x.fieldBy&&x.fieldBy[k])||x.updatedBy||''))];
+        throw conflictErr(`Не сохранено: пока вы редактировали, ${byW.length===1?verb(byW[0]):'партнёр изменил'} ${bad.map(k=>FIELD[k]).join(', ')} — сейчас ${bad.map(k=>'«'+showVal(k,x[k])+'»').join(', ')}. Ваши правки остались в форме: нажмите «Сохранить» ещё раз, чтобы записать их поверх.`)}
+      const me=author();x.fieldBy=Object.assign({},x.fieldBy||{});ch.forEach(k=>{x[k]=val[k];x.fieldBy[k]=me})},'Сохранено');
+    if(ok&&openTask===id&&formBase)ch.forEach(k=>formBase[k]=val[k]);
+  };
+  $('d-del').onclick=()=>{const b=$('d-del');if(b.dataset.armed){const id=openTask;const t0=(findIt(id)||{}).title||id;closeDrawer();commit(`${author()}: удалена задача «${t0}»`,d=>{delete d.items[id];Object.keys(d.notes||{}).forEach(k=>{if(d.notes[k].task===id)delete d.notes[k]})},'Задача удалена');return}
     b.dataset.armed='1';b.textContent='Точно удалить задачу?';setTimeout(()=>{if(b.isConnected){delete b.dataset.armed;b.textContent='Удалить задачу'}},4000)};
 }
 function closeDrawer(){openTask=null;$('drawer-root').innerHTML=''}
 function renderDrawer(){
-  const it=items.find(i=>i.id===openTask);
+  const it=findIt(openTask);
   if(!it){closeDrawer();return}
-  $('dr-top').innerHTML=`${stBtn(it)}<div><h3 id="dr-title">${esc(it.title)}</h3><div class="dr-meta"><span class="chip">Этап ${esc(PH[it.phase]?.n)} · ${esc(PH[it.phase]?.name||'')}</span>${areaChip(it)}${dueChip(it)}<span class="pr ${esc(it.prio)}">${esc(PRIO[it.prio]||it.prio)}</span><span class="who">ведёт: ${esc(it.owner||'—')}</span><span class="who">· ${esc(STATUS[it.status]||'')}</span></div></div><button class="x" id="dr-x" type="button" aria-label="Закрыть">×</button>`;
+  $('dr-top').innerHTML=`${stBtn(it)}<div><h3 id="dr-title">${esc(it.title)}</h3><div class="dr-meta"><span class="chip">Этап ${esc(PH[it.phase]?.n)} · ${esc(PH[it.phase]?.name||'')}</span>${areaChip(it)}${dueChip(it)}<span class="pr ${esc(it.prio)}">${esc(PRIO[it.prio]||it.prio)}</span><span class="who">ведёт: ${esc(it.owner||'—')}</span><span class="who">· ${esc(STATUS[it.status]||'')}</span></div></div><div class="dr-btns">${readOnly?'':`<button class="mini" data-arch="${esc(it.id)}" type="button" title="${it.archived?'Вернуть задачу в план и списки':'Убрать из плана и списков; задача и заметки сохранятся'}">${it.archived?'Вернуть из архива':'В архив'}</button>`}<button class="x" id="dr-x" type="button" aria-label="Закрыть">×</button></div>`;
   $('dr-x').onclick=closeDrawer;
+  const fl=[];
+  if(it.archived)fl.push(`<div class="dr-flag">В архиве с ${esc(fmtDate(it.archived))}${it.archivedBy?' · убрал'+(it.archivedBy==='Татьяна'?'а':'')+' '+esc(it.archivedBy):''}. Задача не видна в плане, бэклоге, канбане и сводке.</div>`);
+  if(drawerSeen!==null&&(it.updatedAt||'')!==drawerSeen&&it.updatedBy&&it.updatedBy!==author())fl.push(`<div class="dr-flag warn">${esc(verb(it.updatedBy).replace(/^./,c=>c.toUpperCase()))} эту задачу в ${esc(fmtDate(it.updatedAt))}. Форма «Изменить задачу» показывает старые значения.<button class="mini" data-reopen="1" type="button">Обновить форму</button></div>`);
+  $('dr-flags').innerHTML=fl.join('');
   $('dr-ack').innerHTML=ackPanel(it);
   $('dr-desc').innerHTML=it.note?`<p class="desc">${esc(it.note)}</p>`:'';
   const docs=(Array.isArray(it.docs)?it.docs:[]).filter(d=>DOC[d]).map(id=>DOC[id]);
   const links=Array.isArray(it.links)?it.links:[];
   let host=u=>{try{return new URL(u).hostname}catch(e){return''}};
-  $('dr-att').innerHTML=(docs.length||links.length)?`<ul class="att">${docs.map(d=>`<li><span class="ic">${esc(ext(d))}</span><div class="an">${esc(d.t)}<small>${esc(d.d)}</small></div><div class="acts">${docActs(d)}${readOnly?'':`<button class="mini ghost" data-unatt="${d.id}" type="button" title="Открепить от задачи">Открепить</button>`}</div></li>`).join('')}${links.map((l,i)=>`<li><span class="ic lnk">link</span><div class="an"><a href="${esc(l.u)}" target="_blank" rel="noopener">${esc(l.t)}</a><small>${esc(host(l.u))}</small></div><div class="acts">${readOnly?'':`<button class="mini ghost" data-unlink="${i}" type="button">Убрать</button>`}</div></li>`).join('')}</ul>`:'<div class="empty">К задаче пока ничего не прикреплено.</div>';
+  $('dr-att').innerHTML=(docs.length||links.length)?`<ul class="att">${docs.map(d=>`<li><span class="ic">${esc(ext(d))}</span><div class="an">${esc(d.t)}<small>${esc(d.d)}</small></div><div class="acts">${docActs(d)}${readOnly?'':`<button class="mini ghost" data-unatt="${d.id}" type="button" title="Открепить от задачи">Открепить</button>`}</div></li>`).join('')}${links.map((l,i)=>`<li><span class="ic lnk">link</span><div class="an"><a href="${esc(l.u)}" target="_blank" rel="noopener">${esc(l.t)}</a><small>${esc(host(l.u))}</small></div><div class="acts">${readOnly?'':`<button class="mini ghost" data-unlink="${esc(l.u)}" type="button">Убрать</button>`}</div></li>`).join('')}</ul>`:'<div class="empty">К задаче пока ничего не прикреплено.</div>';
   const ns=taskNotes(it.id);const open=ns.filter(n=>!n.done).length;
   $('dr-ncount').textContent=ns.length?`${ns.length} · сделано ${ns.length-open}`:'';
   $('dr-notes').innerHTML=ns.length?ns.map(n=>`<li class="note ${n.done?'is-done':''}"><label class="chk" title="Отметка «сделано»"><input type="checkbox" data-ndone="${esc(n.id)}" ${n.done?'checked':''} ${readOnly?'disabled':''} aria-label="Сделано"></label><div><div class="nt">${esc(n.text)}</div><div class="nm">${n.done?'<span class="done-tag">сделано</span>':''}<span>${esc(n.author||'')}</span><span>${esc(fmtDate(n.at))}</span>${n.done&&n.doneAt&&n.doneAt!==n.at?`<span>отмечено ${esc(fmtDate(n.doneAt))}</span>`:''}</div></div>${readOnly?'<span></span>':`<button class="mini ghost" data-ndel="${esc(n.id)}" type="button">Удалить</button>`}</li>`).join(''):'<li class="empty">Заметок пока нет. Напишите вопрос, решение или результат — партнёр увидит его здесь.</li>';
@@ -971,8 +1033,11 @@ document.addEventListener('click',e=>{
   const dl=e.target.closest('[data-dl]');if(dl){download(dl.dataset.dl);return}
   const op=e.target.closest('[data-open]');if(op){e.preventDefault();$('reader-root').innerHTML='';openDrawer(op.dataset.open);return}
   const lf=e.target.closest('[data-node]');if(lf){goNode(lf.dataset.node);return}
-  const ua=e.target.closest('[data-unatt]');if(ua){const it=items.find(i=>i.id===openTask);if(it)updItem(it.id,{docs:(it.docs||[]).filter(d=>d!==ua.dataset.unatt)},'Документ откреплён');return}
-  const ul=e.target.closest('[data-unlink]');if(ul){const it=items.find(i=>i.id===openTask);if(it){const links=(it.links||[]).slice();links.splice(+ul.dataset.unlink,1);updItem(it.id,{links},'Ссылка убрана')}return}
+  const ua=e.target.closest('[data-unatt]');if(ua){const it=findIt(openTask);const v=ua.dataset.unatt;if(it)editItem(it.id,'документ откреплён от',x=>{x.docs=(x.docs||[]).filter(d=>d!==v)},'Документ откреплён');return}
+  const ul=e.target.closest('[data-unlink]');if(ul){const it=findIt(openTask);const u=ul.dataset.unlink;if(it)editItem(it.id,'ссылка убрана из',x=>{const a=(x.links||[]).slice();const k=a.findIndex(z=>z.u===u);if(k>=0)a.splice(k,1);x.links=a},'Ссылка убрана');return}
+  const ar=e.target.closest('[data-arch]');if(ar){const it=findIt(ar.dataset.arch);if(it)setArchived(it.id,!it.archived);return}
+  const ua2=e.target.closest('[data-unarch]');if(ua2){setArchived(ua2.dataset.unarch,false);return}
+  const ro=e.target.closest('[data-reopen]');if(ro){if(openTask)openDrawer(openTask);return}
   const nd=e.target.closest('[data-ndel]');if(nd){if(nd.dataset.armed){const nid=nd.dataset.ndel;commit(`${author()}: удалена заметка`,d=>{if(d.notes)delete d.notes[nid]},'Заметка удалена');return}nd.dataset.armed='1';nd.textContent='Точно?';setTimeout(()=>{if(nd.isConnected){delete nd.dataset.armed;nd.textContent='Удалить'}},3500);return}
 });
 document.addEventListener('change',e=>{const t=e.target;if(t.matches&&t.matches('[data-ackchk]')){toggleAck(t.dataset.ackchk);return}if(t.matches&&t.matches('[data-ndone]')){const id=t.dataset.ndone;const done=t.checked;const n=notes.find(x=>x.id===id);const now=new Date().toISOString();
@@ -991,13 +1056,15 @@ window.opora={
   ready:()=>!!DB,
   snapshot:()=>JSON.parse(JSON.stringify(DB||{})),
   refresh:()=>{ETAG=null;return refresh(true)},
-  setStatus:(id,st)=>{if(!STATUS[st])throw new Error('status: todo|doing|done');const now=new Date().toISOString();const it=(DB.items||{})[id];return commit(`Claude: «${it?it.title:id}» → ${STATUS[st]}`,d=>{if(d.items[id]){d.items[id].status=st;d.items[id].updatedAt=now}})},
+  setStatus:(id,st)=>{if(!STATUS[st])throw new Error('status: todo|doing|done');const now=new Date().toISOString();const it=(DB.items||{})[id];return commit(`Claude: «${it?it.title:id}» → ${STATUS[st]}`,d=>{if(d.items[id]){d.items[id].status=st;d.items[id].updatedAt=now;d.items[id].updatedBy='Claude'}})},
   addNote:(task,text,author,done)=>{const now=new Date().toISOString();const nid=newId('n');const a=author||'Claude';return commit(`${a}: заметка к ${task}`,d=>{if(!d.items[task])return;d.notes=d.notes||{};d.notes[nid]={task,text,author:a,at:now,done:!!done,doneAt:done?now:null}})},
-  updateItem:(id,data)=>{const now=new Date().toISOString();return commit(`Claude: изменена задача ${id}`,d=>{if(d.items[id])Object.assign(d.items[id],data,{updatedAt:now})})},
+  updateItem:(id,data)=>{const now=new Date().toISOString();return commit(`Claude: изменена задача ${id}`,d=>{if(d.items[id])Object.assign(d.items[id],data,{updatedAt:now,updatedBy:'Claude'})})},
   addItem:(body)=>{const id=newId('u');const now=new Date().toISOString();const b=Object.assign({status:'todo',prio:'P2',owner:'Оба',phase:'bl',area:'strat',node:'offer',note:'',docs:[],links:[],order:Math.max(0,...items.map(i=>i.order||0))+10,updatedAt:now},body);return commit(`Claude: новая задача «${b.title}»`,d=>{d.items[id]=b}).then(ok=>ok?id:null)},
   applyPlan:(p,msg)=>commit(msg||'Claude: обновлён план',d=>{if(p.phases)d.phases=p.phases;if(p.meta)d.meta=Object.assign({},d.meta||{},p.meta);Object.entries(p.items||{}).forEach(([id,v])=>{if(d.items[id])Object.assign(d.items[id],v)})}),
   setAck:(id,name,on)=>{const now=new Date().toISOString();return commit(`${name}: отметка «отработано» ${on?'поставлена':'снята'} (${id})`,d=>{if(d.items[id])d.items[id].acks=Object.assign({},d.items[id].acks||{},{[name]:on?now:null})})},
   setDue:(id,due)=>{const it=(DB.items||{})[id];return commit(`Claude: срок «${it?it.title:id}» → ${due}`,d=>{if(d.items[id])d.items[id].due=due})},
+  archive:(id,on)=>setArchived(id,on!==false,'Claude'),
+  whoami:()=>({author:author(),personalKey:!!boundName()}),
   toggleNote:(nid,done)=>{const now=new Date().toISOString();return commit(`Claude: заметка ${done?'сделано':'открыта'}`,d=>{if(d.notes&&d.notes[nid]){d.notes[nid].done=!!done;d.notes[nid].doneAt=done?now:null}})},
 };
 // ---------- sign-in with access key
@@ -1008,7 +1075,7 @@ function lockScreen(err){
   const a=store('opora.author');document.querySelectorAll('input[name="lk-who"]').forEach(r=>{r.checked=r.value===a});
   setTimeout(()=>{const k=$('lk-key');if(k)k.focus()},50);
 }
-function renderWho(){$('sync-who').textContent=author()}
+function renderWho(){$('sync-who').textContent=author();const b=boundName();$('sync-switch').hidden=!!b;const kt=$('sync-key');kt.textContent=b?'личный ключ':'общий ключ';kt.className='keytag'+(b?' own':'');kt.title=b?'Ключ закреплён за вами: подпись не меняется':'Подпись выбирается вручную. Чтобы закрепить подпись, войдите с личным ключом и отметьте «Это мой личный ключ»'}
 $('lk-form').addEventListener('submit',async e=>{
   e.preventDefault();
   const k=$('lk-key').value.trim();const who=(document.querySelector('input[name="lk-who"]:checked')||{}).value;
@@ -1019,9 +1086,11 @@ $('lk-form').addEventListener('submit',async e=>{
   token=k;
   try{
     const res=await loadRemote(false);
-    store('opora.key',k);store('opora.author',who);
+    store('opora.key',k);keyFp=await fpOf(k);const bound=res.db.people&&res.db.people[keyFp];store('opora.author',bound&&AUTHORS.includes(bound.name)?bound.name:who);
     DB=res.db;SHA=res.sha;ETAG=res.etag;lastSync=new Date();readOnly=false;notice('');
     $('lock').hidden=true;applyDB();setSync('ok');renderWho();startPolling();
+    if(bound&&bound.name!==who)toast('Этот ключ закреплён за: '+bound.name+'. Подпись — '+bound.name+'.',6000);
+    if(!bound&&$('lk-own').checked&&keyFp){const now=new Date().toISOString();await commit(`${who}: подключён личный ключ`,d=>{d.people=d.people||{};if(!d.people[keyFp])d.people[keyFp]={name:who,at:now}},'Личный ключ закреплён за: '+who);renderWho()}
   }catch(ex){
     token='';
     err(ex.status===401?'Ключ не подошёл. Проверьте, что скопировали его целиком, начиная с github_pat_.':
@@ -1031,13 +1100,14 @@ $('lk-form').addEventListener('submit',async e=>{
   }finally{btn.disabled=false;btn.textContent='Войти'}
 });
 $('sync-refresh').onclick=async()=>{ETAG=null;setSync('busy','Обновляю…');if(await refresh(false))toast('Данные обновлены')};
-$('sync-out').onclick=()=>{store('opora.key','');token='';DB=null;items=[];notes=[];loaded=false;closeDrawer();renderAll();clearInterval(pollT);lockScreen()};
-$('sync-switch').onclick=()=>{store('opora.author',author()==='Александр'?'Татьяна':'Александр');renderWho();if(openTask)openDrawer(openTask);toast('Теперь вы подписываетесь как '+author())};
+$('sync-out').onclick=()=>{store('opora.key','');token='';keyFp='';DB=null;items=[];notes=[];loaded=false;closeDrawer();renderAll();clearInterval(pollT);lockScreen()};
+$('sync-switch').onclick=()=>{if(boundName())return;store('opora.author',author()==='Александр'?'Татьяна':'Александр');renderWho();if(openTask)openDrawer(openTask);toast('Теперь вы подписываетесь как '+author())};
 let pollT;function startPolling(){clearInterval(pollT);pollT=setInterval(()=>{if(document.visibilityState==='visible'&&token&&DB)refresh(true)},30000)}
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&token&&DB)refresh(true)});
 (async()=>{
   if(GH.owner.startsWith('__')){notice('Страница ещё не подключена к хранилищу.');return}
   if(!token){lockScreen();return}
+  keyFp=await fpOf(token);
   renderWho();
   const ok=await refresh(false);
   if(ok)startPolling();

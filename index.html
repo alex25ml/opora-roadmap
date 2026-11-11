@@ -414,7 +414,8 @@ svg .mm-addarea text{fill:var(--muted);font:500 11px var(--f-body)}
 .nlist .mv select{background:var(--surface);border:1px solid var(--line-2);border-radius:8px;padding:5px 8px;max-width:100%}
 .dlg h4{margin:6px 0 0;font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
 .subs{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
-.subs li{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 10px;border-bottom:1px solid var(--line)}
+.subs li{padding:8px 10px;border-bottom:1px solid var(--line)}
+.subs .srow{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center}
 .subs li:last-child{border-bottom:0}
 .subs li.empty{display:block;border:0}
 .subs .st-t{font-size:14.5px;overflow-wrap:anywhere;cursor:text}
@@ -437,6 +438,21 @@ svg .mm-addarea text{fill:var(--muted);font:500 11px var(--f-body)}
 .arch-gh .muted{font-size:13px}
 .arch-gh .mini{margin-left:auto}
 .arch-nl{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:13px;color:var(--muted);padding:6px 0}
+/* stage 5: notes on subtasks, author chips */
+.au{display:inline-flex;align-items:center;gap:5px;font-weight:700;font-size:12px;padding:1px 8px 1px 3px;border-radius:99px;white-space:nowrap}
+.au b{width:16px;height:16px;border-radius:50%;display:grid;place-items:center;font:700 10px var(--f-body);color:#fff}
+.au.a{background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent)}.au.a b{background:var(--accent)}
+.au.t{background:color-mix(in srgb,var(--c-audit) 16%,transparent);color:var(--c-audit)}.au.t b{background:var(--c-audit)}
+.au.o{background:var(--surface-2);color:var(--muted)}.au.o b{background:var(--dim)}
+.snotes{list-style:none;margin:8px 0 2px 30px;padding:0 0 0 12px;border-left:2px solid var(--line-2);display:flex;flex-direction:column;gap:6px}
+.snotes .note{padding:7px 10px!important}
+.snotes .note .nt{font-size:14px}
+.st-a button.nb{width:auto!important;padding:0 6px!important;font-size:12px!important;font-weight:600}
+.nsub{font-size:12px;color:var(--muted);background:var(--surface-2);border-radius:6px;padding:1px 7px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.natt .mini.ghost:hover{color:var(--accent)}
+.natt select{background:var(--surface);border:1px solid var(--line-2);border-radius:7px;padding:3px 6px;font-size:12.5px;max-width:220px}
+.note-form .row-sub{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+.note-form .row-sub select{background:var(--surface);border:1px solid var(--line-2);border-radius:8px;padding:6px 8px;max-width:100%;min-width:0;flex:1}
 /* kanban: три столбца по статусу, фильтры по участнику и этапам */
 .kb-filters{display:flex;flex-direction:column;gap:10px;margin-bottom:12px}
 .kb-frow{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
@@ -685,6 +701,11 @@ const byDue=(a,b)=>(a.due||'9999').localeCompare(b.due||'9999');
 
 let items=[],notes=[],allItems=[],archItems=[];let loaded=false;let readOnly=false;
 const findIt=id=>allItems.find(i=>i.id===id);
+// who wrote a note: coloured chip with initial
+function auChip(n){const c=n==='Александр'?'a':n==='Татьяна'?'t':'o';return n?`<span class="au ${c}" title="Автор: ${esc(n)}"><b>${esc(String(n)[0])}</b>${esc(n)}</span>`:''}
+const subOf=(it,sid)=>it&&sid?(it.subs||[]).find(z=>z.id===sid):null;
+function noteLi(n,it,opt){opt=opt||{};const sub=subOf(it,n.sub);
+  return `<li class="note ${n.done?'is-done':''}"><label class="chk" title="Отметка «сделано»"><input type="checkbox" data-ndone="${esc(n.id)}" ${n.done?'checked':''} ${readOnly?'disabled':''} aria-label="Сделано"></label><div><div class="nt">${esc(n.text)}</div><div class="nm">${auChip(n.author)}${n.done?'<span class="done-tag">сделано</span>':''}<span>${esc(fmtDate(n.at))}</span>${n.done&&n.doneAt&&n.doneAt!==n.at?`<span>отмечено ${esc(fmtDate(n.doneAt))}</span>`:''}${opt.task&&it?`<a href="#" data-open="${esc(it.id)}">${esc(it.title)}</a>${it.archived?'<span>в архиве</span>':''}`:opt.task?'<span>задача удалена</span>':''}${opt.showSub&&sub?`<span class="nsub" title="Подзадача">↳ ${esc(sub.t)}</span>`:''}</div></div>${readOnly||opt.task?'<span></span>':`<div class="acts">${(it&&(it.subs||[]).length)?`<span class="natt"><button class="mini ghost" data-nattach="${esc(n.id)}" type="button" title="Привязать к подзадаче">${sub?'Перепривязать':'К подзадаче'}</button></span>`:''}<button class="mini ghost" data-ndel="${esc(n.id)}" type="button">Удалить</button></div>`}</li>`}
 let formBase=null,drawerSeen=null,keyFp='';
 // conflict: a partner changed the same thing first; the save is cancelled with an explanation
 function conflictErr(m){const e=new Error(m);e.conflict=true;return e}
@@ -758,7 +779,7 @@ function renderNotesV(){
   $('nf-au').innerHTML=[['','Все'],...au.map(a=>[a,a])].map(([v,l])=>`<button type="button" class="seg-b" data-nfau="${esc(v)}" aria-pressed="${nfAu===v}">${esc(l)}</button>`).join('');
   if(!loaded){el.innerHTML='<li class="empty">Загружаю заметки…</li>';return}
   const list=byAu.filter(n=>nfSt==='all'||(nfSt==='done')===!!n.done).sort((a,b)=>String(b.at).localeCompare(String(a.at)));
-  el.innerHTML=list.length?list.map(n=>{const it=findIt(n.task);return `<li class="note ${n.done?'is-done':''}"><label class="chk" title="Отметка «сделано»"><input type="checkbox" data-ndone="${esc(n.id)}" ${n.done?'checked':''} ${readOnly?'disabled':''} aria-label="Сделано"></label><div><div class="nt">${esc(n.text)}</div><div class="nm">${n.done?'<span class="done-tag">сделано</span>':''}<span>${esc(n.author||'')}</span><span>${esc(fmtDate(n.at))}</span>${it?`<a href="#" data-open="${esc(it.id)}">${esc(it.title)}</a>${it.archived?'<span>в архиве</span>':''}`:'<span>задача удалена</span>'}</div></div><span></span></li>`}).join('')
+  el.innerHTML=list.length?list.map(n=>noteLi(n,findIt(n.task),{task:true,showSub:true})).join('')
     :'<li class="empty">Под фильтр заметок не попало.</li>';
 }
 
@@ -1301,6 +1322,7 @@ function openDrawer(id){const it=findIt(id);if(!it)return;openTask=id;
       <section class="dr-sec"><h4><span>Заметки</span><span id="dr-ncount" class="mono" style="text-transform:none;letter-spacing:0;font-weight:500"></span></h4><ul class="notes" id="dr-notes"></ul>
         <form class="note-form" id="nf" ${readOnly?'hidden':''}>
           <div class="field"><label for="nf-text">Новая заметка</label><textarea id="nf-text" placeholder="Вопрос, решение, результат или что осталось сделать"></textarea></div>
+          <div class="row-sub" id="nf-subrow" hidden><label for="nf-sub">К чему:</label><select id="nf-sub"></select></div>
           <div class="row3">${boundName()?`<span class="chk">Автор: <b>${esc(author())}</b></span>`:`<label class="chk" for="nf-author">Автор <select id="nf-author">${AUTHORS.map(a=>`<option ${a===author()?'selected':''}>${a}</option>`).join('')}</select></label>`}
             <label class="chk"><input type="checkbox" id="nf-done"> Сразу отметить «сделано»</label><span class="spacer"></span>
             <button class="btn primary" type="submit" id="nf-add">Добавить заметку</button></div>
@@ -1328,8 +1350,9 @@ function openDrawer(id){const it=findIt(id);if(!it)return;openTask=id;
   $('nf').onsubmit=async e=>{e.preventDefault();const text=$('nf-text').value.trim();if(!text){$('nf-text').focus();return}
     const a=$('nf-author')?$('nf-author').value:author();if($('nf-author'))store('opora.author',a);const done=$('nf-done').checked;const now=new Date().toISOString();
     $('nf-add').disabled=true;
-    const nid=newId('n');const tid=openTask;const it0=findIt(tid);const ok=await commit(`${a}: заметка к «${it0?it0.title:tid}»`,d=>{if(!d.items[tid])throw conflictErr('Задачу удалили — заметка не сохранена.');d.notes=d.notes||{};d.notes[nid]={task:tid,text,author:a,at:now,done,doneAt:done?now:null}},'Заметка добавлена');
-    const b=$('nf-add');if(b)b.disabled=false;if(ok){$('nf-text').value='';$('nf-done').checked=false}};
+    const sid=$('nf-sub')&&!$('nf-subrow').hidden?$('nf-sub').value:'';const nid=newId('n');const tid=openTask;const it0=findIt(tid);const s0=subOf(it0,sid);
+    const ok=await commit(`${a}: заметка к «${it0?it0.title:tid}»${s0?' → подзадача «'+s0.t.slice(0,60)+'»':''}`,d=>{if(!d.items[tid])throw conflictErr('Задачу удалили — заметка не сохранена.');d.notes=d.notes||{};const okSub=sid&&(d.items[tid].subs||[]).some(z=>z.id===sid);d.notes[nid]={task:tid,text,author:a,at:now,done,doneAt:done?now:null};if(okSub)d.notes[nid].sub=sid},'Заметка добавлена');
+    const b=$('nf-add');if(b)b.disabled=false;if(ok){$('nf-text').value='';$('nf-done').checked=false;if($('nf-sub'))$('nf-sub').value=''}};
   $('att-lib-add').onclick=async()=>{const v=$('att-lib').value;const cur=findIt(openTask);if(!v||!cur)return;const docs=Array.isArray(cur.docs)?cur.docs.slice():[];
     if(docs.includes(v)){toast('Этот документ уже прикреплён');return}if(await editItem(cur.id,'документ прикреплён к',x=>{const a=Array.isArray(x.docs)?x.docs:[];if(!a.includes(v))a.push(v);x.docs=a},'Документ прикреплён'))$('att-lib').value=''};
   $('lnk-add').onclick=async()=>{const t=$('lnk-t').value.trim(),u=$('lnk-u').value.trim();const cur=findIt(openTask);if(!cur)return;
@@ -1366,16 +1389,18 @@ function renderDrawer(){
   $('dr-ack').innerHTML=ackPanel(it);
   const sb=Array.isArray(it.subs)?it.subs:[];const sdn=sb.filter(x=>x.done).length;
   $('dr-scount').textContent=sb.length?`${sdn} из ${sb.length}`:'';
-  if(!(document.activeElement&&document.activeElement.classList.contains('st-in')))
-  $('dr-subs').innerHTML=sb.length?sb.map((x,i)=>`<li class="${x.done?'is-done':''}" data-sid="${esc(x.id)}"><label class="chk"><input type="checkbox" data-subdone="${esc(x.id)}" ${x.done?'checked':''} ${readOnly?'disabled':''} aria-label="Сделано"></label><div><div class="st-t" ${readOnly?'':`data-subedit="${esc(x.id)}" title="Нажмите, чтобы изменить текст"`}>${esc(x.t)}</div>${x.who||x.due||x.done?`<div class="st-m">${x.who?`<span>${esc(x.who)}</span>`:''}${x.due?(x.done?`<span>до ${shortDate(x.due)}</span>`:dueChip({due:x.due,status:'todo'})):''}${x.done&&x.doneBy?`<span>сделано · ${esc(x.doneBy)}</span>`:''}</div>`:''}</div>${readOnly?'<span></span>':`<div class="st-a"><button type="button" data-subup="${esc(x.id)}" ${i?'':'disabled'} title="Выше" aria-label="Выше">↑</button><button type="button" data-subdown="${esc(x.id)}" ${i<sb.length-1?'':'disabled'} title="Ниже" aria-label="Ниже">↓</button><button type="button" class="del" data-subdel="${esc(x.id)}" title="Удалить" aria-label="Удалить подзадачу">✕</button></div>`}</li>`).join(''):'<li class="empty muted" style="font-size:14px;padding:10px 12px">Подзадач нет. Разбейте задачу на шаги — у каждого своя отметка «сделано».</li>';
+  const nsAll=taskNotes(it.id);const subIds=new Set(sb.map(x=>x.id));const subEditing=document.activeElement&&(document.activeElement.classList.contains('st-in')||document.activeElement.closest('.natt'));
+  if(!subEditing)$('dr-subs').innerHTML=sb.length?sb.map((x,i)=>{const sn=nsAll.filter(n=>n.sub===x.id);return `<li class="${x.done?'is-done':''}" data-sid="${esc(x.id)}"><div class="srow"><label class="chk"><input type="checkbox" data-subdone="${esc(x.id)}" ${x.done?'checked':''} ${readOnly?'disabled':''} aria-label="Сделано"></label><div><div class="st-t" ${readOnly?'':`data-subedit="${esc(x.id)}" title="Нажмите, чтобы изменить текст"`}>${esc(x.t)}</div>${x.who||x.due||x.done||sn.length?`<div class="st-m">${x.who?`<span>${esc(x.who)}</span>`:''}${x.due?(x.done?`<span>до ${shortDate(x.due)}</span>`:dueChip({due:x.due,status:'todo'})):''}${x.done&&x.doneBy?`<span>сделано</span>${auChip(x.doneBy)}`:''}${sn.length?`<span>заметки: ${sn.length}</span>`:''}</div>`:''}</div>${readOnly?'<span></span>':`<div class="st-a"><button type="button" class="nb" data-subnote="${esc(x.id)}" title="Заметка к этой подзадаче" aria-label="Заметка к подзадаче">+ заметка</button><button type="button" data-subup="${esc(x.id)}" ${i?'':'disabled'} title="Выше" aria-label="Выше">↑</button><button type="button" data-subdown="${esc(x.id)}" ${i<sb.length-1?'':'disabled'} title="Ниже" aria-label="Ниже">↓</button><button type="button" class="del" data-subdel="${esc(x.id)}" title="Удалить" aria-label="Удалить подзадачу">✕</button></div>`}</div>${sn.length?`<ul class="notes snotes">${sn.map(n=>noteLi(n,it)).join('')}</ul>`:''}</li>`}).join(''):'<li class="empty muted" style="font-size:14px;padding:10px 12px">Подзадач нет. Разбейте задачу на шаги — у каждого своя отметка «сделано».</li>';
+  {const sel=$('nf-sub');if(sel){const v=sel.value;sel.innerHTML=`<option value="">ко всей задаче</option>`+sb.map(x=>`<option value="${esc(x.id)}">подзадача: ${esc(x.t.length>70?x.t.slice(0,68)+'…':x.t)}</option>`).join('');sel.value=sb.some(x=>x.id===v)?v:'';$('nf-subrow').hidden=!sb.length}}
   $('dr-desc').innerHTML=it.note?`<p class="desc">${esc(it.note)}</p>`:'';
   const docs=(Array.isArray(it.docs)?it.docs:[]).filter(d=>DOC[d]).map(id=>DOC[id]);
   const links=Array.isArray(it.links)?it.links:[];
   let host=u=>{try{return new URL(u).hostname}catch(e){return''}};
   $('dr-att').innerHTML=(docs.length||links.length)?`<ul class="att">${docs.map(d=>`<li><span class="ic">${esc(ext(d))}</span><div class="an">${esc(d.t)}<small>${esc(d.d)}</small></div><div class="acts">${docActs(d)}${readOnly?'':`<button class="mini ghost" data-unatt="${d.id}" type="button" title="Открепить от задачи">Открепить</button>`}</div></li>`).join('')}${links.map((l,i)=>`<li><span class="ic lnk">link</span><div class="an"><a href="${esc(l.u)}" target="_blank" rel="noopener">${esc(l.t)}</a><small>${esc(host(l.u))}</small></div><div class="acts">${readOnly?'':`<button class="mini ghost" data-unlink="${esc(l.u)}" type="button">Убрать</button>`}</div></li>`).join('')}</ul>`:'<div class="empty">К задаче пока ничего не прикреплено.</div>';
   const ns=taskNotes(it.id);const open=ns.filter(n=>!n.done).length;
-  $('dr-ncount').textContent=ns.length?`${ns.length} · сделано ${ns.length-open}`:'';
-  $('dr-notes').innerHTML=ns.length?ns.map(n=>`<li class="note ${n.done?'is-done':''}"><label class="chk" title="Отметка «сделано»"><input type="checkbox" data-ndone="${esc(n.id)}" ${n.done?'checked':''} ${readOnly?'disabled':''} aria-label="Сделано"></label><div><div class="nt">${esc(n.text)}</div><div class="nm">${n.done?'<span class="done-tag">сделано</span>':''}<span>${esc(n.author||'')}</span><span>${esc(fmtDate(n.at))}</span>${n.done&&n.doneAt&&n.doneAt!==n.at?`<span>отмечено ${esc(fmtDate(n.doneAt))}</span>`:''}</div></div>${readOnly?'<span></span>':`<button class="mini ghost" data-ndel="${esc(n.id)}" type="button">Удалить</button>`}</li>`).join(''):'<li class="empty">Заметок пока нет. Напишите вопрос, решение или результат — партнёр увидит его здесь.</li>';
+  $('dr-ncount').textContent=ns.length?`${ns.length} · сделано ${ns.length-open}${ns.some(n=>n.sub&&subIds.has(n.sub))?' · к подзадачам '+ns.filter(n=>n.sub&&subIds.has(n.sub)).length:''}`:'';
+  const nsMain=ns.filter(n=>!n.sub||!subIds.has(n.sub));
+  $('dr-notes').innerHTML=nsMain.length?nsMain.map(n=>noteLi(n,it)).join(''):ns.length?'<li class="empty">Все заметки привязаны к подзадачам — они показаны под ними.</li>':'<li class="empty">Заметок пока нет. Напишите вопрос, решение или результат — партнёр увидит его здесь.</li>';
 }
 
 // ---------- create dialog (new task)
@@ -1406,13 +1431,20 @@ document.addEventListener('click',e=>{
   const c=e.target.closest('[data-cycle]');if(c){e.preventDefault();e.stopPropagation();cycle(c.dataset.cycle);return}
   const sup=e.target.closest('[data-subup],[data-subdown]');if(sup&&openTask){const sid=sup.dataset.subup||sup.dataset.subdown;const dir=sup.dataset.subup?-1:1;
     editItem(openTask,'порядок подзадач',x=>{const a=(x.subs||[]).slice();const i=a.findIndex(z=>z.id===sid);const j=i+dir;if(i<0||j<0||j>=a.length)return;[a[i],a[j]]=[a[j],a[i]];x.subs=a});return}
-  const sdl=e.target.closest('[data-subdel]');if(sdl&&openTask){if(sdl.dataset.armed){const sid=sdl.dataset.subdel;editItem(openTask,'удалена подзадача в',x=>{x.subs=(x.subs||[]).filter(z=>z.id!==sid)},'Подзадача удалена');return}
+  const sdl=e.target.closest('[data-subdel]');if(sdl&&openTask){if(sdl.dataset.armed){const sid=sdl.dataset.subdel;const tid=openTask;const it=findIt(tid);const now=new Date().toISOString();const me=author();
+    commit(`${me}: удалена подзадача в «${it?it.title:tid}»`,d=>{const x=d.items[tid];if(!x)throw conflictErr('Задачу удалили.');x.subs=(x.subs||[]).filter(z=>z.id!==sid);x.updatedAt=now;x.updatedBy=me;Object.values(d.notes||{}).forEach(n=>{if(n.task===tid&&n.sub===sid)delete n.sub})},'Подзадача удалена, её заметки остались у задачи');return}
     sdl.dataset.armed='1';sdl.textContent='?';sdl.title='Нажмите ещё раз, чтобы удалить';setTimeout(()=>{if(sdl.isConnected){delete sdl.dataset.armed;sdl.textContent='✕'}},3000);return}
   const sed=e.target.closest('[data-subedit]');if(sed&&openTask&&!sed.querySelector('input')){const sid=sed.dataset.subedit;const it=findIt(openTask);const sub=it&&(it.subs||[]).find(z=>z.id===sid);if(!sub)return;
     const old=sub.t;const inp=document.createElement('input');inp.className='st-in';inp.value=old;sed.textContent='';sed.appendChild(inp);inp.focus();inp.select();let done=false;
     const fin=async save=>{if(done)return;done=true;const v=inp.value.trim();if(save&&v&&v!==old){await editItem(openTask,'подзадача изменена в',x=>{const z=(x.subs||[]).find(q=>q.id===sid);if(!z)throw conflictErr('Подзадачу уже удалили.');
         if(z.t!==old&&z.t!==v)throw conflictErr(`Не сохранено: ${verb(x.updatedBy)} эту подзадачу раньше вас — сейчас «${z.t}».`);z.t=v},'Сохранено')}renderDrawer()};
     inp.addEventListener('keydown',ev=>{if(ev.key==='Enter'){ev.preventDefault();fin(true)}if(ev.key==='Escape'){ev.stopPropagation();fin(false)}});inp.addEventListener('blur',()=>fin(true));return}
+  const sno=e.target.closest('[data-subnote]');if(sno&&openTask){const sel=$('nf-sub');if(sel){sel.value=sno.dataset.subnote;$('nf-subrow').hidden=false}const t=$('nf-text');if(t){t.scrollIntoView({block:'center',behavior:'smooth'});setTimeout(()=>t.focus(),250)}return}
+  const nat=e.target.closest('[data-nattach]');if(nat&&openTask){const nid=nat.dataset.nattach;const it=findIt(openTask);const n=notes.find(z=>z.id===nid);if(!it||!n)return;const box=nat.parentElement;
+    box.innerHTML=`<select aria-label="К чему относится заметка"><option value="">ко всей задаче</option>${(it.subs||[]).map(x=>`<option value="${esc(x.id)}" ${n.sub===x.id?'selected':''}>${esc(x.t.length>50?x.t.slice(0,48)+'…':x.t)}</option>`).join('')}</select>`;
+    const sel=box.querySelector('select');sel.focus();sel.onchange=()=>{const v=sel.value;const tid=openTask;const me=author();
+      commit(`${me}: заметка ${v?'привязана к подзадаче':'отвязана от подзадачи'} в «${it.title}»`,d=>{const z=d.notes&&d.notes[nid];if(!z)throw conflictErr('Заметку уже удалили.');if(v&&!(d.items[tid]&&(d.items[tid].subs||[]).some(q=>q.id===v)))throw conflictErr('Подзадачу уже удалили.');if(v)z.sub=v;else delete z.sub},v?'Заметка привязана к подзадаче':'Заметка относится ко всей задаче')};
+    sel.onblur=()=>setTimeout(()=>{if(sel.isConnected)renderDrawer()},150);return}
   const nar=e.target.closest('[data-newarea]');if(nar){if(!readOnly)openAreaDlg(null);return}
   const nno=e.target.closest('[data-newnode]');if(nno){if(!readOnly)openNodeDlg(nno.dataset.newnode);return}
   const aed=e.target.closest('[data-areaedit]');if(aed){if(!readOnly)openAreaDlg(aed.dataset.areaedit);return}

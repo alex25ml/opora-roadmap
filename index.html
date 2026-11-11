@@ -466,9 +466,21 @@ svg .mm-addarea text{fill:var(--muted);font:500 11px var(--f-body)}
 .lib-head{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
 .lib-head input[type=search]{flex:1 1 280px;min-width:0;max-width:520px;background:var(--surface);border:1px solid var(--line-2);border-radius:9px;padding:8px 12px}
 #lib-cats{margin-bottom:6px}
-.lcat{margin-top:22px}
+.lcat{margin-top:4px;border-top:1px solid var(--line)}
+.lcat>summary{list-style:none;cursor:pointer;padding:14px 0 10px}
+.lcat>summary::-webkit-details-marker{display:none}
+.lcat:not([open])>summary .lcd{display:none}
+.lch{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.lcn{font-size:16px;font-weight:700}
+.lcc{font-size:13.5px;color:var(--muted)}
+.lca{margin-left:auto;display:flex;gap:6px;align-self:center}
+.lcb{padding-bottom:12px}
+.lib-tools .mini.ghost:hover,.lca .mini.ghost:hover{color:var(--accent)}
+.lib-tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0 6px}
+.ld-sec{background:var(--accent-soft);border-radius:10px;padding:10px 12px}
+.ld-sec label{font-weight:700;color:var(--fg)}
 .lcat h3{font-size:16px;font-weight:700;display:flex;gap:8px;align-items:baseline}
-.lcat .lcd{margin:2px 0 10px;font-size:13px}
+.lcat .lcd{margin:4px 0 0;font-size:13px}
 .lrow{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:start;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:8px}
 .lrow .ic{font-family:var(--f-mono);font-size:10.5px;font-weight:500;letter-spacing:.04em;padding:3px 6px;border-radius:5px;background:var(--accent-soft);color:var(--accent);text-transform:uppercase;min-width:42px;text-align:center;margin-top:2px}
 .lrow .lt{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:15px}
@@ -657,6 +669,7 @@ svg .mm-addarea text{fill:var(--muted);font:500 11px var(--f-body)}
   <section id="view-docs" role="tabpanel" aria-labelledby="tab-docs" hidden>
     <div class="lib-head"><input id="lib-q" type="search" placeholder="Поиск по названию, описанию, имени файла" aria-label="Поиск по библиотеке"><div class="seg" id="lib-aud" role="group" aria-label="Для кого"></div><span class="spacer"></span><button class="btn" id="lib-add" type="button">+ Документ</button><button class="btn primary" id="lib-sync" type="button" title="Сравнить файлы в папке «Консалтинг» на этом компьютере с библиотекой">Сверить с папкой</button></div>
     <div class="kb-chips" id="lib-cats" role="group" aria-label="Разделы"></div>
+    <div class="lib-tools" id="lib-tools"></div>
     <div id="lib-syncbox" class="ls" hidden></div>
     <div id="lib-list"></div>
     <details class="old-docs"><summary>Старые копии документов от 29 сентября</summary><div id="docs"></div><p class="share-note">Копии, сделанные при запуске дорожной карты. Актуальные версии — в разделах библиотеки выше.</p></details>
@@ -1508,6 +1521,9 @@ const LIB_CATS0=[
  {k:'marketing',name:'Маркетинг и сайт',desc:'Лид-магниты, резюме, тексты партнёров, структура сайта'}];
 let LIB=null,LIB_SHA=null,LIB_ETAG=null,libQ='',libCat=store('opora.libCat')||'',libAud=store('opora.libAud')||'',libOpen=new Set();
 let libQueue=Promise.resolve(),libScan=null,libBusy=false;
+const libClosed=new Set(store('opora.libClosed')||[]);const saveLibClosed=()=>store('opora.libClosed',[...libClosed]);
+const ensureCats=lib=>{if(!Array.isArray(lib.cats)||!lib.cats.length)lib.cats=LIB_CATS0.map(c=>Object.assign({},c));return lib.cats};
+const docsWord=n=>`(${n} ${plural(n,'документ','документа','документов')})`;
 const libCats=()=>LIB&&Array.isArray(LIB.cats)&&LIB.cats.length?LIB.cats:LIB_CATS0;
 const libDocs=()=>LIB&&LIB.docs?Object.entries(LIB.docs).map(([id,v])=>Object.assign({id},v)):[];
 const lastV=d=>d&&Array.isArray(d.versions)&&d.versions.length?d.versions[d.versions.length-1]:null;
@@ -1657,32 +1673,58 @@ function renderLib(){const el=$('lib-list');if(!el)return;const cats=libCats();c
       <div class="lm">${lv?`<span>${esc(lv.name)}</span><span>загружено ${esc(fmtDate(lv.at))}</span>${auChip(lv.by)}<span>${fmtSize(lv.size)}</span>${d.dir?`<span title="Папка на компьютере">📁 ${esc(d.dir)}</span>`:''}`:'<span>файл ещё не загружен — появится после «Сверить с папкой» на компьютере, где он есть</span>'}</div>
       ${op?`<ul class="lhist">${vs.map(v=>`<li><span class="mono">№${v.n}</span><span>${esc(v.name)}</span><span>${esc(fmtDate(v.at))}</span>${auChip(v.by)}<span>${fmtSize(v.size)}</span><button class="mini ghost" data-libget="${esc(d.id)}|${v.n}" type="button">Скачать</button></li>`).join('')}</ul>`:''}</div>
       <div class="acts">${lv?`<button class="mini" data-libget="${esc(d.id)}|${lv.n}" type="button">Скачать</button>`:''}${readOnly?'':`<button class="mini" data-libup="${esc(d.id)}" type="button">Новая версия</button>`}<button class="mini ghost" data-libhist="${esc(d.id)}" type="button">${op?'Скрыть историю':'История ('+(d.versions||[]).length+')'}</button>${readOnly?'':`<button class="mini ghost" data-libedit="${esc(d.id)}" type="button">Изменить</button>`}</div></article>`};
-  const list=cats.filter(c=>!libCat||c.k===libCat).map(c=>{const ds=docs.filter(d=>d.cat===c.k&&fq(d)&&fa(d)).sort((a,b)=>a.title.localeCompare(b.title,'ru'));if(!ds.length&&(q||libAud))return'';
-    return `<section class="lcat"><h3>${esc(c.name)} <span class="muted mono">${ds.length}</span></h3><p class="muted lcd">${esc(c.desc||'')}</p>${ds.length?ds.map(docRow).join(''):'<div class="empty">В разделе пока нет документов.</div>'}</section>`}).join('');
-  const other=docs.filter(d=>!cats.some(c=>c.k===d.cat)&&fq(d)&&fa(d));
-  el.innerHTML=(docs.length?'':`<div class="empty">Библиотека пустая. Нажмите «Сверить с папкой» и выберите папку «Консалтинг» на компьютере — страница найдёт документы и предложит добавить их по разделам.</div>`)+list+(other.length?`<section class="lcat"><h3>Без раздела</h3>${other.map(docRow).join('')}</section>`:'');
+  const isOpen=k=>!!q||!libClosed.has(k);
+  const sec=(c,ds,own)=>`<details class="lcat" data-libsec="${esc(c.k)}" ${isOpen(c.k)?'open':''}><summary><div class="lch"><span class="lcn">${esc(c.name)}<span class="chev">›</span></span><span class="lcc">${docsWord(ds.length)}</span>${own&&!readOnly?`<span class="lca"><button class="mini" data-libaddto="${esc(c.k)}" type="button" title="Загрузить файл сразу в этот раздел">+ файл</button><button class="mini ghost" data-libcatedit="${esc(c.k)}" type="button" title="Название и описание раздела">Изменить</button></span>`:''}</div>${c.desc?`<p class="muted lcd">${esc(c.desc)}</p>`:''}</summary>
+    <div class="lcb">${ds.length?ds.map(docRow).join(''):'<div class="empty">В разделе пока нет документов.</div>'}</div></details>`;
+  const shown=cats.filter(c=>!libCat||c.k===libCat);
+  const list=shown.map(c=>{const ds=docs.filter(d=>d.cat===c.k&&fq(d)&&fa(d)).sort((a,b)=>a.title.localeCompare(b.title,'ru'));if(!ds.length&&(q||libAud))return'';return sec(c,ds,true)}).join('');
+  const other=libCat?[]:docs.filter(d=>!cats.some(c=>c.k===d.cat)&&fq(d)&&fa(d));
+  $('lib-tools').innerHTML=`<button class="mini ghost" id="lib-openall" type="button">Развернуть все</button><button class="mini ghost" id="lib-closeall" type="button">Свернуть все</button>${readOnly?'':'<button class="mini" id="lib-addcat" type="button">+ Раздел</button>'}${q?'<span class="muted" style="font-size:12.5px">Пока идёт поиск, разделы с находками раскрыты.</span>':''}`;
+  el.innerHTML=(docs.length?'':`<div class="empty">Библиотека пустая. Нажмите «Сверить с папкой» и выберите папку «Консалтинг» на компьютере — страница найдёт документы и предложит добавить их по разделам.</div>`)+list+(other.length?sec({k:'__none',name:'Без раздела',desc:'Раздел документа удалён или не задан — выберите новый через «Изменить» у документа'},other,false):'');
 }
-function openLibDlg(id,file){const d=id?libDocs().find(x=>x.id===id):null;const cats=libCats();const info=file?nameInfo(file.name):null;const cat=d?d.cat:suggestCat(file?file.name:'');
+function openCatDlg(k){const c=k?libCats().find(x=>x.k===k):null;const n=c?libDocs().filter(d=>!d.archived&&d.cat===k).length:0;
+  $('dlg-root').innerHTML=`<div class="overlay" id="ov"><div class="dlg" role="dialog" aria-modal="true" aria-labelledby="dlg-h">
+    <h3 id="dlg-h">${c?'Раздел «'+esc(c.name)+'»':'Новый раздел библиотеки'}</h3>
+    <div class="field"><label for="lc-n">Название</label><input id="lc-n" value="${esc(c?c.name:'')}" placeholder="Например: Обучение"></div>
+    <div class="field"><label for="lc-d">Что в нём лежит</label><textarea id="lc-d" style="min-height:60px">${esc(c?c.desc||'':'')}</textarea></div>
+    ${c&&n?`<p class="muted" style="margin:0;font-size:13px">Удалить раздел можно, только когда в нём нет документов (сейчас ${n}).</p>`:''}
+    <div class="actions"><button class="btn primary" id="lc-save" type="button">${c?'Сохранить':'Создать раздел'}</button>${c&&!n?'<button class="btn" id="lc-del" type="button">Удалить раздел</button>':''}<button class="btn" id="lc-cancel" type="button">Отмена</button></div></div></div>`;
+  const close=()=>{$('dlg-root').innerHTML=''};$('ov').addEventListener('click',e=>{if(e.target.id==='ov')close()});$('lc-cancel').onclick=close;$('ov').addEventListener('keydown',e=>{if(e.key==='Escape')close()});$('lc-n').focus();
+  $('lc-save').onclick=async()=>{const name=$('lc-n').value.trim();if(!name){toast('Введите название раздела.');$('lc-n').focus();return}const desc=$('lc-d').value.trim();$('lc-save').disabled=true;
+    const ok=c?await libCommit(`${author()}: раздел библиотеки «${name}»`,lib=>{const x=ensureCats(lib).find(z=>z.k===k);if(!x)throw conflictErr('Раздел уже удалили.');x.name=name;x.desc=desc},'Раздел сохранён')
+             :await libAddCat(name,desc);
+    if(ok)close();else{const b=$('lc-save');if(b)b.disabled=false}};
+  if(c&&!n)$('lc-del').onclick=async()=>{if(await libCommit(`${author()}: удалён пустой раздел «${c.name}»`,lib=>{const cs=ensureCats(lib);if(Object.values(lib.docs||{}).some(d=>!d.archived&&d.cat===k))throw conflictErr('В разделе уже появились документы — удалить нельзя.');lib.cats=cs.filter(z=>z.k!==k)},'Раздел удалён')){if(libCat===k){libCat='';store('opora.libCat','')}close();renderLib()}};
+}
+async function libAddCat(name,desc){const k=newKey('c');const ok=await libCommit(`${author()}: новый раздел библиотеки «${name}»`,lib=>{const cs=ensureCats(lib);if(cs.some(z=>z.name.trim().toLowerCase()===name.toLowerCase()))throw conflictErr('Раздел с таким названием уже есть.');cs.push({k,name,desc:desc||''})},'Раздел «'+name+'» создан');return ok?k:false}
+function openLibDlg(id,file,preCat){const d=id?libDocs().find(x=>x.id===id):null;const cats=libCats();const info=file?nameInfo(file.name):null;const cat=d?d.cat:(preCat&&cats.some(c=>c.k===preCat)?preCat:suggestCat(file?file.name:''));
   $('dlg-root').innerHTML=`<div class="overlay" id="ov"><div class="dlg" role="dialog" aria-modal="true" aria-labelledby="dlg-h">
     <h3 id="dlg-h">${d?'Документ «'+esc(d.title)+'»':'Новый документ в библиотеку'}</h3>
     ${file?`<p class="muted" style="margin:0;font-size:13px">Файл: ${esc(file.name)} · ${fmtSize(file.size)}</p>`:''}
+    <div class="field ld-sec"><label for="ld-c">В какой раздел положить</label><select id="ld-c">${cats.map(c=>`<option value="${c.k}" ${c.k===cat?'selected':''}>${esc(c.name)}</option>`).join('')}${readOnly?'':'<option value="__new">+ Новый раздел…</option>'}</select>
+      <input id="ld-cn" placeholder="Название нового раздела" hidden style="margin-top:8px"></div>
     <div class="field"><label for="ld-t">Название</label><input id="ld-t" value="${esc(d?d.title:info?info.stem:'')}"></div>
-    <div class="row"><div class="field"><label for="ld-c">Раздел</label><select id="ld-c">${cats.map(c=>`<option value="${c.k}" ${c.k===cat?'selected':''}>${esc(c.name)}</option>`).join('')}</select></div>
-      <div class="field"><label for="ld-a">Для кого</label><select id="ld-a"><option value="internal" ${(d?d.aud:suggestAud(cat))==='internal'?'selected':''}>Внутренний</option><option value="client" ${(d?d.aud:suggestAud(cat))==='client'?'selected':''}>Для клиента</option></select></div></div>
+    <div class="row"><div class="field"><label for="ld-a">Для кого</label><select id="ld-a"><option value="internal" ${(d?d.aud:suggestAud(cat))==='internal'?'selected':''}>Внутренний</option><option value="client" ${(d?d.aud:suggestAud(cat))==='client'?'selected':''}>Для клиента</option></select></div><div class="field"></div></div>
     <div class="field"><label for="ld-d">Коротко, что это</label><textarea id="ld-d" style="min-height:60px">${esc(d?d.desc||'':'')}</textarea></div>
     <div class="field"><label for="ld-p">Папка на компьютере (внутри «Консалтинг»; пусто — корень)</label><input id="ld-p" value="${esc(d?d.dir||'':'')}" placeholder="Например: Калькулятор МП"></div>
     <div class="actions"><button class="btn primary" id="ld-save" type="button">${d?'Сохранить':'Загрузить'}</button>${d?`<button class="btn" id="ld-arch" type="button">Убрать из библиотеки</button>`:''}<button class="btn" id="ld-cancel" type="button">Отмена</button></div></div></div>`;
   const close=()=>{$('dlg-root').innerHTML=''};$('ov').addEventListener('click',e=>{if(e.target.id==='ov')close()});$('ld-cancel').onclick=close;$('ov').addEventListener('keydown',e=>{if(e.key==='Escape')close()});$('ld-t').focus();
-  $('ld-save').onclick=async()=>{const m={title:$('ld-t').value.trim()||(info?info.stem:'Документ'),cat:$('ld-c').value,aud:$('ld-a').value,desc:$('ld-d').value.trim(),dir:$('ld-p').value.trim().replace(/\\/g,'/').replace(/^\/+|\/+$/g,'')};$('ld-save').disabled=true;let ok;
+  $('ld-c').onchange=()=>{const nw=$('ld-c').value==='__new';$('ld-cn').hidden=!nw;if(nw)$('ld-cn').focus();else if(!d)$('ld-a').value=suggestAud($('ld-c').value)};
+  $('ld-save').onclick=async()=>{let catK=$('ld-c').value;if(catK==='__new'){const nm=$('ld-cn').value.trim();if(!nm){toast('Введите название нового раздела.');$('ld-cn').focus();return}$('ld-save').disabled=true;catK=await libAddCat(nm,'');if(!catK){$('ld-save').disabled=false;return}}
+    const m={title:$('ld-t').value.trim()||(info?info.stem:'Документ'),cat:catK,aud:$('ld-a').value,desc:$('ld-d').value.trim(),dir:$('ld-p').value.trim().replace(/\\/g,'/').replace(/^\/+|\/+$/g,'')};$('ld-save').disabled=true;let ok;
     if(d)ok=await libCommit(`${author()}: описание документа «${d.title}»`,lib=>{const x=lib.docs[d.id];if(!x)throw conflictErr('Документ уже убрали.');Object.assign(x,m)},'Сохранено');
     else ok=await libUploadFile(file,newKey('d'),Object.assign(m,{key:nameInfo((m.dir?m.dir+'/':'')+file.name).key}));
     if(ok)close();else{const b=$('ld-save');if(b)b.disabled=false}};
   if(d)$('ld-arch').onclick=async()=>{if(await libCommit(`${author()}: «${d.title}» убран из библиотеки`,lib=>{const x=lib.docs[d.id];if(x)x.archived=new Date().toISOString()},'Документ убран (файлы и история сохранены)'))close()};
 }
 let libPending=null;
-document.addEventListener('click',async e=>{const t=e.target.closest&&e.target.closest('[data-libcat],[data-libaud],[data-libget],[data-libup],[data-libhist],[data-libedit],[data-lsrun],#lib-sync,#lib-add');if(!t)return;
+document.addEventListener('click',async e=>{const t=e.target.closest&&e.target.closest('[data-libcat],[data-libaud],[data-libget],[data-libup],[data-libhist],[data-libedit],[data-lsrun],[data-libaddto],[data-libcatedit],#lib-sync,#lib-add,#lib-addcat,#lib-openall,#lib-closeall');if(!t)return;
   if(t.id==='lib-sync'){runLibSync(false);return}
   if(t.id==='lib-add'){libPending={add:true};$('lib-file').value='';$('lib-file').click();return}
+  if(t.id==='lib-addcat'){openCatDlg(null);return}
+  if(t.id==='lib-openall'||t.id==='lib-closeall'){libClosed.clear();if(t.id==='lib-closeall'){libCats().forEach(c=>libClosed.add(c.k));libClosed.add('__none')}saveLibClosed();document.querySelectorAll('#lib-list details.lcat').forEach(x=>{x.open=t.id==='lib-openall'});return}
+  if(t.dataset.libaddto){e.preventDefault();libPending={add:true,cat:t.dataset.libaddto};$('lib-file').value='';$('lib-file').click();return}
+  if(t.dataset.libcatedit){e.preventDefault();openCatDlg(t.dataset.libcatedit);return}
   if(t.dataset.libcat!==undefined){libCat=t.dataset.libcat;store('opora.libCat',libCat);renderLib();return}
   if(t.dataset.libaud!==undefined){libAud=t.dataset.libaud;store('opora.libAud',libAud);renderLib();return}
   if(t.dataset.libhist){const id=t.dataset.libhist;libOpen.has(id)?libOpen.delete(id):libOpen.add(id);renderLib();return}
@@ -1692,7 +1734,7 @@ document.addEventListener('click',async e=>{const t=e.target.closest&&e.target.c
     try{const blob=await ghRaw(v.file,'blob');const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=v.name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000)}catch(_){toast('Файл не скачался.')}return}
   if(t.dataset.lsrun){libDo(+t.dataset.lsrun,t.dataset.how,false);return}});
 document.addEventListener('change',async e=>{if(e.target.id!=='lib-file'||!libPending)return;const f=e.target.files&&e.target.files[0];const p=libPending;libPending=null;if(!f)return;
-  if(p.add){openLibDlg(null,f);return}
+  if(p.add){openLibDlg(null,f,p.cat);return}
   const d=libDocs().find(x=>x.id===p.doc);if(!d)return;const lv=lastV(d);
   if(lv&&nameInfo(f.name).key!==nameInfo(lv.name).key&&!confirmName(f.name,lv.name))return;
   await libUploadFile(f,d.id,{dir:d.dir})});
@@ -1761,7 +1803,7 @@ document.addEventListener('change',e=>{const t=e.target;if(t.matches&&t.matches(
 document.addEventListener('keydown',e=>{if(e.key!=='Enter'&&e.key!==' ')return;const mc=e.target.closest&&e.target.closest('svg .mm-ctl');if(mc){e.preventDefault();mc.dispatchEvent(new MouseEvent('click',{bubbles:true}));return}const ad=e.target.closest&&e.target.closest('[data-addnode]');if(ad){e.preventDefault();if(!readOnly)openCreate({nodeKey:ad.dataset.addnode});return}
   const lf=e.target.closest&&e.target.closest('[data-node]');if(lf){e.preventDefault();goNode(lf.dataset.node,lf.closest('#map')?mmSt():'')}});
 function goNode(v,st){st=st||'';Object.assign(filt,{q:'',area:v,phase:'',status:st,owner:''});$('f-q').value='';$('f-area').value=v;$('f-phase').value='';$('f-status').value=st;$('f-owner').value='';store('opora.filt',filt);renderBacklog();setTab('backlog');window.scrollTo({top:$('view-backlog').offsetTop-80})}
-document.addEventListener('toggle',e=>{const d=e.target;if(d.classList&&d.classList.contains('phase')){d.open?openPhases.add(d.dataset.phase):openPhases.delete(d.dataset.phase);store('opora.open',[...openPhases])}},true);
+document.addEventListener('toggle',e=>{const d=e.target;if(d.classList&&d.classList.contains('lcat')&&d.dataset.libsec&&!libQ.trim()){d.open?libClosed.delete(d.dataset.libsec):libClosed.add(d.dataset.libsec);saveLibClosed();return}if(d.classList&&d.classList.contains('phase')){d.open?openPhases.add(d.dataset.phase):openPhases.delete(d.dataset.phase);store('opora.open',[...openPhases])}},true);
 // new task from the backlog takes direction/node, stage and owner from the active filters
 function prefFromFilt(){const p={};if(filt.area){const [a,n]=filt.area.split('/');const A=AREAS.find(x=>x.k===a);if(A&&A.nodes.length)p.nodeKey=a+'/'+(n&&A.nodes.some(x=>x[0]===n)?n:A.nodes[0][0])}if(filt.phase&&PH[filt.phase])p.phase=filt.phase;if(filt.owner)p.owner=filt.owner;return p}
 $('bl-add').onclick=()=>openCreate(prefFromFilt());
